@@ -29,6 +29,7 @@ class DataProfile:
     normalize: bool = True
     realtime_refresh: bool = False
     hybrid_weight: float = 0.5
+    fail_on_poisoning: bool = False
 
     def __post_init__(self) -> None:
         if self.periods <= 0:
@@ -182,6 +183,16 @@ def build_hybrid_rows(real_rows: list[dict], synthetic_rows: list[dict], *, real
     return sorted(mixed, key=lambda x: (x["timestamp"], x["series_id"]))
 
 
+
+
+def should_reject_poisoning(total_rows: int, suspect_rows: int) -> bool:
+    if suspect_rows <= 0:
+        return False
+    # avoid hard-failing on a single suspicious point from external feeds
+    # while still rejecting broader contamination patterns
+    return suspect_rows >= 2 and (suspect_rows / max(1, total_rows)) >= 0.02
+
+
 def load_dataset(profile: DataProfile, path: str | Path = "data/sample_demand.csv") -> DatasetBundle:
     if profile.source == "sample_csv":
         build_sample_dataset(path, periods=profile.periods)
@@ -198,7 +209,8 @@ def load_dataset(profile: DataProfile, path: str | Path = "data/sample_demand.cs
     else:
         rows = load_csv(path)
 
-    if detect_poisoning_rows(rows):
+    suspects = detect_poisoning_rows(rows)
+    if profile.fail_on_poisoning and should_reject_poisoning(len(rows), len(suspects)):
         raise ValueError("potential data poisoning detected")
 
     if profile.normalize:

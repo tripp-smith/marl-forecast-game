@@ -17,6 +17,7 @@ from framework.data import (
     load_json,
     load_source_rows,
     normalize_features,
+    should_reject_poisoning,
 )
 from framework.defenses import StackedDefense, defense_from_name
 from framework.disturbances import disturbance_from_name
@@ -221,3 +222,23 @@ def test_hybrid_row_builder_preserves_chronological_order(tmp_path):
 def test_llm_repl_stub_can_be_constructed_without_calling_network():
     repl = DSPyLikeRepl(client=OllamaClient())
     assert repl.client.base_url.startswith("http")
+
+
+def test_should_reject_poisoning_requires_multiple_suspects():
+    assert should_reject_poisoning(100, 1) is False
+    assert should_reject_poisoning(100, 2) is True
+
+
+def test_load_dataset_can_enforce_poisoning_on_strict_mode(tmp_path):
+    p = tmp_path / "poison.csv"
+    p.write_text(
+        "timestamp,series_id,target,promo,macro_index\n"
+        "2024-01-01T00:00:00,s1,1,0,1\n"
+        "2024-01-02T00:00:00,s1,1,0,1\n"
+        "2024-01-03T00:00:00,s1,1,0,1\n"
+        "2024-01-04T00:00:00,s1,1000,0,1\n"
+        "2024-01-05T00:00:00,s1,2000,0,1\n",
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError):
+        load_dataset(DataProfile(source="csv", periods=5, normalize=False, fail_on_poisoning=True), path=p)
