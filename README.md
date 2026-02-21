@@ -58,6 +58,16 @@ The image includes a healthcheck that runs core verification checks.
        python -c "from framework.llm.ollama_interface import OllamaInterface; print(OllamaInterface(base_url='http://host.docker.internal:11434').is_available())"
      ```
 
+### One-command debug harness (build + run + log capture)
+
+Run the following single command from the repo root:
+
+```bash
+bash scripts/run_container_test_harness.sh
+```
+
+The script builds the container, runs `scripts/validate.sh` plus `python scripts/run_test_suite.py` inside the container, and writes a timestamped log under `planning/` that you can share for debugging.
+
 ## Data Ethics and Compliance Notes
 
 - The framework only reads public APIs/sources listed in `DRD.md`.
