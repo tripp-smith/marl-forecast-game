@@ -1,6 +1,7 @@
 import pytest
 import random
 
+from framework.agents import AdversaryAgent
 from framework.data import (
     DataProfile,
     build_sample_dataset,
@@ -10,8 +11,16 @@ from framework.data import (
     load_source_rows,
     normalize_features,
 )
+from framework.defenses import StackedDefense, defense_from_name
+from framework.disturbances import disturbance_from_name
 from framework.game import ForecastGame
-from framework.strategy_runtime import HaskellRLMRuntime, PythonStrategyRuntime, runtime_from_name
+from framework.strategy_runtime import (
+    DeterministicPromptClient,
+    HaskellRLMRuntime,
+    PromptStrategyRuntime,
+    PythonStrategyRuntime,
+    runtime_from_name,
+)
 from framework.types import ForecastState, SimulationConfig, evolve_state
 
 
@@ -79,10 +88,11 @@ def test_source_adapter_schema():
     assert {"timestamp", "series_id", "target", "promo", "macro_index", "source", "fetched_at"}.issubset(first.keys())
 
 
-def test_load_dataset_real_profile_works():
-    bundle = load_dataset(DataProfile(source="fred", periods=45, normalize=True))
-    assert len(bundle.train) > 0
-    assert len(bundle.valid) > 0
+def test_load_dataset_real_profile_works_for_fred_and_imf():
+    fred_bundle = load_dataset(DataProfile(source="fred", periods=45, normalize=True))
+    imf_bundle = load_dataset(DataProfile(source="imf", periods=45, normalize=True))
+    assert len(fred_bundle.train) > 0
+    assert len(imf_bundle.valid) > 0
 
 
 def test_immutability_of_reward_breakdown_mapping():
@@ -107,3 +117,57 @@ def test_llm_refactor_stub_path_executes():
     cfg = SimulationConfig(horizon=6, max_rounds=10, enable_refactor=True, enable_llm_refactor=True)
     out = ForecastGame(cfg, seed=7).run(ForecastState(t=0, value=8.0, exogenous=0.1, hidden_shift=0.0))
     assert len(out.steps) == 6
+
+
+def test_simulation_config_validation_raises_for_invalid_prob():
+    with pytest.raises(ValueError):
+        SimulationConfig(disturbance_prob=1.5)
+
+
+def test_data_profile_validation_raises_for_invalid_ratios():
+    with pytest.raises(ValueError):
+        DataProfile(train_ratio=0.8, valid_ratio=0.25)
+
+
+def test_chronological_split_validation_raises_for_invalid_splits():
+    with pytest.raises(ValueError):
+        chronological_split([{"x": 1}], train=0.0, valid=0.2)
+
+
+def test_new_disturbance_models_are_reachable():
+    s = ForecastState(t=12, value=10.0, exogenous=0.5, hidden_shift=0.1)
+    cfg = SimulationConfig(disturbance_prob=1.0, disturbance_scale=1.0)
+    rng = random.Random(7)
+    for name in ["regime_shift", "volatility_burst", "drift"]:
+        model = disturbance_from_name(name)
+        val = model.sample(s, rng, cfg)
+        assert isinstance(val, float)
+
+
+def test_stacked_defense_parser_works():
+    model = defense_from_name("stack:clipping,dampening")
+    assert isinstance(model, StackedDefense)
+    correction = model.defend(0.2, -0.5)
+    assert isinstance(correction, float)
+
+
+def test_prompt_runtime_supports_mocked_llm_response():
+    runtime = PromptStrategyRuntime(client=DeterministicPromptClient("0.123"))
+    state = ForecastState(t=0, value=1.0, exogenous=0.0, hidden_shift=0.0)
+    assert runtime.forecast_delta(state) == pytest.approx(0.123)
+
+
+def test_adversary_cost_reduces_attack_magnitude():
+    state = ForecastState(t=0, value=10.0, exogenous=0.0, hidden_shift=0.0)
+    aggressive = AdversaryAgent(aggressiveness=1.0, attack_cost=0.0).act(state)
+    costly = AdversaryAgent(aggressiveness=1.0, attack_cost=2.0).act(state)
+    assert abs(costly.delta) < abs(aggressive.delta)
+
+
+def test_game_outputs_include_structured_trajectory_logs():
+    cfg = SimulationConfig(horizon=4, max_rounds=10)
+    out = ForecastGame(cfg, seed=1).run(ForecastState(t=0, value=2.0, exogenous=0.0, hidden_shift=0.0))
+    assert len(out.trajectory_logs) == 4
+    assert {"round_idx", "state", "actions", "forecast", "target", "reward", "disturbance", "messages"}.issubset(
+        out.trajectory_logs[0].keys()
+    )

@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from random import Random
-from typing import List
+from typing import Callable, List
 
 from .agents import AdversaryAgent, DefenderAgent, ForecastingAgent, RefactoringAgent
 from .disturbances import disturbance_from_name
@@ -19,26 +19,36 @@ from .types import (
 )
 
 
+AgentFactory = Callable[[SimulationConfig], tuple[ForecastingAgent, AdversaryAgent, DefenderAgent, RefactoringAgent]]
+
+
 @dataclass(frozen=True)
 class GameOutputs:
     steps: List[StepResult]
     trajectories: List[TrajectoryEntry]
+    trajectory_logs: List[dict]
     forecasts: List[float]
     targets: List[float]
     confidence: List[ConfidenceInterval]
     convergence: dict
 
 
+def default_agent_factory(config: SimulationConfig) -> tuple[ForecastingAgent, AdversaryAgent, DefenderAgent, RefactoringAgent]:
+    return (
+        ForecastingAgent(),
+        AdversaryAgent(aggressiveness=config.adversarial_intensity, attack_cost=config.attack_cost),
+        DefenderAgent(),
+        RefactoringAgent(),
+    )
+
+
 class ForecastGame:
-    def __init__(self, config: SimulationConfig, seed: int = 7):
+    def __init__(self, config: SimulationConfig, seed: int = 7, *, agent_factory: AgentFactory = default_agent_factory):
         self.config = config
         self._rng = Random(seed)
         self.runtime = runtime_from_name(config.runtime_backend)
         self.disturbance = disturbance_from_name(config.disturbance_model)
-        self.forecaster = ForecastingAgent()
-        self.adversary = AdversaryAgent(aggressiveness=config.adversarial_intensity)
-        self.defender = DefenderAgent()
-        self.refactor = RefactoringAgent()
+        self.forecaster, self.adversary, self.defender, self.refactor = agent_factory(config)
 
     def run(self, initial: ForecastState, rounds: int | None = None, *, disturbed: bool = True) -> GameOutputs:
         requested_rounds = rounds if rounds is not None else self.config.horizon
@@ -46,6 +56,7 @@ class ForecastGame:
         state = initial
         steps: List[StepResult] = []
         trajectories: List[TrajectoryEntry] = []
+        trajectory_logs: List[dict] = []
         forecasts: List[float] = []
         targets: List[float] = []
         confidence: List[ConfidenceInterval] = []
@@ -98,6 +109,18 @@ class ForecastGame:
                 forecast=forecast,
                 target=target,
             )
+            trajectory_logs.append(
+                {
+                    "round_idx": idx,
+                    "state": asdict(state),
+                    "actions": [asdict(a) for a in (f_action, a_action, d_action)],
+                    "forecast": forecast,
+                    "target": target,
+                    "reward": reward,
+                    "disturbance": disturbance,
+                    "messages": [asdict(m) for m in messages],
+                }
+            )
             steps.append(step)
             trajectories.append(traj)
             forecasts.append(forecast)
@@ -113,6 +136,7 @@ class ForecastGame:
         return GameOutputs(
             steps=steps,
             trajectories=trajectories,
+            trajectory_logs=trajectory_logs,
             forecasts=forecasts,
             targets=targets,
             confidence=confidence,

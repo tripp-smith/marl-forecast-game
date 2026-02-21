@@ -20,10 +20,14 @@ class ForecastingAgent:
 class AdversaryAgent:
     name: str = "adversary"
     aggressiveness: float = 1.0
+    attack_cost: float = 0.0
 
     def act(self, state: ForecastState) -> AgentAction:
         sign = -1.0 if state.value >= 0 else 1.0
-        return AgentAction(actor=self.name, delta=sign * 0.4 * self.aggressiveness)
+        base = sign * 0.4 * self.aggressiveness
+        penalty = min(abs(base), self.attack_cost * 0.2)
+        delta = base - (penalty if base > 0 else -penalty)
+        return AgentAction(actor=self.name, delta=delta)
 
 
 @dataclass(frozen=True)

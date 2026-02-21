@@ -4,8 +4,9 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
 import csv
+import math
 
-from .data_sources import FredMacroAdapter, PolymarketAdapter
+from .data_sources import FredMacroAdapter, ImfMacroAdapter, PolymarketAdapter
 
 
 REQUIRED_COLUMNS = ["timestamp", "series_id", "target", "promo", "macro_index"]
@@ -25,6 +26,16 @@ class DataProfile:
     train_ratio: float = 0.7
     valid_ratio: float = 0.15
     normalize: bool = True
+
+    def __post_init__(self) -> None:
+        if self.periods <= 0:
+            raise ValueError("periods must be > 0")
+        if not (0 < self.train_ratio < 1):
+            raise ValueError("train_ratio must be in (0,1)")
+        if not (0 <= self.valid_ratio < 1):
+            raise ValueError("valid_ratio must be in [0,1)")
+        if self.train_ratio + self.valid_ratio >= 1:
+            raise ValueError("train_ratio + valid_ratio must be < 1")
 
 
 def _ensure_required(rows: list[dict]) -> None:
@@ -69,6 +80,8 @@ def load_source_rows(source: str, periods: int = 30) -> list[dict]:
     normalized = source.strip().lower()
     if normalized == "fred":
         records = FredMacroAdapter().fetch(periods)
+    elif normalized == "imf":
+        records = ImfMacroAdapter().fetch(periods)
     elif normalized == "polymarket":
         records = PolymarketAdapter().fetch(periods)
     else:
@@ -93,6 +106,13 @@ def normalize_features(rows: list[dict]) -> list[dict]:
 
 
 def chronological_split(rows: list[dict], train=0.7, valid=0.15) -> DatasetBundle:
+    if not (0 < train < 1):
+        raise ValueError("train split must be in (0,1)")
+    if not (0 <= valid < 1):
+        raise ValueError("valid split must be in [0,1)")
+    if train + valid >= 1:
+        raise ValueError("train + valid split must be < 1")
+
     n = len(rows)
     train_end = int(n * train)
     valid_end = train_end + int(n * valid)
@@ -125,10 +145,11 @@ def build_sample_dataset(path: str | Path, periods: int = 365) -> None:
         base = 40.0 if "store_1" in sid else 25.0
         for i in range(periods):
             ts = start + timedelta(days=i)
-            weekly = 4.0 if ts.weekday() in [5, 6] else -2.0
+            weekly_seasonality = 3.8 * math.sin((2 * math.pi * i) / 7.0)
+            yearly = 2.1 * math.sin((2 * math.pi * i) / 365.0)
             promo = 1 if i % 17 == 0 else 0
             macro = 100 + (i * 0.05)
-            target = base + 0.15 * i + weekly + 3.0 * promo + 0.08 * macro
+            target = base + 0.12 * i + weekly_seasonality + yearly + 3.0 * promo + 0.08 * macro
             records.append(
                 {
                     "timestamp": ts.isoformat(),

@@ -69,6 +69,23 @@ class SimulationConfig:
     defense_model: str = "dampening"
     enable_refactor: bool = True
     enable_llm_refactor: bool = False
+    attack_cost: float = 0.0
+
+    def __post_init__(self) -> None:
+        if self.horizon < 0:
+            raise ValueError("horizon must be >= 0")
+        if self.max_rounds < 0:
+            raise ValueError("max_rounds must be >= 0")
+        if self.base_noise_std < 0:
+            raise ValueError("base_noise_std must be >= 0")
+        if not (0.0 <= self.disturbance_prob <= 1.0):
+            raise ValueError("disturbance_prob must be in [0, 1]")
+        if self.disturbance_scale < 0:
+            raise ValueError("disturbance_scale must be >= 0")
+        if self.adversarial_intensity < 0:
+            raise ValueError("adversarial_intensity must be >= 0")
+        if self.attack_cost < 0:
+            raise ValueError("attack_cost must be >= 0")
 
 
 def frozen_mapping(values: dict[str, float]) -> Mapping[str, float]:
