@@ -1,18 +1,20 @@
 {
   "attack": {
-    "mae": 0.4819384434069942,
-    "mape": 0.7637973959823641,
-    "rmse": 0.6257210291280325,
-    "worst_case": 1.7464191173897277
+    "mae": 0.4822269334388304,
+    "mape": 0.7644012358206366,
+    "rmse": 0.6256532176747827,
+    "worst_case": 1.7464752407741173
   },
   "checks": {
     "attack_differs_from_clean": true,
+    "deterministic_100_runs": true,
+    "hybrid_data_non_empty": true,
     "max_rounds_respected": true,
     "pure_transition": true,
     "real_data_split_non_empty": true,
     "source_adapter_rows": true,
     "split_non_empty": true,
-    "trajectory_present": true
+    "stress_10k_rounds": true
   },
   "clean": {
     "mae": 0.804828391419137,
@@ -25,9 +27,10 @@
     "round_cap_hit": false,
     "rounds_executed": 80
   },
+  "prometheus_metrics_present": false,
   "robustness": {
-    "mae_delta": -0.32288994801214277,
-    "mae_ratio": 0.5988089492683059
+    "mae_delta": -0.3226014579803066,
+    "mae_ratio": 0.5991673983922582
   },
   "rows": {
     "test": 72,

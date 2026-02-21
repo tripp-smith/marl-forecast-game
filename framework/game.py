@@ -2,10 +2,12 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass
 from random import Random
+import time
 from typing import Callable, List
 
-from .agents import AdversaryAgent, DefenderAgent, ForecastingAgent, RefactoringAgent
+from .agents import AdversaryAgent, DefenderAgent, ForecastingAgent, RefactoringAgent, SafeAgentExecutor
 from .disturbances import disturbance_from_name
+from .observability import ROUND_COUNTER, ROUND_LATENCY, GameObserver
 from .strategy_runtime import runtime_from_name
 from .types import (
     AgentMessage,
@@ -49,6 +51,8 @@ class ForecastGame:
         self.runtime = runtime_from_name(config.runtime_backend)
         self.disturbance = disturbance_from_name(config.disturbance_model)
         self.forecaster, self.adversary, self.defender, self.refactor = agent_factory(config)
+        self.safe_exec = SafeAgentExecutor()
+        self.logger = GameObserver().logger()
 
     def run(self, initial: ForecastState, rounds: int | None = None, *, disturbed: bool = True) -> GameOutputs:
         requested_rounds = rounds if rounds is not None else self.config.horizon
@@ -63,12 +67,12 @@ class ForecastGame:
         refactor_bias = 0.0
 
         for idx in range(n_rounds):
-            f_action = self.forecaster.act(state, self.runtime)
-            a_action = self.adversary.act(state)
-            d_action = self.defender.act(f_action, a_action, self.config.defense_model)
+            start = time.perf_counter()
+            f_action = self.safe_exec.execute(self.forecaster.act, state, self.runtime)
+            a_action = self.safe_exec.execute(self.adversary.act, state)
+            d_action = self.safe_exec.execute(self.defender.act, f_action, a_action, self.config.defense_model)
 
             disturbance = self.disturbance.sample(state, self._rng, self.config) if disturbed else 0.0
-
             forecast = state.value + f_action.delta + a_action.delta + d_action.delta + refactor_bias
             noise = self._rng.gauss(0, self.config.base_noise_std)
             next_state = evolve_state(state, base_trend=0.4, noise=noise, disturbance=disturbance)
@@ -87,9 +91,7 @@ class ForecastGame:
                 AgentMessage("defender", "refactor", f"defense={d_action.delta:.4f}"),
             )
 
-            reward_breakdown = frozen_mapping(
-                {"forecaster": reward, "adversary": -reward, "defender": reward}
-            )
+            reward_breakdown = frozen_mapping({"forecaster": reward, "adversary": -reward, "defender": reward})
 
             step = StepResult(
                 next_state=next_state,
@@ -109,6 +111,23 @@ class ForecastGame:
                 forecast=forecast,
                 target=target,
             )
+            elapsed = time.perf_counter() - start
+            if elapsed > self.config.max_round_timeout_s:
+                try:
+                    self.logger.warning("round_timeout", round_idx=idx, elapsed=elapsed)
+                except TypeError:
+                    self.logger.warning(f"round_timeout round_idx={idx} elapsed={elapsed:.6f}")
+                break
+
+            if ROUND_COUNTER is not None:
+                ROUND_COUNTER.inc()
+            if ROUND_LATENCY is not None:
+                ROUND_LATENCY.observe(elapsed)
+            try:
+                self.logger.info("round_complete", round_idx=idx, reward=reward, disturbance=disturbance)
+            except TypeError:
+                self.logger.info(f"round_complete round_idx={idx} reward={reward:.6f} disturbance={disturbance:.6f}")
+
             trajectory_logs.append(
                 {
                     "round_idx": idx,
