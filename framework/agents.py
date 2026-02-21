@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from .defenses import defense_from_name
+from .llm import LLMRefactorClient, MockLLMRefactorClient, RefactorRequest
 from .strategy_runtime import StrategyRuntime
 from .types import AgentAction, ForecastState
 
@@ -39,7 +40,12 @@ class DefenderAgent:
 class RefactoringAgent:
     name: str = "refactor"
     step_size: float = 0.02
+    llm_client: LLMRefactorClient = MockLLMRefactorClient(step_size=0.02)
 
-    def revise(self, latest_error: float) -> float:
-        # very small corrective bias to mimic iterative strategy tuning
+    def revise(self, latest_error: float, *, use_llm: bool = False) -> float:
+        if use_llm:
+            suggestion = self.llm_client.suggest(
+                RefactorRequest(latest_error=latest_error, strategy_name=self.name)
+            )
+            return suggestion.bias_adjustment
         return -self.step_size if latest_error > 0 else self.step_size

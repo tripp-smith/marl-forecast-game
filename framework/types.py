@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
-from typing import Dict, Tuple
+from types import MappingProxyType
+from typing import Mapping, Tuple
 
 
 @dataclass(frozen=True)
@@ -39,7 +40,7 @@ class TrajectoryEntry:
     state: ForecastState
     actions: Tuple[AgentAction, ...]
     messages: Tuple[AgentMessage, ...]
-    reward_breakdown: Dict[str, float]
+    reward_breakdown: Mapping[str, float]
     forecast: float
     target: float
 
@@ -48,7 +49,7 @@ class TrajectoryEntry:
 class StepResult:
     next_state: ForecastState
     actions: Tuple[AgentAction, ...]
-    reward_breakdown: Dict[str, float]
+    reward_breakdown: Mapping[str, float]
     forecast: float
     target: float
     confidence: ConfidenceInterval
@@ -62,10 +63,18 @@ class SimulationConfig:
     base_noise_std: float = 0.15
     disturbance_prob: float = 0.1
     disturbance_scale: float = 1.0
+    adversarial_intensity: float = 1.0
     runtime_backend: str = "python"
     disturbance_model: str = "gaussian"
     defense_model: str = "dampening"
     enable_refactor: bool = True
+    enable_llm_refactor: bool = False
+
+
+def frozen_mapping(values: dict[str, float]) -> Mapping[str, float]:
+    """Return an immutable mapping wrapper for externally exposed artifacts."""
+
+    return MappingProxyType(dict(values))
 
 
 def evolve_state(
