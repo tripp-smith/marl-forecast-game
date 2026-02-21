@@ -5,6 +5,8 @@ from datetime import datetime, timedelta
 from pathlib import Path
 import csv
 
+from .data_sources import FredMacroAdapter, PolymarketAdapter
+
 
 REQUIRED_COLUMNS = ["timestamp", "series_id", "target", "promo", "macro_index"]
 
@@ -16,23 +18,39 @@ class DatasetBundle:
     test: list[dict]
 
 
+def _ensure_required(rows: list[dict]) -> None:
+    missing = [col for col in REQUIRED_COLUMNS if col not in (rows[0].keys() if rows else [])]
+    if missing:
+        raise ValueError(f"missing columns: {missing}")
+
+
 def load_csv(path: str | Path) -> list[dict]:
     with open(path, newline="", encoding="utf-8") as f:
         reader = csv.DictReader(f)
         rows = list(reader)
 
-    missing = [col for col in REQUIRED_COLUMNS if col not in (rows[0].keys() if rows else [])]
-    if missing:
-        raise ValueError(f"missing columns: {missing}")
+    _ensure_required(rows)
 
     for row in rows:
         row["timestamp"] = datetime.fromisoformat(row["timestamp"])
         row["target"] = float(row["target"])
         row["promo"] = float(row["promo"])
         row["macro_index"] = float(row["macro_index"])
+    return sorted(rows, key=lambda x: (x["series_id"], x["timestamp"]))
 
-    rows.sort(key=lambda r: (r["series_id"], r["timestamp"]))
-    return rows
+
+def load_source_rows(source: str, periods: int = 30) -> list[dict]:
+    normalized = source.strip().lower()
+    if normalized == "fred":
+        records = FredMacroAdapter().fetch(periods)
+    elif normalized == "polymarket":
+        records = PolymarketAdapter().fetch(periods)
+    else:
+        raise ValueError(f"unknown source adapter: {source}")
+
+    rows = [r.as_row() for r in records]
+    _ensure_required(rows)
+    return sorted(rows, key=lambda x: (x["series_id"], x["timestamp"]))
 
 
 def normalize_features(rows: list[dict]) -> list[dict]:

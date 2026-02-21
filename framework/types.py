@@ -21,12 +21,38 @@ class AgentAction:
 
 
 @dataclass(frozen=True)
+class AgentMessage:
+    sender: str
+    receiver: str
+    payload: str
+
+
+@dataclass(frozen=True)
+class ConfidenceInterval:
+    lower: float
+    upper: float
+
+
+@dataclass(frozen=True)
+class TrajectoryEntry:
+    round_idx: int
+    state: ForecastState
+    actions: Tuple[AgentAction, ...]
+    messages: Tuple[AgentMessage, ...]
+    reward_breakdown: Dict[str, float]
+    forecast: float
+    target: float
+
+
+@dataclass(frozen=True)
 class StepResult:
     next_state: ForecastState
     actions: Tuple[AgentAction, ...]
     reward_breakdown: Dict[str, float]
     forecast: float
     target: float
+    confidence: ConfidenceInterval
+    messages: Tuple[AgentMessage, ...]
 
 
 @dataclass(frozen=True)
@@ -36,6 +62,10 @@ class SimulationConfig:
     base_noise_std: float = 0.15
     disturbance_prob: float = 0.1
     disturbance_scale: float = 1.0
+    runtime_backend: str = "python"
+    disturbance_model: str = "gaussian"
+    defense_model: str = "dampening"
+    enable_refactor: bool = True
 
 
 def evolve_state(

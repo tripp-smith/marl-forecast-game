@@ -1,11 +1,12 @@
 # marl-forecast-game
 
-MVP implementation of a multi-agent adversarial forecasting game with:
+MVP+ implementation of a multi-agent adversarial forecasting game with:
 
 - immutable simulation state
-- three core agents (forecasting, adversary, defender)
-- disturbance injection for adversarial evaluation
-- reproducible verification script and automated tests
+- four core agents (forecasting, adversary, defender, refactoring)
+- pluggable runtime, disturbance, and defense modules
+- DRD-aligned source adapter interface with provenance fields
+- reproducible verification script, report artifact generation, and automated tests
 
 ## Quickstart
 
@@ -33,11 +34,15 @@ The container installs dependencies from `requirements.txt` and executes:
 
 ## Project Structure
 
-- `framework/types.py`: immutable game state and transition model
-- `framework/agents.py`: forecasting, adversary, and defender policies
-- `framework/game.py`: round-based Markov game runner with round caps/fallback guard
-- `framework/data.py`: dataset generation, ingestion, normalization, chronological split
-- `framework/metrics.py`: MAE/RMSE/MAPE/worst-case metrics
+- `framework/types.py`: immutable game state, protocol objects, and config
+- `framework/strategy_runtime.py`: pluggable strategy runtime backends
+- `framework/agents.py`: forecasting, adversary, defender, and refactoring agents
+- `framework/disturbances.py`: disturbance model registry and implementations
+- `framework/defenses.py`: defense model registry and implementations
+- `framework/game.py`: round-based Markov game runner with observability artifacts
+- `framework/data.py`: dataset generation, ingestion, source adapters, normalization, chronological split
+- `framework/data_sources/`: DRD-style source adapter abstractions and exemplars
+- `framework/metrics.py`: MAE/RMSE/MAPE/worst-case and robustness deltas/ratios
 - `framework/verify.py`: end-to-end verification checks and metrics report
 - `tests/test_framework.py`: unit tests for deterministic behavior and guardrails
 
@@ -47,6 +52,14 @@ The current implementation verifies:
 
 - deterministic/pure state transitions
 - chronological train/valid/test splitting
+- runtime backend selection/fallback
 - enforcement of maximum simulation rounds
+- trajectory, confidence interval, and message artifacts
 - adversarial scenario quality checks relative to clean runs
-- accuracy metrics on clean and attacked scenarios
+- robustness deltas on clean and attacked scenarios
+- source-adapter schema conformance
+
+Running `python scripts/run_verification.py` emits:
+
+- console JSON summary
+- `planning/verification_report.json`
