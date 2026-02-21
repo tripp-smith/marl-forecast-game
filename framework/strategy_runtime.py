@@ -12,6 +12,10 @@ class StrategyRuntime(Protocol):
     def forecast_delta(self, state: ForecastState) -> float: ...
 
 
+class PromptRuntimeClient(Protocol):
+    def complete(self, prompt: str) -> str: ...
+
+
 @dataclass(frozen=True)
 class PythonStrategyRuntime:
     """Default deterministic local runtime."""
@@ -34,10 +38,36 @@ class HaskellRLMRuntime:
         return self.fallback.forecast_delta(state)
 
 
+@dataclass(frozen=True)
+class DeterministicPromptClient:
+    response: str = "0.0"
+
+    def complete(self, prompt: str) -> str:
+        return self.response
+
+
+@dataclass(frozen=True)
+class PromptStrategyRuntime:
+    """Mock-friendly prompt runtime for LLM strategy calls."""
+
+    client: PromptRuntimeClient = DeterministicPromptClient("0.0")
+    fallback: PythonStrategyRuntime = PythonStrategyRuntime()
+
+    def forecast_delta(self, state: ForecastState) -> float:
+        prompt = f"state(t={state.t}, value={state.value:.4f}, exogenous={state.exogenous:.4f}) -> delta"
+        text = self.client.complete(prompt).strip()
+        try:
+            return float(text)
+        except ValueError:
+            return self.fallback.forecast_delta(state)
+
+
 def runtime_from_name(name: str) -> StrategyRuntime:
     normalized = name.strip().lower()
     if normalized in {"python", "default"}:
         return PythonStrategyRuntime()
     if normalized in {"haskell", "haskellrlm"}:
         return HaskellRLMRuntime()
+    if normalized in {"prompt", "mock_llm", "llm"}:
+        return PromptStrategyRuntime()
     return PythonStrategyRuntime()
