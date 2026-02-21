@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from .defenses import defense_from_name
+from .strategy_runtime import StrategyRuntime
 from .types import AgentAction, ForecastState
 
 
@@ -9,9 +11,8 @@ from .types import AgentAction, ForecastState
 class ForecastingAgent:
     name: str = "forecaster"
 
-    def act(self, state: ForecastState) -> AgentAction:
-        # momentum + exogenous signal
-        return AgentAction(actor=self.name, delta=0.55 + 0.35 * state.exogenous)
+    def act(self, state: ForecastState, runtime: StrategyRuntime) -> AgentAction:
+        return AgentAction(actor=self.name, delta=runtime.forecast_delta(state))
 
 
 @dataclass(frozen=True)
@@ -20,7 +21,6 @@ class AdversaryAgent:
     aggressiveness: float = 1.0
 
     def act(self, state: ForecastState) -> AgentAction:
-        # attack in opposite direction of latent trend
         sign = -1.0 if state.value >= 0 else 1.0
         return AgentAction(actor=self.name, delta=sign * 0.4 * self.aggressiveness)
 
@@ -28,10 +28,18 @@ class AdversaryAgent:
 @dataclass(frozen=True)
 class DefenderAgent:
     name: str = "defender"
-    dampening: float = 0.6
 
-    def act(self, forecast_action: AgentAction, adversary_action: AgentAction) -> AgentAction:
-        correction = -(adversary_action.delta * self.dampening)
-        # lightly regularize forecaster overreaction
-        correction -= 0.1 * max(-1.0, min(1.0, forecast_action.delta))
+    def act(self, forecast_action: AgentAction, adversary_action: AgentAction, defense_model: str) -> AgentAction:
+        defense = defense_from_name(defense_model)
+        correction = defense.defend(forecast_action.delta, adversary_action.delta)
         return AgentAction(actor=self.name, delta=correction)
+
+
+@dataclass(frozen=True)
+class RefactoringAgent:
+    name: str = "refactor"
+    step_size: float = 0.02
+
+    def revise(self, latest_error: float) -> float:
+        # very small corrective bias to mimic iterative strategy tuning
+        return -self.step_size if latest_error > 0 else self.step_size

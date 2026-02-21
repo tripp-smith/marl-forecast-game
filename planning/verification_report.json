@@ -1,0 +1,36 @@
+{
+  "attack": {
+    "mae": 0.4819384434069944,
+    "mape": 0.7588702255256524,
+    "rmse": 0.6257210291280326,
+    "worst_case": 1.7464191173897277
+  },
+  "checks": {
+    "attack_differs_from_clean": true,
+    "max_rounds_respected": true,
+    "pure_transition": true,
+    "source_adapter_rows": true,
+    "split_non_empty": true,
+    "trajectory_present": true
+  },
+  "clean": {
+    "mae": 0.8048283914191373,
+    "mape": 1.2035991945533202,
+    "rmse": 0.9403988511179877,
+    "worst_case": 1.8681614965576046
+  },
+  "convergence": {
+    "max_rounds": 200,
+    "round_cap_hit": false,
+    "rounds_executed": 80
+  },
+  "robustness": {
+    "mae_delta": -0.32288994801214294,
+    "mae_ratio": 0.5988089492683059
+  },
+  "rows": {
+    "test": 72,
+    "train": 336,
+    "valid": 72
+  }
+}

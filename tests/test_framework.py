@@ -1,5 +1,6 @@
-from framework.data import build_sample_dataset, chronological_split, load_csv, normalize_features
+from framework.data import build_sample_dataset, chronological_split, load_csv, load_source_rows, normalize_features
 from framework.game import ForecastGame
+from framework.strategy_runtime import HaskellRLMRuntime, PythonStrategyRuntime, runtime_from_name
 from framework.types import ForecastState, SimulationConfig, evolve_state
 
 
@@ -25,3 +26,26 @@ def test_game_round_cap():
     game = ForecastGame(cfg, seed=9)
     out = game.run(ForecastState(t=0, value=50.0, exogenous=0.0, hidden_shift=0.0), disturbed=True)
     assert len(out.steps) == 200
+    assert out.convergence["round_cap_hit"] is True
+
+
+def test_runtime_backend_selection_and_fallback():
+    assert isinstance(runtime_from_name("python"), PythonStrategyRuntime)
+    assert isinstance(runtime_from_name("haskell"), HaskellRLMRuntime)
+    assert isinstance(runtime_from_name("unknown"), PythonStrategyRuntime)
+
+
+def test_confidence_and_messages_present():
+    cfg = SimulationConfig(horizon=10, max_rounds=20, disturbance_model="shift")
+    game = ForecastGame(cfg, seed=3)
+    out = game.run(ForecastState(t=0, value=12.0, exogenous=0.1, hidden_shift=0.0), disturbed=True)
+    assert len(out.confidence) == len(out.steps)
+    assert out.steps[0].confidence.lower <= out.steps[0].forecast <= out.steps[0].confidence.upper
+    assert len(out.steps[0].messages) == 3
+
+
+def test_source_adapter_schema():
+    rows = load_source_rows("polymarket", periods=12)
+    assert len(rows) == 12
+    first = rows[0]
+    assert {"timestamp", "series_id", "target", "promo", "macro_index", "source", "fetched_at"}.issubset(first.keys())
