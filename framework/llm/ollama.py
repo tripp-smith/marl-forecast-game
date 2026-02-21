@@ -4,13 +4,14 @@ from dataclasses import dataclass
 from typing import Any
 
 import json
+import os
 from urllib.parse import urlencode
 from urllib.request import urlopen
 
 
 @dataclass(frozen=True)
 class OllamaClient:
-    base_url: str = "http://localhost:11434"
+    base_url: str = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
     model: str = "llama3.2"
     keep_alive: str = "5m"
 

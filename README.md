@@ -19,9 +19,12 @@ source .venv/bin/activate
 pip install -r requirements.txt
 pytest
 python scripts/run_verification.py
+python scripts/run_test_suite.py
 ```
 
 ## Docker Validation
+
+### Fast path
 
 ```bash
 docker build -t marl-forecast-game:test .
@@ -29,6 +32,31 @@ docker run --rm marl-forecast-game:test
 ```
 
 The image includes a healthcheck that runs core verification checks.
+
+### Manual containerized test steps (full plan)
+
+1. Build the test image.
+   ```bash
+   docker build -t marl-forecast-game:test .
+   ```
+2. Run the default validation entrypoint (`scripts/validate.sh`).
+   ```bash
+   docker run --rm marl-forecast-game:test
+   ```
+3. Run the extended suite and aggregate report generation inside the container.
+   ```bash
+   docker run --rm -v "$PWD/planning:/app/planning" marl-forecast-game:test python scripts/run_test_suite.py
+   ```
+4. (Optional) Enable Ollama-backed checks from containerized tests.
+   - Ensure Ollama is running on the host and reachable at `http://host.docker.internal:11434`.
+   - Run:
+     ```bash
+     docker run --rm \
+       --add-host host.docker.internal:host-gateway \
+       -e OLLAMA_BASE_URL=http://host.docker.internal:11434 \
+       marl-forecast-game:test \
+       python -c "from framework.llm.ollama_interface import OllamaInterface; print(OllamaInterface(base_url='http://host.docker.internal:11434').is_available())"
+     ```
 
 ## Data Ethics and Compliance Notes
 

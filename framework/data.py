@@ -7,7 +7,7 @@ import csv
 import json
 import math
 
-from .data_sources import FredMacroAdapter, ImfMacroAdapter, PolymarketAdapter
+from .data_utils import ensure_source_data
 
 
 REQUIRED_COLUMNS = ["timestamp", "series_id", "target", "promo", "macro_index"]
@@ -104,18 +104,24 @@ def load_json(path: str | Path) -> list[dict]:
     return ordered
 
 
-def load_source_rows(source: str, periods: int = 30, *, realtime_refresh: bool = False) -> list[dict]:
+def load_source_rows(
+    source: str,
+    periods: int = 30,
+    *,
+    realtime_refresh: bool = False,
+    force_redownload: bool = False,
+    cache_dir: str | Path = "data/cache",
+) -> list[dict]:
     normalized = source.strip().lower()
-    adapters = {
-        "fred": FredMacroAdapter(),
-        "imf": ImfMacroAdapter(),
-        "polymarket": PolymarketAdapter(),
-    }
-    if normalized not in adapters:
+    if normalized not in {"fred", "imf", "polymarket"}:
         raise ValueError(f"unknown source adapter: {source}")
 
-    records = adapters[normalized].fetch(periods)
-    rows = [r.as_row() for r in records]
+    rows, _meta = ensure_source_data(
+        normalized,
+        periods=periods,
+        cache_dir=cache_dir,
+        force_redownload=force_redownload,
+    )
     if realtime_refresh and rows:
         now = datetime.utcnow()
         rows[-1] = {**rows[-1], "fetched_at": now}
