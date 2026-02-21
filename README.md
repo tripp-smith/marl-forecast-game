@@ -1,12 +1,15 @@
 # marl-forecast-game
 
-MVP+ implementation of a multi-agent adversarial forecasting game with:
+Production-hardening iteration of a multi-agent adversarial forecasting game with:
 
 - immutable simulation state
 - four core agents (forecasting, adversary, defender, refactoring)
-- pluggable runtime, disturbance, defense, and LLM-refactor mock modules
-- DRD-aligned source adapter interface with provenance fields
-- reproducible verification script, report artifact generation, and automated tests
+- pluggable runtime, disturbance, defense, and LLM refactor modules
+- DRD-aligned source adapters (FRED / IMF / Polymarket) with resilient API fallbacks
+- hybrid (real + synthetic) dataset support, poisoning checks, and chronological split enforcement
+- structured observability via structlog + Prometheus counters/histograms
+- reproducible verification report generation and extended property-based tests
+- Haskell migration scaffold (Cabal + QuickCheck property)
 
 ## Quickstart
 
@@ -20,46 +23,27 @@ python scripts/run_verification.py
 
 ## Docker Validation
 
-Build and run the full validation suite in a container:
-
 ```bash
 docker build -t marl-forecast-game:test .
 docker run --rm marl-forecast-game:test
 ```
 
-The container installs dependencies from `requirements.txt` and executes:
+The image includes a healthcheck that runs core verification checks.
 
-- `pytest -q`
-- `python scripts/run_verification.py`
+## Data Ethics and Compliance Notes
 
-## Project Structure
+- The framework only reads public APIs/sources listed in `DRD.md`.
+- Source records retain provenance (`source`, `fetched_at`) for auditability.
+- Ingestion includes outlier-based poisoning screening (`detect_poisoning_rows`).
+- Chronological splitting is enforced to reduce leakage risk.
+- API clients fail closed to synthetic proxies when endpoints are unreachable or credentials are unavailable.
 
-- `framework/types.py`: immutable game state, protocol objects, and config
-- `framework/strategy_runtime.py`: pluggable strategy runtime backends
-- `framework/agents.py`: forecasting, adversary, defender, and refactoring agents
-- `framework/disturbances.py`: disturbance model registry and implementations
-- `framework/defenses.py`: defense model registry and implementations
-- `framework/game.py`: round-based Markov game runner with observability artifacts
-- `framework/data.py`: dataset generation, ingestion, source adapters, normalization, chronological split
-- `framework/data_sources/`: DRD-style source adapter abstractions and exemplars
-- `framework/metrics.py`: MAE/RMSE/MAPE/worst-case and robustness deltas/ratios
-- `framework/verify.py`: end-to-end verification checks and metrics report
-- `tests/test_framework.py`: unit tests for deterministic behavior and guardrails
+## Haskell Migration Track
 
-## Verification Coverage
+A parallel scaffold exists in `haskell/`:
 
-The current implementation verifies:
+- `src/Types.hs`: immutable state ADT equivalent.
+- `src/Game.hs`: pure transition function.
+- `test/Main.hs`: QuickCheck property (`maxSuccess = 1000`).
 
-- deterministic/pure state transitions (+ property-based invariants)
-- chronological train/valid/test splitting
-- runtime backend selection/fallback
-- enforcement of maximum simulation rounds
-- trajectory, confidence interval, and message artifacts
-- adversarial scenario quality checks relative to clean runs and intensity sweeps
-- robustness deltas on clean and attacked scenarios
-- source-adapter schema conformance
-
-Running `python scripts/run_verification.py` emits:
-
-- console JSON summary
-- `planning/verification_report.json`
+This track enables side-by-side parity checks while Python remains the primary runtime.

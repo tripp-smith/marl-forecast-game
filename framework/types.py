@@ -60,6 +60,7 @@ class StepResult:
 class SimulationConfig:
     horizon: int = 100
     max_rounds: int = 200
+    max_round_timeout_s: float = 1.0
     base_noise_std: float = 0.15
     disturbance_prob: float = 0.1
     disturbance_scale: float = 1.0
@@ -76,6 +77,8 @@ class SimulationConfig:
             raise ValueError("horizon must be >= 0")
         if self.max_rounds < 0:
             raise ValueError("max_rounds must be >= 0")
+        if self.max_round_timeout_s <= 0:
+            raise ValueError("max_round_timeout_s must be > 0")
         if self.base_noise_std < 0:
             raise ValueError("base_noise_std must be >= 0")
         if not (0.0 <= self.disturbance_prob <= 1.0):
@@ -89,8 +92,6 @@ class SimulationConfig:
 
 
 def frozen_mapping(values: dict[str, float]) -> Mapping[str, float]:
-    """Return an immutable mapping wrapper for externally exposed artifacts."""
-
     return MappingProxyType(dict(values))
 
 
@@ -101,8 +102,6 @@ def evolve_state(
     noise: float,
     disturbance: float,
 ) -> ForecastState:
-    """Pure transition function for the environment."""
-
     new_value = state.value + base_trend + 0.4 * state.exogenous + noise + disturbance
     new_exogenous = 0.6 * state.exogenous + 0.2 * disturbance
     return replace(
