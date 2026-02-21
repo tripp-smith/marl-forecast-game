@@ -7,7 +7,16 @@ from typing import List
 from .agents import AdversaryAgent, DefenderAgent, ForecastingAgent, RefactoringAgent
 from .disturbances import disturbance_from_name
 from .strategy_runtime import runtime_from_name
-from .types import AgentMessage, ConfidenceInterval, ForecastState, SimulationConfig, StepResult, TrajectoryEntry, evolve_state
+from .types import (
+    AgentMessage,
+    ConfidenceInterval,
+    ForecastState,
+    SimulationConfig,
+    StepResult,
+    TrajectoryEntry,
+    evolve_state,
+    frozen_mapping,
+)
 
 
 @dataclass(frozen=True)
@@ -27,12 +36,13 @@ class ForecastGame:
         self.runtime = runtime_from_name(config.runtime_backend)
         self.disturbance = disturbance_from_name(config.disturbance_model)
         self.forecaster = ForecastingAgent()
-        self.adversary = AdversaryAgent()
+        self.adversary = AdversaryAgent(aggressiveness=config.adversarial_intensity)
         self.defender = DefenderAgent()
         self.refactor = RefactoringAgent()
 
     def run(self, initial: ForecastState, rounds: int | None = None, *, disturbed: bool = True) -> GameOutputs:
-        n_rounds = min(rounds or self.config.horizon, self.config.max_rounds)
+        requested_rounds = rounds if rounds is not None else self.config.horizon
+        n_rounds = max(0, min(requested_rounds, self.config.max_rounds))
         state = initial
         steps: List[StepResult] = []
         trajectories: List[TrajectoryEntry] = []
@@ -56,7 +66,7 @@ class ForecastGame:
             reward = -abs(error)
 
             if self.config.enable_refactor:
-                refactor_bias += self.refactor.revise(error)
+                refactor_bias += self.refactor.revise(error, use_llm=self.config.enable_llm_refactor)
 
             band = abs(disturbance) + self.config.base_noise_std + 0.05
             ci = ConfidenceInterval(lower=forecast - band, upper=forecast + band)
@@ -66,10 +76,14 @@ class ForecastGame:
                 AgentMessage("defender", "refactor", f"defense={d_action.delta:.4f}"),
             )
 
+            reward_breakdown = frozen_mapping(
+                {"forecaster": reward, "adversary": -reward, "defender": reward}
+            )
+
             step = StepResult(
                 next_state=next_state,
                 actions=(f_action, a_action, d_action),
-                reward_breakdown={"forecaster": reward, "adversary": -reward, "defender": reward},
+                reward_breakdown=reward_breakdown,
                 forecast=forecast,
                 target=target,
                 confidence=ci,
@@ -80,7 +94,7 @@ class ForecastGame:
                 state=state,
                 actions=(f_action, a_action, d_action),
                 messages=messages,
-                reward_breakdown=step.reward_breakdown,
+                reward_breakdown=reward_breakdown,
                 forecast=forecast,
                 target=target,
             )

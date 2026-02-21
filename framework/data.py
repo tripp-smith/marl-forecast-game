@@ -18,10 +18,34 @@ class DatasetBundle:
     test: list[dict]
 
 
+@dataclass(frozen=True)
+class DataProfile:
+    source: str = "sample_csv"
+    periods: int = 240
+    train_ratio: float = 0.7
+    valid_ratio: float = 0.15
+    normalize: bool = True
+
+
 def _ensure_required(rows: list[dict]) -> None:
-    missing = [col for col in REQUIRED_COLUMNS if col not in (rows[0].keys() if rows else [])]
+    if not rows:
+        raise ValueError("dataset is empty")
+    missing = [col for col in REQUIRED_COLUMNS if col not in rows[0].keys()]
     if missing:
         raise ValueError(f"missing columns: {missing}")
+
+
+def _validate_rows(rows: list[dict]) -> None:
+    _ensure_required(rows)
+    per_series: dict[str, datetime] = {}
+    for row in rows:
+        ts = row["timestamp"]
+        if row["target"] is None or row["promo"] is None or row["macro_index"] is None:
+            raise ValueError("missing numeric values in row")
+        last = per_series.get(row["series_id"])
+        if last is not None and ts < last:
+            raise ValueError("timestamps must be chronological within each series")
+        per_series[row["series_id"]] = ts
 
 
 def load_csv(path: str | Path) -> list[dict]:
@@ -36,7 +60,9 @@ def load_csv(path: str | Path) -> list[dict]:
         row["target"] = float(row["target"])
         row["promo"] = float(row["promo"])
         row["macro_index"] = float(row["macro_index"])
-    return sorted(rows, key=lambda x: (x["series_id"], x["timestamp"]))
+    ordered = sorted(rows, key=lambda x: (x["series_id"], x["timestamp"]))
+    _validate_rows(ordered)
+    return ordered
 
 
 def load_source_rows(source: str, periods: int = 30) -> list[dict]:
@@ -49,8 +75,9 @@ def load_source_rows(source: str, periods: int = 30) -> list[dict]:
         raise ValueError(f"unknown source adapter: {source}")
 
     rows = [r.as_row() for r in records]
-    _ensure_required(rows)
-    return sorted(rows, key=lambda x: (x["series_id"], x["timestamp"]))
+    ordered = sorted(rows, key=lambda x: (x["series_id"], x["timestamp"]))
+    _validate_rows(ordered)
+    return ordered
 
 
 def normalize_features(rows: list[dict]) -> list[dict]:
@@ -74,6 +101,19 @@ def chronological_split(rows: list[dict], train=0.7, valid=0.15) -> DatasetBundl
         valid=rows[train_end:valid_end],
         test=rows[valid_end:],
     )
+
+
+def load_dataset(profile: DataProfile, path: str | Path = "data/sample_demand.csv") -> DatasetBundle:
+    if profile.source == "sample_csv":
+        build_sample_dataset(path, periods=profile.periods)
+        rows = load_csv(path)
+    else:
+        rows = load_source_rows(profile.source, periods=profile.periods)
+
+    if profile.normalize:
+        rows = normalize_features(rows)
+
+    return chronological_split(rows, train=profile.train_ratio, valid=profile.valid_ratio)
 
 
 def build_sample_dataset(path: str | Path, periods: int = 365) -> None:

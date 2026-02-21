@@ -4,7 +4,7 @@ MVP+ implementation of a multi-agent adversarial forecasting game with:
 
 - immutable simulation state
 - four core agents (forecasting, adversary, defender, refactoring)
-- pluggable runtime, disturbance, and defense modules
+- pluggable runtime, disturbance, defense, and LLM-refactor mock modules
 - DRD-aligned source adapter interface with provenance fields
 - reproducible verification script, report artifact generation, and automated tests
 
@@ -50,12 +50,12 @@ The container installs dependencies from `requirements.txt` and executes:
 
 The current implementation verifies:
 
-- deterministic/pure state transitions
+- deterministic/pure state transitions (+ property-based invariants)
 - chronological train/valid/test splitting
 - runtime backend selection/fallback
 - enforcement of maximum simulation rounds
 - trajectory, confidence interval, and message artifacts
-- adversarial scenario quality checks relative to clean runs
+- adversarial scenario quality checks relative to clean runs and intensity sweeps
 - robustness deltas on clean and attacked scenarios
 - source-adapter schema conformance
 

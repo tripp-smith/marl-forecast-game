@@ -9,6 +9,7 @@
     "attack_differs_from_clean": true,
     "max_rounds_respected": true,
     "pure_transition": true,
+    "real_data_split_non_empty": true,
     "source_adapter_rows": true,
     "split_non_empty": true,
     "trajectory_present": true
@@ -32,5 +33,19 @@
     "test": 72,
     "train": 336,
     "valid": 72
+  },
+  "scenario_sweep": {
+    "0.5": {
+      "mae_delta": 0.06462591001072848,
+      "mae_ratio": 1.0792793212283034
+    },
+    "1.0": {
+      "mae_delta": -0.3689803695398282,
+      "mae_ratio": 0.5232524676153204
+    },
+    "1.5": {
+      "mae_delta": -0.06448605999541801,
+      "mae_ratio": 0.931892652193799
+    }
   }
 }

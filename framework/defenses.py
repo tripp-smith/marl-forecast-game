@@ -27,10 +27,23 @@ class ClippingDefense:
         return max(-self.clip, min(self.clip, correction))
 
 
+@dataclass(frozen=True)
+class EnsembleDefense:
+    dampening: DampeningDefense = DampeningDefense()
+    clipping: ClippingDefense = ClippingDefense(clip=0.25)
+
+    def defend(self, forecast_delta: float, adversary_delta: float) -> float:
+        damp = self.dampening.defend(forecast_delta, adversary_delta)
+        clip = self.clipping.defend(forecast_delta, adversary_delta)
+        return 0.5 * (damp + clip)
+
+
 def defense_from_name(name: str) -> DefenseModel:
     normalized = name.strip().lower()
     if normalized in {"dampening", "default"}:
         return DampeningDefense()
     if normalized in {"clipping", "clip"}:
         return ClippingDefense()
+    if normalized in {"ensemble", "filter_ensemble"}:
+        return EnsembleDefense()
     return DampeningDefense()
