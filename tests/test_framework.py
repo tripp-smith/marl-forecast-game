@@ -20,6 +20,9 @@ from framework.data import (
     should_reject_poisoning,
 )
 from framework.defenses import StackedDefense, defense_from_name
+from framework.data_utils import cache_status, ensure_source_data
+from framework.llm.ollama_interface import OllamaInterface
+
 from framework.disturbances import disturbance_from_name
 from framework.game import ForecastGame
 from framework.llm import DSPyLikeRepl
@@ -242,3 +245,30 @@ def test_load_dataset_can_enforce_poisoning_on_strict_mode(tmp_path):
     )
     with pytest.raises(ValueError):
         load_dataset(DataProfile(source="csv", periods=5, normalize=False, fail_on_poisoning=True), path=p)
+
+
+def test_data_utils_cache_and_force_redownload(tmp_path):
+    rows_a, meta_a = ensure_source_data("fred", periods=12, cache_dir=tmp_path, force_redownload=True)
+    rows_b, meta_b = ensure_source_data("fred", periods=12, cache_dir=tmp_path, force_redownload=False)
+    assert len(rows_a) == 12
+    assert rows_b
+    assert meta_a["cache_hit"] is False
+    assert meta_b["cache_hit"] is True
+
+
+def test_cache_status_detects_missing_file(tmp_path):
+    status = cache_status(tmp_path / "missing.json", max_age_hours=1)
+    assert status.exists is False
+    assert status.is_fresh is False
+
+
+def test_cache_freshness_property_window():
+    for hours in [1, 2, 6, 12, 24, 48, 96]:
+        status = cache_status("data/sample_demand.csv", max_age_hours=hours + 1_000)
+        assert status.exists is True
+        assert status.is_fresh is True
+
+
+def test_ollama_interface_availability_handles_unreachable_host():
+    client = OllamaInterface(base_url="http://127.0.0.1:9")
+    assert client.is_available() is False
