@@ -17,7 +17,7 @@ class ForecastingAgent:
     name: str = "forecaster"
     llm_repl: DSPyLikeRepl | None = None
 
-    def act(self, state: ForecastState, runtime: StrategyRuntime) -> AgentAction:
+    def act(self, state: ForecastState, runtime: StrategyRuntime, *, round_idx: int | None = None) -> AgentAction:
         base_delta = runtime.forecast_delta(state)
         if self.llm_repl is None:
             return AgentAction(actor=self.name, delta=base_delta)
@@ -26,7 +26,7 @@ class ForecastingAgent:
         if state.raw_qual_text:
             prompt += f" | Qualitative: {state.raw_qual_text[:512]} | Regime: {state.economic_regime}"
         try:
-            turn = self.llm_repl.run_turn(prompt)
+            turn = self.llm_repl.run_turn(prompt, round_idx=round_idx, agent=self.name)
             llm_delta = float(turn["completion"].strip().split()[0])
             return AgentAction(actor=self.name, delta=(0.8 * base_delta) + (0.2 * llm_delta))
         except Exception:
@@ -64,10 +64,12 @@ class RefactoringAgent:
     step_size: float = 0.02
     llm_client: LLMRefactorClient = field(default_factory=lambda: MockLLMRefactorClient(step_size=0.02))
 
-    def revise(self, latest_error: float, *, use_llm: bool = False) -> float:
+    def revise(self, latest_error: float, *, use_llm: bool = False, round_idx: int | None = None) -> float:
         if use_llm:
             suggestion = self.llm_client.suggest(
-                RefactorRequest(latest_error=latest_error, strategy_name=self.name)
+                RefactorRequest(latest_error=latest_error, strategy_name=self.name),
+                round_idx=round_idx,
+                agent=self.name,
             )
             return suggestion.bias_adjustment
         return -self.step_size if latest_error > 0 else self.step_size

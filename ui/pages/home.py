@@ -28,10 +28,7 @@ with col_files:
     st.metric("Result files", len(result_files))
 
 with col_links:
-    st.markdown(
-        "[Grafana :3000](http://localhost:3000) &nbsp; | &nbsp; "
-        "[Prometheus :9090](http://localhost:9090)"
-    )
+    st.caption("Observability built into this UI")
 
 st.divider()
 
@@ -39,7 +36,7 @@ PAGES = [
     {
         "icon": "\u25b6\ufe0f",
         "title": "Simulation Replay",
-        "desc": "Step through game rounds with interactive charts",
+        "desc": "Step through game rounds with CI bands and rolling MAE",
         "key": "nav_replay",
     },
     {
@@ -49,10 +46,22 @@ PAGES = [
         "key": "nav_agents",
     },
     {
+        "icon": "\U0001f310",
+        "title": "Agent DAG",
+        "desc": "Visualize the agent action graph with per-round drill-down",
+        "key": "nav_dag",
+    },
+    {
         "icon": "\U0001f4ca",
         "title": "Metric Decomposition",
         "desc": "Clean vs attacked error attribution",
         "key": "nav_metrics",
+    },
+    {
+        "icon": "\u23f1\ufe0f",
+        "title": "Performance",
+        "desc": "Runtime latency, convergence analysis, and BMA weights",
+        "key": "nav_performance",
     },
     {
         "icon": "\U0001f52c",
@@ -69,8 +78,14 @@ PAGES = [
     {
         "icon": "\U0001f9e0",
         "title": "LLM Inspection",
-        "desc": "Inspect LLM-driven agent decisions",
+        "desc": "Full audit trail of LLM calls, latency, and prompt/response inspection",
         "key": "nav_llm",
+    },
+    {
+        "icon": "\U0001f4c8",
+        "title": "Training",
+        "desc": "Reward curves, RAD epochs, and training metrics",
+        "key": "nav_training_viz",
     },
 ]
 

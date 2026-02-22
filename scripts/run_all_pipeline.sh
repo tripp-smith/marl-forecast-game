@@ -29,8 +29,32 @@ echo "[pipeline] Phase 2 exit code: $VER_EXIT"
 
 echo ""
 echo "[pipeline] === Phase 3: Training (smoke) ==="
-python scripts/run_training.py --episodes 20 --horizon 30 2>&1 | tee "$RESULTS/training_output.txt"
-echo "[pipeline] Phase 3 exit code: ${PIPESTATUS[0]}"
+python scripts/run_training.py --episodes 20 --horizon 30 --output-dir "$RESULTS/models" 2>&1 | tee "$RESULTS/training_output.txt"
+TRAIN_EXIT=${PIPESTATUS[0]}
+echo "[pipeline] Phase 3 exit code: $TRAIN_EXIT"
+
+python -c "
+import json
+from pathlib import Path
+results_dir = '$RESULTS'
+output = Path(results_dir) / 'training_output.txt'
+info = {'source': 'pipeline', 'episodes': 20, 'horizon': 30, 'algorithm': 'wolf'}
+if output.exists():
+    lines = output.read_text().splitlines()
+    for line in lines:
+        if 'Mean reward' in line:
+            try: info['mean_reward_last_50'] = float(line.split(':')[-1].strip())
+            except ValueError: pass
+        if 'Mean TD error' in line:
+            try: info['mean_td_error_last_100'] = float(line.split(':')[-1].strip())
+            except ValueError: pass
+        if 'Final epsilon' in line:
+            try: info['final_epsilon'] = float(line.split(':')[-1].strip())
+            except ValueError: pass
+with open(f'{results_dir}/training_results.json', 'w') as f:
+    json.dump(info, f, indent=2)
+print(f'[pipeline] Wrote {results_dir}/training_results.json')
+" 2>&1
 
 echo ""
 echo "[pipeline] === Phase 4: Backtest ==="

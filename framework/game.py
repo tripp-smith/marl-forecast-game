@@ -29,6 +29,7 @@ from .observability import (
     record_alert,
     record_disturbance,
 )
+from .llm.audit import get_llm_log
 from .strategy_runtime import runtime_from_name
 from .types import (
     AgentAction,
@@ -72,6 +73,8 @@ class GameOutputs:
     targets: List[float]
     confidence: List[ConfidenceInterval]
     convergence: dict
+    llm_calls: List[dict] = ()  # type: ignore[assignment]
+    wall_clock_s: float = 0.0
 
 
 def default_agent_factory(config: SimulationConfig) -> tuple[ForecastingAgent, AdversaryAgent, DefenderAgent, RefactoringAgent]:
@@ -156,6 +159,10 @@ class ForecastGame:
             return self._run_inner(initial, n_rounds, disturbed=disturbed)
 
     def _run_inner(self, initial: ForecastState, n_rounds: int, *, disturbed: bool) -> GameOutputs:
+        wall_start = time.perf_counter()
+        llm_log = get_llm_log()
+        llm_log.clear()
+
         state = initial
         steps: List[StepResult] = []
         trajectories: List[TrajectoryEntry] = []
@@ -176,8 +183,10 @@ class ForecastGame:
             for f_agent in self._registry.forecasters:
                 if isinstance(f_agent, TopDownAgent):
                     action = self.safe_exec.execute(f_agent.act, state)
-                else:
+                elif isinstance(f_agent, BottomUpAgent):
                     action = self.safe_exec.execute(f_agent.act, state, self.runtime)
+                else:
+                    action = self.safe_exec.execute(f_agent.act, state, self.runtime, round_idx=idx)
                 all_forecast_actions.append(action)
 
             wolfpack_adversaries = [
@@ -284,7 +293,7 @@ class ForecastGame:
                         wolf.record_residual(fa.actor, agent_errors[fa.actor])
 
             if self.config.enable_refactor and self.refactor is not None:
-                refactor_bias += self.refactor.revise(error, use_llm=self.config.enable_llm_refactor)
+                refactor_bias += self.refactor.revise(error, use_llm=self.config.enable_llm_refactor, round_idx=idx)
 
             rolling_errors.append(abs(error))
             if self.config.convergence_threshold > 0 and len(rolling_errors) >= 20:
@@ -342,6 +351,7 @@ class ForecastGame:
             except TypeError:
                 self.logger.info(f"round_complete round_idx={idx} reward={reward:.6f} disturbance={disturbance_val:.6f}")
 
+            bma_snapshot = list(self.bayesian_agg.weights) if len(all_forecast_actions) > 1 and self.bayesian_agg.weights else None
             trajectory_logs.append(
                 {
                     "round_idx": idx,
@@ -352,6 +362,9 @@ class ForecastGame:
                     "reward": reward,
                     "disturbance": disturbance_val,
                     "messages": [asdict(m) for m in messages],
+                    "elapsed_s": elapsed,
+                    "bma_weights": bma_snapshot,
+                    "confidence": {"lower": ci.lower, "upper": ci.upper},
                 }
             )
             steps.append(step)
@@ -381,6 +394,7 @@ class ForecastGame:
             "defense_efficacy_ratio": defense_efficacy,
             "accuracy_vs_cost": mean_error / max(1e-9, total_attack_cost) if total_attack_cost > 0 else 0.0,
         }
+        wall_clock_s = time.perf_counter() - wall_start
         return GameOutputs(
             steps=steps,
             trajectories=trajectories,
@@ -389,4 +403,6 @@ class ForecastGame:
             targets=targets,
             confidence=confidence,
             convergence=convergence,
+            llm_calls=llm_log.to_dicts(),
+            wall_clock_s=wall_clock_s,
         )

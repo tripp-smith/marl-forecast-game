@@ -51,6 +51,9 @@ with col2:
     st.metric("Target", f"{entry.get('target', 0):.4f}")
     st.metric("Reward", f"{entry.get('reward', 0):.4f}")
     st.metric("Disturbance", f"{entry.get('disturbance', 0):.4f}")
+    elapsed = entry.get("elapsed_s")
+    if elapsed is not None:
+        st.metric("Round Latency", f"{elapsed * 1000:.2f}ms")
 
 st.subheader("Agent Deltas")
 actions = entry.get("actions", [])
@@ -62,11 +65,42 @@ forecasts = [logs[i]["forecast"] for i in range(round_idx + 1)]
 targets = [logs[i]["target"] for i in range(round_idx + 1)]
 rounds = list(range(round_idx + 1))
 
+ci_lower = [logs[i].get("confidence", {}).get("lower") for i in range(round_idx + 1)]
+ci_upper = [logs[i].get("confidence", {}).get("upper") for i in range(round_idx + 1)]
+has_ci = any(v is not None for v in ci_lower)
+
 fig = go.Figure()
+if has_ci:
+    fig.add_trace(go.Scatter(
+        x=rounds, y=[u for u in ci_upper],
+        mode="lines", line=dict(width=0), showlegend=False,
+    ))
+    fig.add_trace(go.Scatter(
+        x=rounds, y=[lo for lo in ci_lower],
+        mode="lines", line=dict(width=0),
+        fill="tonexty", fillcolor="rgba(100,149,237,0.15)",
+        name="Confidence Band",
+    ))
 fig.add_trace(go.Scatter(x=rounds, y=forecasts, mode="lines+markers", name="Forecast"))
 fig.add_trace(go.Scatter(x=rounds, y=targets, mode="lines+markers", name="Target"))
 fig.update_layout(xaxis_title="Round", yaxis_title="Value", height=400)
 st.plotly_chart(fig, use_container_width=True)
+
+# Rolling MAE
+errors = [abs(targets[i] - forecasts[i]) for i in range(len(forecasts))]
+if len(errors) > 5:
+    st.subheader("Rolling MAE")
+    window = min(20, len(errors))
+    rolling_mae = []
+    for i in range(len(errors)):
+        w = errors[max(0, i - window + 1):i + 1]
+        rolling_mae.append(sum(w) / len(w))
+
+    fig_mae = go.Figure()
+    fig_mae.add_trace(go.Scatter(x=rounds, y=errors, mode="lines", name="Abs Error", opacity=0.3))
+    fig_mae.add_trace(go.Scatter(x=rounds, y=rolling_mae, mode="lines", name=f"MAE ({window}r)", line=dict(width=2)))
+    fig_mae.update_layout(xaxis_title="Round", yaxis_title="Error", height=300)
+    st.plotly_chart(fig_mae, use_container_width=True)
 
 st.subheader("Component Breakdown")
 disturbances = [logs[i].get("disturbance", 0) for i in range(round_idx + 1)]

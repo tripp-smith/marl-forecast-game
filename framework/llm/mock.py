@@ -9,7 +9,7 @@ from .base import RefactorRequest, RefactorSuggestion
 class MockLLMRefactorClient:
     step_size: float = 0.02
 
-    def suggest(self, request: RefactorRequest) -> RefactorSuggestion:
+    def suggest(self, request: RefactorRequest, **_kwargs: object) -> RefactorSuggestion:
         delta = -self.step_size if request.latest_error > 0 else self.step_size
         return RefactorSuggestion(
             bias_adjustment=delta,

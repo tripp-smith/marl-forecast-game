@@ -58,6 +58,8 @@ def _game_outputs_to_dict(out: GameOutputs) -> dict[str, Any]:
         "targets": out.targets,
         "convergence": out.convergence,
         "confidence": [{"lower": ci.lower, "upper": ci.upper} for ci in out.confidence],
+        "llm_calls": list(out.llm_calls) if out.llm_calls else [],
+        "wall_clock_s": out.wall_clock_s,
     }
 
 
