@@ -4,9 +4,60 @@ from __future__ import annotations
 import streamlit as st
 import plotly.graph_objects as go
 
-from ui.utils import load_simulation_result
+from ui.utils import discover_result_files, load_simulation_result, load_trajectory_logs
 
 st.header("Metric Decomposition")
+
+result_files = discover_result_files()
+auto_clean_data = None
+auto_attack_data = None
+if result_files:
+    sim_files = [p for p in result_files if p.name.startswith("simulation_")]
+    if sim_files:
+        st.subheader("Auto-loaded Results")
+        options = ["-- select --"] + [p.name for p in sim_files]
+        clean_choice = st.selectbox("Clean scenario", options, key="metrics_clean_auto")
+        attack_choice = st.selectbox("Attacked scenario", options, key="metrics_attack_auto")
+        if clean_choice != "-- select --":
+            auto_clean_data = load_simulation_result(next(p for p in sim_files if p.name == clean_choice))
+        if attack_choice != "-- select --":
+            auto_attack_data = load_simulation_result(next(p for p in sim_files if p.name == attack_choice))
+
+        if auto_clean_data and auto_attack_data:
+            clean_logs = auto_clean_data.get("trajectory_logs", [])
+            attack_logs = auto_attack_data.get("trajectory_logs", [])
+            if clean_logs and attack_logs:
+                st.subheader("Error Attribution Waterfall (auto-loaded)")
+                n = min(len(clean_logs), len(attack_logs))
+                trend_errors = []
+                disturbance_contributions = []
+                total_errors = []
+                for i in range(n):
+                    c = clean_logs[i]
+                    a = attack_logs[i]
+                    clean_error = abs(c["target"] - c["forecast"])
+                    attack_error = abs(a["target"] - a["forecast"])
+                    dist_effect = abs(a.get("disturbance", 0))
+                    trend_errors.append(clean_error)
+                    disturbance_contributions.append(dist_effect)
+                    total_errors.append(attack_error)
+
+                fig_auto = go.Figure(go.Waterfall(
+                    name="Error Attribution",
+                    orientation="v",
+                    x=["Trend Error", "Disturbance", "Total Attack Error"],
+                    y=[
+                        sum(trend_errors) / max(1, n),
+                        sum(disturbance_contributions) / max(1, n),
+                        sum(total_errors) / max(1, n),
+                    ],
+                    measure=["absolute", "relative", "total"],
+                ))
+                fig_auto.update_layout(height=400, yaxis_title="Mean Absolute Error")
+                st.plotly_chart(fig_auto, use_container_width=True)
+
+st.divider()
+st.subheader("Manual Upload")
 
 col_clean, col_attack = st.columns(2)
 

@@ -1,8 +1,14 @@
 """What-If Experimentation -- interactive parameter tweaking and re-simulation."""
 from __future__ import annotations
 
+import json
+import time
+from pathlib import Path
+
 import streamlit as st
 import plotly.graph_objects as go
+
+from ui.utils import RESULTS_DIR
 
 st.header("What-If Experimentation")
 
@@ -67,6 +73,13 @@ if run_single or run_comparison:
     fig.add_trace(go.Scatter(y=result["targets"], mode="lines", name="Target"))
     fig.update_layout(xaxis_title="Round", yaxis_title="Value", height=400)
     st.plotly_chart(fig, use_container_width=True)
+
+    if RESULTS_DIR.is_dir():
+        ts = int(time.time())
+        out_path = RESULTS_DIR / f"whatif_{ts}.json"
+        with open(out_path, "w") as f:
+            json.dump(result, f, indent=2)
+        st.caption(f"Result saved to `{out_path}`")
 
     if run_comparison:
         with st.spinner("Running clean scenario..."):

@@ -88,6 +88,20 @@ services:
     networks:
       - marl-net
 
+  allinone:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: allinone
+    container_name: marl-allinone
+    ports:
+      - "8501:8501"
+      - "3000:3000"
+      - "9090:9090"
+      - "9091:9091"
+    volumes:
+      - ./results:/app/results
+
 networks:
   marl-net:
     driver: bridge

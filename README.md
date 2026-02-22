@@ -77,7 +77,27 @@ graph LR
     Outputs --> Refiner --> Registry
 ```
 
-## Quickstart
+## Quick Start (Single Container)
+
+Run the entire project -- tests, training, backtesting, stress tests, and the interactive UI -- with a single Docker command:
+
+```bash
+docker build --target allinone -t marl-forecast-game:allinone .
+docker run --rm -p 8501:8501 -p 3000:3000 -p 9090:9090 -p 9091:9091 marl-forecast-game:allinone
+```
+
+| Port | Service |
+|------|---------|
+| 8501 | **Streamlit UI** -- explainability dashboard with auto-loaded results |
+| 3000 | **Grafana** -- cluster health and simulation metrics |
+| 9090 | **Prometheus** -- metrics aggregation |
+| 9091 | **App Metrics** -- `/metrics` endpoint |
+
+On startup, `supervisord` runs the full pipeline (pytest, verification, training, backtest, validation, stress test, trajectory export) and keeps the UI and monitoring services alive for review. Mount a host volume to persist results: `-v ./results:/app/results`.
+
+See [docs/deployment.md](docs/deployment.md) for detailed documentation.
+
+## Quickstart (Local)
 
 ```bash
 python -m venv .venv

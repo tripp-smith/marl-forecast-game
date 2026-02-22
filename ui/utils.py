@@ -5,6 +5,20 @@ import json
 from pathlib import Path
 from typing import Any
 
+RESULTS_DIR = Path("/app/results")
+
+
+def discover_result_files(
+    results_dir: str | Path = RESULTS_DIR,
+    suffix: str = ".json",
+) -> list[Path]:
+    """Scan a results directory for output files, sorted newest-first."""
+    d = Path(results_dir)
+    if not d.is_dir():
+        return []
+    files = sorted(d.glob(f"*{suffix}"), key=lambda p: p.stat().st_mtime, reverse=True)
+    return files
+
 
 def load_trajectory_logs(path: str | Path) -> list[dict[str, Any]]:
     """Load trajectory_logs from a JSON file."""

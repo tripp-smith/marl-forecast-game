@@ -5,15 +5,25 @@ import streamlit as st
 import plotly.graph_objects as go
 import numpy as np
 
-from ui.utils import load_trajectory_logs
+from ui.utils import discover_result_files, load_trajectory_logs
 
 st.header("Agent Contributions")
+
+result_files = discover_result_files()
+selected_result = None
+if result_files:
+    options = ["-- select --"] + [p.name for p in result_files]
+    choice = st.selectbox("Load from results directory", options, key="agents_results")
+    if choice != "-- select --":
+        selected_result = next(p for p in result_files if p.name == choice)
 
 uploaded = st.file_uploader("Upload simulation output JSON", type=["json"], key="agents_upload")
 file_path = st.text_input("Or enter path to trajectory JSON file", key="agents_path")
 
 logs: list[dict] = []
-if uploaded is not None:
+if selected_result is not None:
+    logs = load_trajectory_logs(selected_result)
+elif uploaded is not None:
     import json
     logs = json.load(uploaded)
     if isinstance(logs, dict) and "trajectory_logs" in logs:

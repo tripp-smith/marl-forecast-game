@@ -82,6 +82,97 @@ The `scripts/run_container_test_harness.sh` script provides a comprehensive cont
 bash scripts/run_container_test_harness.sh
 ```
 
+## All-in-One Container
+
+The all-in-one container bundles every service into a single image managed by `supervisord`. One command builds and runs the full pipeline -- tests, verification, training, backtesting, stress tests -- then keeps the Streamlit UI and Grafana alive for interactive review.
+
+### Build and Run
+
+```bash
+docker build --target allinone -t marl-forecast-game:allinone .
+docker run --rm -p 8501:8501 -p 3000:3000 -p 9090:9090 -p 9091:9091 marl-forecast-game:allinone
+```
+
+To persist results on the host:
+
+```bash
+docker run --rm \
+  -p 8501:8501 -p 3000:3000 -p 9090:9090 -p 9091:9091 \
+  -v ./results:/app/results \
+  marl-forecast-game:allinone
+```
+
+Or via Docker Compose:
+
+```bash
+docker compose up allinone
+```
+
+### Service Map
+
+| Port | Service | Description |
+|------|---------|-------------|
+| 8501 | Streamlit UI | Explainability dashboard with auto-loaded results |
+| 3000 | Grafana | Cluster health and simulation metrics dashboards |
+| 9090 | Prometheus | Metrics aggregation and alerting |
+| 9091 | App Metrics | Prometheus `/metrics` endpoint from the application |
+
+### What Happens on Startup
+
+`supervisord` launches five programs in priority order:
+
+1. **Prometheus** (priority 10) -- scrapes `localhost:9091` for application metrics
+2. **Grafana** (priority 20) -- auto-provisions dashboards and datasource pointing to localhost Prometheus
+3. **Metrics Server** (priority 30) -- exposes Prometheus counters/gauges from the framework
+4. **Pipeline** (priority 40) -- one-shot script that runs all tests and exports results to `/app/results/`
+5. **Streamlit** (priority 50) -- UI with auto-discovery of results files
+
+The pipeline runs to completion while the other four services stay alive indefinitely. The container remains running until killed.
+
+### Pipeline Phases
+
+The pipeline script (`scripts/run_all_pipeline.sh`) executes sequentially:
+
+1. `pytest` -- unit + property tests
+2. `run_verification.py` -- 9 determinism/correctness checks
+3. `run_training.py` -- 20-episode MARL smoke training
+4. `run_backtest.py` -- 5-window walk-forward backtest
+5. `run_validation_scenarios.py` -- all 24 scenarios
+6. `run_stress_test.py` -- 20-game, 200-round stress test
+7. Trajectory export -- generates `simulation_clean.json`, `simulation_attacked.json`, `simulation_attacked_s99.json`
+
+All output is written to `/app/results/` and immediately available in the Streamlit UI.
+
+### Monitoring Logs
+
+```bash
+docker logs -f <container_id>
+
+# Or inside the container:
+tail -f /app/logs/pipeline.log
+tail -f /app/logs/streamlit.log
+tail -f /app/logs/prometheus.log
+tail -f /app/logs/grafana.log
+tail -f /app/logs/metrics_server.log
+```
+
+### Configuration Files
+
+| File | Purpose |
+|------|---------|
+| `infra/supervisord.conf` | Process definitions for all 5 programs |
+| `infra/prometheus-standalone.yml` | Prometheus config targeting `localhost:9091` |
+| `infra/grafana-standalone/provisioning/` | Grafana datasource and dashboard provisioning |
+| `scripts/run_all_pipeline.sh` | Pipeline orchestrator script |
+
+### Notes
+
+- Ray is **not** included in the all-in-one container. The parallel runner falls back to `multiprocessing`, which works correctly.
+- The multi-service `docker compose up` flow remains available for production/cluster deployments with Ray.
+- Grafana is configured with anonymous access (Viewer role) -- no login required.
+
+---
+
 ## Docker Compose Stack
 
 The full observability stack is orchestrated via `docker-compose.yml`:
