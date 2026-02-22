@@ -24,6 +24,12 @@ class SimulationConfig:
 | `enable_refactor` | bool | True | -- | Whether to apply inter-round refactoring bias |
 | `enable_llm_refactor` | bool | False | -- | Use LLM (via Ollama) for refactoring |
 | `attack_cost` | float | 0.0 | >= 0 | Cost penalty reducing adversary effectiveness |
+| `convergence_threshold` | float | 0.0 | >= 0 | Rolling MAE threshold for early stopping |
+| `adversary_tau_init` | float | 5.0 | > 0 | Initial Boltzmann temperature for bounded rationality curriculum |
+| `adversary_tau_final` | float | 0.1 | > 0 | Terminal Boltzmann temperature |
+| `tau_decay_rate` | float | 0.05 | > 0 | Exponential decay rate for tau schedule |
+| `bankruptcy_threshold` | float | 0.01 | > 0 | Kelly bankroll floor below which agents are pruned |
+| `wolfpack_correlation_threshold` | float | 0.7 | [0, 1] | Pearson rho cutoff for wolfpack coalition membership |
 
 ### Validation Rules
 
@@ -36,6 +42,11 @@ The `__post_init__` method raises `ValueError` if:
 - `disturbance_scale < 0`
 - `adversarial_intensity < 0`
 - `attack_cost < 0`
+- `adversary_tau_init <= 0`
+- `adversary_tau_final <= 0`
+- `tau_decay_rate <= 0`
+- `bankruptcy_threshold <= 0`
+- `wolfpack_correlation_threshold` outside `[0, 1]`
 
 ## DataProfile
 
@@ -99,6 +110,9 @@ Used in `SimulationConfig.disturbance_model`, resolved by `disturbance_from_name
 | `regime_shift`, `regime` | `RegimeShiftDisturbance` | Periodic structural breaks |
 | `volatility_burst`, `burst` | `VolatilityBurstDisturbance` | High-amplitude Gaussian bursts |
 | `drift`, `systematic_drift` | `DriftDisturbance` | Time-growing systematic drift |
+| `historical`, `historical_residual` | `HistoricalDisturbance` | Sampled from cached historical residuals |
+| `escalating`, `escalate` | `EscalatingDisturbance` | Linearly intensifying disturbance |
+| `wolfpack`, `wolf_pack` | `WolfpackDisturbance` | Dual-scale coordinated ensemble attack |
 
 See [disturbances-and-defenses.md](disturbances-and-defenses.md) for model details.
 
@@ -126,9 +140,85 @@ Used with `ModelBackend` protocol in `strategy_runtime.py`:
 | `XGBoostBackend` | GradientBoostingRegressor-based (falls back to passthrough) |
 | `ARIMABackend` | Linear: `trend_coeff + exo_coeff * exogenous + persistence * hidden_shift` |
 
+## Parallel Execution
+
+### `parallel_runner()` Factory
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `backend` | `str` | `"auto"` | Backend selection: `"auto"`, `"ray"`, `"multiprocessing"` |
+| `n_workers` | `int` | `4` | Number of multiprocessing workers (ignored for Ray) |
+| `ray_address` | `str \| None` | `None` | Ray cluster address; `None` = local |
+
+### `FaultToleranceConfig`
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `max_task_retries` | `int` | `3` | Max retries per Ray task on transient failure |
+| `retry_delay_s` | `float` | `1.0` | Delay between retries (seconds) |
+| `actor_max_restarts` | `int` | `3` | Max restarts for Ray actors on node loss |
+
+### CLI Arguments
+
+`scripts/run_verification.py` accepts:
+
+```bash
+python scripts/run_verification.py --backend auto    # default
+python scripts/run_verification.py --backend ray
+python scripts/run_verification.py --backend multiprocessing
+```
+
+## Observability Configuration
+
+### Metrics Server
+
+| Variable | Default | Description |
+|---|---|---|
+| `METRICS_PORT` | `0` (disabled) | Port for Prometheus `/metrics` HTTP endpoint |
+
+Set `METRICS_PORT=9090` to enable the metrics server. The server starts on a daemon thread when `start_metrics_server()` is called.
+
+### Structured Logging
+
+Structured JSON logging is automatically enabled when `structlog` is installed. The processor chain includes timestamp, log level, and JSON rendering. No additional configuration is needed.
+
+### Tracing
+
+OpenTelemetry tracing is automatically enabled when `opentelemetry-sdk` is installed. By default, spans are exported via OTLP gRPC to `localhost:4317`. Override with the `OTEL_EXPORTER_OTLP_ENDPOINT` environment variable.
+
+### Prometheus Scrape Targets
+
+Configure in `infra/prometheus.yml`:
+
+| Job | Default Target | Description |
+|---|---|---|
+| `ray` | `ray-head:8080` | Ray's built-in metrics endpoint |
+| `marl_app` | `app:9090` | Application metrics endpoint |
+
+### Custom Alert Rules
+
+Add rules to `infra/alert_rules.yml`. Available metrics for alerting include all custom metrics listed in the deployment documentation.
+
+## Explainability UI
+
+### Streamlit Configuration
+
+| Setting | Default | Description |
+|---|---|---|
+| `--server.port` | `8501` | UI server port |
+| `--server.headless` | `false` | Run without browser launch |
+| `--server.address` | `localhost` | Bind address |
+
+### Data Sources
+
+The UI loads simulation outputs from JSON files containing `trajectory_logs`, `forecasts`, `targets`, and `convergence` data. These files are produced by `_game_outputs_to_dict()` in `framework/distributed.py` or by `framework/export.py`.
+
 ## Environment Variables
 
 | Variable | Default | Used By | Description |
 |---|---|---|---|
 | `FRED_API_KEY` | (none) | `FredMacroAdapter`, training scripts | FRED API authentication key |
 | `OLLAMA_BASE_URL` | `http://localhost:11434` | `OllamaClient`, `OllamaInterface` | Ollama server URL |
+| `METRICS_PORT` | `0` (disabled) | `observability.py` | Prometheus metrics server port |
+| `RAY_ADDRESS` | (none) | `distributed.py` | Ray cluster address for auto-connect |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | `localhost:4317` | `observability.py` | OpenTelemetry OTLP export endpoint |

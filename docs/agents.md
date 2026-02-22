@@ -2,7 +2,7 @@
 
 ## Overview
 
-The framework provides 7 agent types that interact through the game loop. Each agent produces an `AgentAction(actor, delta)` that contributes to the round's forecast. Agents are composed into an `AgentRegistry` that supports variable agent counts and hierarchical topologies.
+The framework provides 8 agent types that interact through the game loop. Each agent produces an `AgentAction(actor, delta)` that contributes to the round's forecast. Agents are composed into an `AgentRegistry` that supports variable agent counts and hierarchical topologies.
 
 ## Agent Types
 
@@ -12,6 +12,7 @@ The framework provides 7 agent types that interact through the game loop. Each a
 | Bottom-Up | `BottomUpAgent` | Segment-level prediction | State + runtime | `act(state, runtime) -> AgentAction` |
 | Top-Down | `TopDownAgent` | Macro-level adjustment | State only | `act(state) -> AgentAction` |
 | Adversary | `AdversaryAgent` | Inject adversarial delta | State | `act(state) -> AgentAction` |
+| Wolfpack | `WolfpackAdversary` | Coordinated multi-target attack | State + residual history | `act(state, is_primary) -> AgentAction` |
 | Defender | `DefenderAgent` | Corrective delta | Forecast + adversary action | `act(forecast_action, adversary_action, defense_model) -> AgentAction` |
 | Refactorer | `RefactoringAgent` | Bias correction | Error signal | `revise(latest_error, use_llm) -> float` |
 | Aggregator | `EnsembleAggregatorAgent` | Combine forecaster deltas | List of actions | `aggregate(actions, reward_history) -> AgentAction` |
@@ -58,6 +59,59 @@ base = direction * 0.4 * aggressiveness
 
 An `attack_cost` penalty reduces the adversary's effective delta, modeling the cost of adversarial action.
 
+## WolfpackAdversary
+
+A coordinated adversary that targets correlated forecaster clusters rather than attacking randomly. Based on the Wolfpack Adversarial Attack methodology (arXiv:2502.02844).
+
+Unlike `AdversaryAgent` (frozen dataclass), `WolfpackAdversary` is a mutable dataclass because it maintains historical residual data across rounds.
+
+### Parameters
+
+| Parameter | Default | Description |
+|---|---|---|
+| `aggressiveness` | 1.0 | Attack strength multiplier |
+| `attack_cost` | 0.0 | Cost penalty for adversarial action |
+| `correlation_threshold` | 0.7 | Pearson rho cutoff for coalition membership |
+
+### Targeting Mechanism
+
+1. **Residual tracking**: Each round, the wolfpack records per-agent forecast residuals via `record_residual(agent_name, residual)`.
+2. **Correlation matrix**: Computes pairwise Pearson correlation coefficients across agents' residual histories.
+3. **Coalition selection**: Given a primary target (the forecaster with the highest BMA weight), agents with `|rho| >= correlation_threshold` form the coalition.
+4. **Differentiated attack**: The primary target receives full-strength perturbation; coalition members receive half-strength perturbation.
+
+### Usage
+
+```python
+from framework.agents import WolfpackAdversary
+
+wolf = WolfpackAdversary(aggressiveness=1.5, correlation_threshold=0.7)
+
+# Record residuals each round
+wolf.record_residual("agent_a", 0.05)
+wolf.record_residual("agent_b", 0.04)
+wolf.record_residual("agent_c", -0.3)
+
+# Compute targets
+primary, coalition = wolf.select_targets("agent_a")
+# coalition contains agents correlated with agent_a above threshold
+
+# Generate attack action
+action = wolf.act(state, is_primary=True)   # full aggressiveness
+action = wolf.act(state, is_primary=False)  # half aggressiveness for coalition
+```
+
+### Game Loop Integration
+
+When a `WolfpackAdversary` is in the `AgentRegistry`, the game loop:
+
+1. Identifies the primary target from the `BayesianAggregator` weights (highest-weight agent).
+2. Selects the coalition via `select_targets()`.
+3. Perturbs each targeted forecaster's individual delta **before** aggregation.
+4. Non-targeted forecasters are unaffected.
+
+This models a coordinated attack that exploits ensemble correlation structure.
+
 ## DefenderAgent
 
 Applies a defense model to produce a corrective delta that counteracts the adversary:
@@ -99,13 +153,13 @@ A frozen dataclass that holds collections of agents:
 @dataclass(frozen=True)
 class AgentRegistry:
     forecasters: tuple[ForecastingAgent | BottomUpAgent, ...] = ()
-    adversaries: tuple[AdversaryAgent, ...] = ()
+    adversaries: tuple[AdversaryAgent | WolfpackAdversary, ...] = ()
     defenders: tuple[DefenderAgent, ...] = ()
     refactorer: RefactoringAgent | None = None
     aggregator: EnsembleAggregatorAgent = EnsembleAggregatorAgent()
 ```
 
-The `forecasters` tuple can contain any mix of `ForecastingAgent`, `BottomUpAgent`, and `TopDownAgent` instances. During the game loop, the engine iterates over all forecasters and aggregates their outputs.
+The `forecasters` tuple can contain any mix of `ForecastingAgent`, `BottomUpAgent`, and `TopDownAgent` instances. The `adversaries` tuple accepts both standard `AdversaryAgent` and `WolfpackAdversary` instances. During the game loop, the engine iterates over all forecasters and aggregates their outputs.
 
 ### Constructing a Custom Registry
 
@@ -162,6 +216,7 @@ graph TB
         F3["TopDownAgent"]
         Agg["EnsembleAggregatorAgent"]
         Adv["AdversaryAgent"]
+        Wolf["WolfpackAdversary"]
         Def["DefenderAgent"]
         Ref["RefactoringAgent"]
     end
@@ -169,6 +224,8 @@ graph TB
     F1 -->|delta| Agg
     F2 -->|delta| Agg
     F3 -->|delta| Agg
+    Wolf -->|"per-agent perturbation"| F1
+    Wolf -->|"per-agent perturbation"| F2
     Agg -->|combined delta| Forecast["forecast = value + combined + adv + def + bias"]
     Adv -->|opposing delta| Forecast
     Def -->|corrective delta| Forecast
@@ -177,4 +234,51 @@ graph TB
     Evolve --> Reward["reward = -|error|"]
     Reward -->|cumulative| Agg
     Reward -->|error signal| Ref
+    Reward -->|residuals| Wolf
 ```
+
+## Ray Actor Agents
+
+For distributed training and stateful agent representations, the framework provides Ray actor wrappers in `framework/ray_actors.py`. These are `@ray.remote` classes that maintain persistent state across rounds and can be distributed across cluster nodes.
+
+### Actor Types
+
+| Actor | Wraps | Persistent State |
+|---|---|---|
+| `RayForecasterActor` | `ForecastingAgent` | Cumulative reward, Q-table weights |
+| `RayAdversaryActor` | `AdversaryAgent` | Cumulative reward, attack history |
+| `RayDefenderActor` | `DefenderAgent` | Cumulative reward |
+
+Each actor exposes:
+- `act.remote(state_dict) -> dict` -- produces an action from a serialized state
+- `update_reward.remote(reward) -> None` -- accumulates reward feedback
+- `get_reward.remote() -> float` -- returns cumulative reward
+
+### ActorRegistry
+
+`ActorRegistry` holds Ray actor handles instead of direct agent instances:
+
+```python
+from framework.ray_actors import RayForecasterActor, ActorRegistry
+
+forecaster = RayForecasterActor.remote(name="f1", runtime_backend="python")
+registry = ActorRegistry(forecasters=[forecaster])
+```
+
+### When to Use Actor-Based Agents
+
+| Scenario | Recommended |
+|---|---|
+| Single-machine simulation | In-process `AgentRegistry` |
+| Distributed MARL training | `ActorRegistry` with Ray actors |
+| Stateful agents with learned parameters | Ray actors (persistent memory across episodes) |
+| Monte Carlo evaluation sweeps | `RayParallelGameRunner` with in-process agents |
+
+## RLlib Environment Wrappers
+
+`framework/rllib_env.py` provides Gymnasium-compatible environment wrappers for RL training:
+
+- **`ForecastGameEnv`**: Single-agent environment where the agent controls the forecaster delta. Adversary and defender use fixed heuristic policies.
+- **`ForecastGameMultiAgentEnv`**: Multi-agent environment with agent IDs `"forecaster"`, `"adversary"`, `"defender"`. Each agent provides a scalar delta simultaneously.
+
+Both environments expose a 4-dimensional observation space `[t, value, exogenous, hidden_shift]` and a 1-dimensional continuous action space `[-5, 5]`.

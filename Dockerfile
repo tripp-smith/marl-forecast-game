@@ -24,7 +24,15 @@ COPY . .
 RUN chmod +x scripts/validate.sh
 RUN mkdir -p /app/logs
 
+EXPOSE 9090
+
 HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
   CMD python -c "import json; from framework.verify import run_verification; r=run_verification(); open('/app/logs/healthcheck.log','a').write(json.dumps(r['checks'])+'\n'); exit(0 if all(r['checks'].values()) else 1)" || exit 1
 
 CMD ["scripts/validate.sh"]
+
+FROM base AS streamlit
+
+EXPOSE 8501
+
+CMD ["streamlit", "run", "ui/app.py", "--server.port=8501", "--server.address=0.0.0.0", "--server.headless=true"]

@@ -17,13 +17,27 @@ jobs:
       - name: Run test suite
         run: pytest -q
       - name: Run verification
-        run: python scripts/run_verification.py
+        run: python scripts/run_verification.py --backend multiprocessing
       - name: Upload verification report
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: verification-report
           path: planning/verification_report.json
+
+  test-distributed:
+    runs-on: ubuntu-latest
+    env:
+      RAY_LOCAL_MODE: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run distributed and observability tests
+        run: pytest tests/test_distributed.py tests/test_observability.py -q
 
   training-smoke:
     runs-on: ubuntu-latest
@@ -59,7 +73,7 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
       - name: Run mypy
-        run: python -m mypy framework/types.py framework/game.py framework/metrics.py framework/observability.py framework/defenses.py framework/disturbances.py --ignore-missing-imports
+        run: python -m mypy framework/types.py framework/game.py framework/metrics.py framework/observability.py framework/defenses.py framework/disturbances.py framework/distributed.py framework/ray_actors.py framework/rllib_env.py --ignore-missing-imports
 
   property-tests:
     runs-on: ubuntu-latest
@@ -72,6 +86,18 @@ jobs:
         run: pip install -r requirements.txt
       - name: Run Hypothesis property tests
         run: pytest tests/test_properties.py -q --hypothesis-seed=0
+
+  streamlit-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Validate Streamlit app loads
+        run: python -c "import ast; ast.parse(open('ui/app.py').read()); print('ui/app.py parses OK')"
 
   haskell-test:
     runs-on: ubuntu-latest

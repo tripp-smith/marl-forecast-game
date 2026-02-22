@@ -1,0 +1,26 @@
+groups:
+  - name: marl_alerts
+    rules:
+      - alert: AttackedMAETooLow
+        expr: marl_sim_mae{disturbed="true"} < marl_sim_mae{disturbed="false"} * 1.05
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Attacked MAE not exceeding clean MAE by expected margin"
+
+      - alert: SimulationExceedsMaxRounds
+        expr: marl_sim_rounds > 200
+        for: 0s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Simulation exceeded max_rounds"
+
+      - alert: HighDisturbanceSuccessRate
+        expr: rate(marl_disturbance_success_total[5m]) / rate(marl_disturbance_injections_total[5m]) > 0.8
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Disturbance success rate exceeds 80%"

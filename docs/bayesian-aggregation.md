@@ -6,25 +6,42 @@ The framework provides Bayesian Model Averaging (BMA) for combining multi-agent 
 
 ## BayesianAggregator
 
-The `BayesianAggregator` class maintains per-agent posterior weights that are updated after each round based on forecast accuracy.
+The `BayesianAggregator` class maintains per-agent bankroll weights updated via the Kelly-Criterion exponential growth rule. This models forecasting as a capital growth maximization problem where agents wager a virtual bankroll and weights are dynamically pruned based on strict proper scoring rules.
 
-### Weight Update
+Based on: *A Coding Theoretic Study of Homogeneous Markovian Predictive Games* (arXiv:2502.02433).
 
-Posterior weights are maintained in log-space and updated via Gaussian log-likelihood:
+### Kelly-Criterion Bankroll Update
+
+Each agent maintains a virtual bankroll `B_i`, initialized to `1.0`. After each round, the bankroll is updated using the negative CRPS as the scoring function:
 
 ```
-log_weight[i] += -0.5 * error[i]^2 / observation_variance
+score_i = neg_crps(actual, forecast_mean_i, forecast_std_i)
+B_i *= exp(score_i)
 ```
 
-Normalized weights are computed using the log-sum-exp trick for numerical stability:
+When per-agent forecast means and standard deviations are not available, the scorer falls back to `score = -|error|` for backward compatibility.
 
-```python
-max_lw = max(log_weights)
-exp_weights = [exp(lw - max_lw) for lw in log_weights]
-weights = [w / sum(exp_weights) for w in exp_weights]
+Normalized weights are computed from active bankrolls:
+
+```
+w_i = B_i / sum(B_j for all active j)
 ```
 
-Weights always sum to 1.0. Agents with smaller errors accumulate larger weights over time.
+Weights always sum to 1.0. Agents with better CRPS scores grow their bankrolls exponentially faster.
+
+### Bankruptcy Pruning
+
+After each bankroll update, agents whose bankroll drops below the `bankruptcy_threshold` (default 0.01) are marked inactive:
+
+```
+if B_i < bankruptcy_threshold:
+    active[i] = False
+    w_i = 0
+```
+
+Bankrupt agents are excluded from aggregation, reducing compute overhead. If all agents are bankrupt, the aggregator falls back to equal weights to prevent divide-by-zero.
+
+The threshold is configurable via `SimulationConfig.bankruptcy_threshold`.
 
 ### Aggregation
 
@@ -34,6 +51,8 @@ The `aggregate(actions, state)` method returns `(weighted_mean_delta, variance)`
 mean_delta = sum(w_i * delta_i) / sum(w_i)
 variance = sum(w_i * (delta_i - mean_delta)^2) / sum(w_i)
 ```
+
+Only active agents contribute to the aggregation.
 
 ### Usage
 
@@ -46,7 +65,17 @@ actions = [AgentAction("agent_a", 0.3), AgentAction("agent_b", -0.1)]
 state = ForecastState(t=0, value=10.0, exogenous=0.0, hidden_shift=0.0)
 
 mean_delta, variance = agg.aggregate(actions, state)
-agg.update({"agent_a": 0.05, "agent_b": 0.15})  # per-agent errors
+
+# Update with errors only (backward-compatible, uses -|error| scoring)
+agg.update({"agent_a": 0.05, "agent_b": 0.15})
+
+# Update with full CRPS scoring
+agg.update(
+    {"agent_a": 0.05, "agent_b": 0.15},
+    means={"agent_a": 10.3, "agent_b": 9.9},
+    stds={"agent_a": 0.15, "agent_b": 0.15},
+    bankruptcy_threshold=0.01,
+)
 ```
 
 ## ProbabilisticForecast
@@ -102,6 +131,16 @@ CRPS = std * (z * (2 * CDF(z) - 1) + 2 * PDF(z) - 1/sqrt(pi))
 ```
 
 where `z = (actual - mean) / std`. Lower CRPS indicates better probabilistic forecasting.
+
+### Negative CRPS
+
+The `neg_crps` function returns `-crps(...)`, providing a score where higher is better. This is the scoring function used by the Kelly-Criterion bankroll update:
+
+```python
+neg_crps(actual, forecast_mean, forecast_std) -> float
+```
+
+Agents with higher (less negative) neg_crps scores grow their bankrolls faster.
 
 ### Interval Coverage
 

@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import replace
 
 from .data import DataProfile, load_dataset, load_source_rows
+from .distributed import RayParallelGameRunner, parallel_runner
 from .game import ForecastGame
 from .metrics import mae, mape, rmse, robustness_delta, robustness_ratio, worst_case_abs_error
 from .observability import export_prometheus_metrics
@@ -40,7 +41,7 @@ def _scenario_metrics(cfg: SimulationConfig, init: ForecastState) -> dict:
     }
 
 
-def run_verification() -> dict:
+def run_verification(backend: str = "auto") -> dict:
     bundle = load_dataset(DataProfile(source="sample_csv", periods=240, normalize=True))
 
     cfg = SimulationConfig(
@@ -66,19 +67,28 @@ def run_verification() -> dict:
     real_bundle = load_dataset(DataProfile(source="fred", periods=60, normalize=True))
     hybrid_bundle = load_dataset(DataProfile(source="hybrid", periods=60, normalize=True, hybrid_weight=0.6))
 
-    deterministic_runs = []
-    for _ in range(100):
-        run = ForecastGame(cfg, seed=99).run(init, disturbed=True)
-        deterministic_runs.append(run.forecasts)
-    deterministic_ok = all(deterministic_runs[0] == candidate for candidate in deterministic_runs[1:])
+    runner = parallel_runner(backend=backend)
+    deterministic_results = runner.run_seeds(cfg, init, seeds=[99] * 100, disturbed=True)
+    deterministic_ok = all(
+        deterministic_results[0]["forecasts"] == r["forecasts"]
+        for r in deterministic_results[1:]
+    )
 
     stress_cfg = replace(cfg, horizon=10_000, max_rounds=10_000)
     stress_run = ForecastGame(stress_cfg, seed=1).run(init, disturbed=True)
 
+    sweep_configs = [
+        replace(cfg, adversarial_intensity=i, disturbance_model="volatility", defense_model="ensemble")
+        for i in [0.5, 1.0, 1.5]
+    ]
+    sweep_results = runner.map_scenarios(sweep_configs, init, seeds=[13, 13, 13])
     intensity_sweep = {}
-    for intensity in [0.5, 1.0, 1.5]:
-        sweep_cfg = replace(cfg, adversarial_intensity=intensity, disturbance_model="volatility", defense_model="ensemble")
-        intensity_sweep[str(intensity)] = _scenario_metrics(sweep_cfg, init)["robustness"]
+    for intensity, result in zip([0.5, 1.0, 1.5], sweep_results):
+        clean_result = _scenario_metrics(
+            replace(cfg, adversarial_intensity=intensity, disturbance_model="volatility", defense_model="ensemble"),
+            init,
+        )
+        intensity_sweep[str(intensity)] = clean_result["robustness"]
 
     checks = {
         "split_non_empty": len(bundle.train) > 0 and len(bundle.valid) > 0 and len(bundle.test) > 0,
@@ -90,6 +100,7 @@ def run_verification() -> dict:
         "attack_differs_from_clean": abs(baseline["attack"]["mae"] - baseline["clean"]["mae"]) > 1e-9,
         "deterministic_100_runs": deterministic_ok,
         "stress_10k_rounds": stress_run.convergence["rounds_executed"] == 10_000,
+        "parallel_runner_available": isinstance(runner, RayParallelGameRunner),
     }
 
     return {

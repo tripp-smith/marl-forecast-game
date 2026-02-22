@@ -2,9 +2,9 @@
 
 ## Overview
 
-The framework provides three layers of validation: a 22-scenario validation framework, 9 automated verification checks, and 13 Hypothesis property-based tests. Together they cover data integrity, simulation correctness, determinism, robustness, and advanced feature behavior.
+The framework provides three layers of validation: a 24-scenario validation framework, 9 automated verification checks, and 21 Hypothesis property-based tests. Together they cover data integrity, simulation correctness, determinism, robustness, and advanced feature behavior.
 
-## Validation Scenarios (22)
+## Validation Scenarios (24)
 
 Scenarios are registered in `SCENARIO_REGISTRY` and executed via `run_all_scenarios()`. Each scenario is defined by a `ValidationScenario` dataclass specifying the data source, adversarial parameters, and expected properties.
 
@@ -34,11 +34,13 @@ Scenarios are registered in `SCENARIO_REGISTRY` and executed via `run_all_scenar
 | 20 | `llm_refiner_stability` | LLM | RecursiveStrategyRefiner bias within clamp bounds | `_run_llm_refiner_stability` |
 | 21 | `fred_training_backtest` | Backtest | Walk-forward on FRED training data (skips without key) | `_run_fred_training_backtest` |
 | 22 | `parallel_determinism` | Distributed | Parallel runner matches sequential for same seeds | `_run_parallel_determinism` |
+| 23 | `rarl_bounded_rationality_convergence` | MARL | RARL with bounded rationality curriculum avoids gradient starvation | `_run_rarl_bounded_rationality` |
+| 24 | `wolfpack_ensemble_stress_test` | Robustness | Wolfpack adversary vs. stacked defense; robustness ratio below threshold | `_run_wolfpack_stress_test` |
 
 ### Running Scenarios
 
 ```bash
-# Run all 22 scenarios
+# Run all 24 scenarios
 python scripts/run_validation_scenarios.py --scenarios all
 
 # Run specific scenarios
@@ -98,7 +100,7 @@ python scripts/run_verification.py
 
 Output is written to `planning/verification_report.json` and printed to stdout. The script exits with code 1 if any check fails.
 
-## Hypothesis Property Tests (13)
+## Hypothesis Property Tests (21)
 
 Property-based tests in `tests/test_properties.py` use the Hypothesis library to verify invariants:
 
@@ -117,6 +119,8 @@ Property-based tests in `tests/test_properties.py` use the Hypothesis library to
 | 11 | Defense magnitude bounded | Correction is finite |
 | 12 | Chronological split is disjoint | No data leakage |
 | 13 | Normalize preserves row count | Feature engineering correctness |
+| 14 | Kelly BMA weights sum invariant | BMA weights always sum to 1.0 after updates |
+| 15 | Wolfpack target set bounded | Coalition size never exceeds total forecaster count |
 
 ### Running Property Tests
 
@@ -128,13 +132,15 @@ Hypothesis runs 100 examples per property by default (configurable via settings)
 
 ## Unit and Integration Tests
 
-The `tests/test_framework.py` module contains 28 tests covering:
+The `tests/test_framework.py` module contains 70 tests covering:
 
 - **Types**: `evolve_state` determinism, `ForecastState` immutability.
-- **Agents**: Action correctness for all agent types, `SafeAgentExecutor` fallback.
-- **Game**: Round cap enforcement, clean/disturbed parity, `GameOutputs` structure.
+- **Agents**: Action correctness for all agent types, `SafeAgentExecutor` fallback, `WolfpackAdversary` correlation and targeting.
+- **Game**: Round cap enforcement, clean/disturbed parity, `GameOutputs` structure, wolfpack game integration.
 - **Data**: CSV loading, normalization, chronological split, poisoning detection.
-- **Metrics**: MAE/RMSE/MAPE/worst-case calculation, robustness delta/ratio.
+- **Metrics**: MAE/RMSE/MAPE/worst-case calculation, robustness delta/ratio, `neg_crps` sign correctness.
+- **Aggregation**: Kelly-Criterion BMA weight sum invariant, bankruptcy pruning, all-bankrupt fallback.
+- **Training**: Boltzmann action selection (high-tau uniform, low-tau greedy), RARL tau schedule decay, bounded rationality convergence.
 - **Integration**: End-to-end `run_verification()` check pass.
 
 ```bash
@@ -160,7 +166,7 @@ The `scripts/run_container_test_harness.sh` script builds the Docker image and r
 1. `docker build -t marl-forecast-game:test .`
 2. Run `pytest -q` inside the container.
 3. Run `python scripts/run_verification.py` inside the container.
-4. Run all 22 validation scenarios inside the container.
+4. Run all 24 validation scenarios inside the container.
 
 ```bash
 bash scripts/run_container_test_harness.sh

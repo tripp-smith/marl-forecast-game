@@ -19,7 +19,15 @@ from .agents import (
 )
 from .aggregation import BayesianAggregator
 from .disturbances import WolfpackDisturbance, disturbance_from_name
-from .observability import ROUND_COUNTER, ROUND_LATENCY, GameObserver
+from .observability import (
+    ROUND_COUNTER,
+    ROUND_LATENCY,
+    GameObserver,
+    create_span,
+    record_agent_metrics,
+    record_alert,
+    record_disturbance,
+)
 from .strategy_runtime import runtime_from_name
 from .types import (
     AgentAction,
@@ -106,13 +114,23 @@ class ForecastGame:
         self.defender = self._registry.defenders[0] if self._registry.defenders else DefenderAgent()
         self.refactor = self._registry.refactorer or RefactoringAgent()
 
+        self._seed = seed
         self.safe_exec = SafeAgentExecutor()
-        self.logger = GameObserver().logger()
+        _logger = GameObserver().logger()
+        try:
+            self.logger = _logger.bind(simulation_seed=seed)
+        except (AttributeError, TypeError):
+            self.logger = _logger
         self.bayesian_agg = BayesianAggregator()
 
     def run(self, initial: ForecastState, rounds: int | None = None, *, disturbed: bool = True) -> GameOutputs:
         requested_rounds = rounds if rounds is not None else self.config.horizon
         n_rounds = max(0, min(requested_rounds, self.config.max_rounds))
+
+        with create_span("simulation.run", {"seed": self._seed, "disturbed": disturbed, "n_rounds": n_rounds}):
+            return self._run_inner(initial, n_rounds, disturbed=disturbed)
+
+    def _run_inner(self, initial: ForecastState, n_rounds: int, *, disturbed: bool) -> GameOutputs:
         state = initial
         steps: List[StepResult] = []
         trajectories: List[TrajectoryEntry] = []
@@ -124,6 +142,7 @@ class ForecastGame:
         cumulative_rewards: dict[str, float] = {}
         rolling_errors: List[float] = []
         convergence_reason: str = "completed"
+        prev_abs_error: float = 0.0
 
         for idx in range(n_rounds):
             start = time.perf_counter()
@@ -181,6 +200,12 @@ class ForecastGame:
             error = target - forecast
             reward = -abs(error)
 
+            record_agent_metrics(f_action.actor, "forecaster", f_action.delta, max(0.0, reward))
+            record_agent_metrics(a_action.actor, "adversary", a_action.delta, max(0.0, -reward))
+            record_agent_metrics(d_action.actor, "defender", d_action.delta, max(0.0, reward))
+            record_disturbance(disturbance_val != 0.0, abs(error) > prev_abs_error)
+            prev_abs_error = abs(error)
+
             if len(all_forecast_actions) > 1:
                 agent_errors: dict[str, float] = {}
                 agent_means: dict[str, float] = {}
@@ -209,6 +234,7 @@ class ForecastGame:
                 rolling_mae = sum(window) / len(window)
                 if rolling_mae > self.config.convergence_threshold:
                     convergence_reason = "divergence_threshold_exceeded"
+                    record_alert("mae_exceeds_threshold")
 
             for a in all_forecast_actions:
                 cumulative_rewards[a.actor] = cumulative_rewards.get(a.actor, 0.0) + reward

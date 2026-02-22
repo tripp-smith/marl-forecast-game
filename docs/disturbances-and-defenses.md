@@ -26,6 +26,9 @@ Each model uses `config.disturbance_prob` to decide whether to fire on a given r
 | `regime_shift` | `RegimeShiftDisturbance` | `t % every_n == 0 && prob` | `+/- level_shift * intensity` | `level_shift=0.8`, `every_n_steps=12` |
 | `volatility_burst` | `VolatilityBurstDisturbance` | `rng.random() > prob` skips | `gauss(0, scale * intensity * burst_scale)` | `burst_scale=2.5` |
 | `drift` | `DriftDisturbance` | `rng.random() > prob` skips | `sign(exogenous) * step_drift * (t+1) * intensity` | `step_drift=0.03` |
+| `historical` | `HistoricalDisturbance` | `rng.random() > prob` skips | Sample from cached historical residuals | `cache_path`, `fallback_std=0.3` |
+| `escalating` | `EscalatingDisturbance` | `rng.random() > prob` skips | `gauss(0, (base_scale + escalation_rate * t) * intensity)` | `base_scale=0.1`, `escalation_rate=0.01` |
+| `wolfpack` | `WolfpackDisturbance` | `rng.random() > prob` skips | Dual-scale: primary + secondary for coalition | `primary_scale=1.0`, `secondary_scale=0.5` |
 
 ### Model Details
 
@@ -43,6 +46,12 @@ Each model uses `config.disturbance_prob` to decide whether to fire on a given r
 
 **DriftDisturbance**: Magnitude grows linearly with `t`, producing a systematic drift that becomes harder to forecast over longer horizons. Direction follows the sign of `exogenous`.
 
+**HistoricalDisturbance**: Samples disturbances from a fitted distribution on cached historical residuals (default: `data/cache/fred.json`). Loads target values from the cache, computes de-meaned residuals, selects one at random, and scales by `disturbance_scale * adversarial_intensity`. Falls back to `gauss(0, fallback_std * intensity)` if the cache is unavailable or has fewer than 3 data points.
+
+**EscalatingDisturbance**: Standard deviation increases linearly with the round index: `base_scale + escalation_rate * t`. Models adversaries that ramp up attack strength over time, testing long-horizon robustness.
+
+**WolfpackDisturbance**: A dual-scale Gaussian disturbance designed for coordinated ensemble attacks. The primary target receives disturbance scaled by `primary_scale` (default 1.0), while coalition members receive disturbance scaled by `secondary_scale` (default 0.5). The `sample_secondary()` method generates the reduced-intensity disturbance for coalition members.
+
 ### Name Resolution
 
 The `disturbance_from_name()` factory accepts these aliases:
@@ -56,6 +65,9 @@ The `disturbance_from_name()` factory accepts these aliases:
 | `regime_shift`, `regime` | `RegimeShiftDisturbance` |
 | `volatility_burst`, `burst` | `VolatilityBurstDisturbance` |
 | `drift`, `systematic_drift` | `DriftDisturbance` |
+| `historical`, `historical_residual` | `HistoricalDisturbance` |
+| `escalating`, `escalate` | `EscalatingDisturbance` |
+| `wolfpack`, `wolf_pack` | `WolfpackDisturbance` |
 
 Unknown names log a warning and fall back to `GaussianDisturbance`.
 

@@ -50,7 +50,7 @@ A standard tabular Q-learning agent with epsilon-greedy exploration:
 | `epsilon_decay` | 0.995 | Per-step decay multiplier |
 | `epsilon_min` | 0.05 | Minimum exploration probability |
 
-### Action Selection
+### Action Selection (Epsilon-Greedy)
 
 ```
 if random() < epsilon:
@@ -58,6 +58,24 @@ if random() < epsilon:
 else:
     return argmax Q(s, a)
 ```
+
+### Action Selection (Boltzmann / Softmax)
+
+The `boltzmann_act(state, tau)` method provides temperature-controlled action selection based on the Quantal Response Equilibrium model:
+
+```
+p(a | s) = exp(Q(s, a) / tau) / sum_a'(exp(Q(s, a') / tau))
+```
+
+The temperature parameter `tau` controls the exploration-exploitation tradeoff:
+
+| tau | Behavior |
+|---|---|
+| Large (>> 1) | Nearly uniform distribution (maximum exploration) |
+| ~1.0 | Proportional to Q-value exponents |
+| Near 0 | Approaches deterministic argmax (greedy) |
+
+The implementation uses the log-sum-exp trick to avoid numerical overflow. This method is used by the bounded rationality curriculum in RARL training.
 
 ### Update Rule
 
@@ -170,13 +188,31 @@ class RADversarialTrainer:
 Training alternates between the forecaster and adversary every `alternation_schedule` epochs:
 
 ```
-Epochs 0-9:   Train forecaster (freeze adversary)
+Epochs 0-9:   Train forecaster (adversary uses bounded-rational Boltzmann policy)
 Epochs 10-19: Train adversary (freeze forecaster)
-Epochs 20-29: Train forecaster
+Epochs 20-29: Train forecaster (adversary uses sharpened Boltzmann policy)
 ...
 ```
 
-This produces a minimax equilibrium where the forecaster learns to be robust against the strongest adversary, and the adversary learns to exploit the current forecaster.
+### Bounded Rationality Curriculum
+
+Standard alternating RARL suffers from gradient starvation when a fully rational adversary overwhelmingly defeats a naive forecaster in early epochs. The bounded rationality curriculum resolves this by throttling adversarial competence early in training.
+
+Based on: *Robust Adversarial Reinforcement Learning via Bounded Rationality Curricula* (arXiv:2311.01642).
+
+During forecaster-training phases, instead of freezing the adversary entirely, the trainer calls `adversary.boltzmann_act(state, tau)` with a decaying temperature:
+
+```
+tau(epoch) = tau_final + (tau_init - tau_final) * exp(-tau_decay_rate * epoch)
+```
+
+| Parameter | Default | Description |
+|---|---|---|
+| `adversary_tau_init` | 5.0 | Initial temperature (high exploration) |
+| `adversary_tau_final` | 0.1 | Terminal temperature (near-greedy) |
+| `tau_decay_rate` | 0.05 | Exponential decay rate |
+
+The adversary's Q-table is NOT updated during forecaster-training phases -- only its action selection is modulated. This ensures the forecaster trains against a gradually sharpening opponent rather than no opponent at all, preventing gradient starvation in early epochs.
 
 ### Return Value
 
@@ -185,7 +221,7 @@ This produces a minimax equilibrium where the forecaster learns to be robust aga
     "total_epochs": 100,
     "alternation_schedule": 10,
     "epoch_results": [
-        {"epoch": 0, "training": "forecaster", "mean_reward": -0.5},
+        {"epoch": 0, "training": "forecaster", "tau": 4.87, "mean_reward": -0.5},
         ...
     ]
 }

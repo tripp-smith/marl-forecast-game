@@ -6,37 +6,40 @@ A multi-agent adversarial forecasting framework that models prediction as a Mark
 
 **Multi-Agent Game Engine**
 - Immutable simulation state via frozen dataclasses with pure-functional transitions
-- 7 agent types: forecaster, adversary, defender, refactorer, bottom-up, top-down, ensemble aggregator
+- 8 agent types: forecaster, adversary, wolfpack adversary, defender, refactorer, bottom-up, top-down, ensemble aggregator
 - Flexible `AgentRegistry` supporting variable agent counts and hierarchical composition
 - Pluggable strategy runtimes (Python, Haskell subprocess, LLM-backed)
 
 **Adversarial Robustness**
-- 7 disturbance models: Gaussian, shift, evasion, volatility-scaled, regime shift, volatility burst, drift
+- 10 disturbance models: Gaussian, shift, evasion, volatility-scaled, regime shift, volatility burst, drift, historical, escalating, wolfpack
 - 5 defense models: dampening, clipping, bias guard, ensemble, stacked composition
+- Coordinated "Wolfpack" adversary targeting correlated forecaster clusters
 - Clean vs. attacked comparison with robustness delta/ratio metrics
 
 **Probabilistic Forecasting**
-- Bayesian Model Averaging with per-agent posterior weight updates
+- Kelly-Criterion Bayesian Model Averaging with exponential bankroll weight updates
+- Agent bankruptcy detection and dynamic pruning
 - Distributional outputs: mean, variance, quantile fan (p10/p25/p50/p75/p90)
-- Calibration metrics: PIT, CRPS, interval coverage
+- Calibration metrics: PIT, CRPS, negative CRPS, interval coverage
 
 **MARL Training**
-- Tabular Q-learning with epsilon-greedy exploration and decay
+- Tabular Q-learning with epsilon-greedy and Boltzmann (softmax) action selection
 - WoLF-PHC (Win or Learn Fast - Policy Hill Climbing) for equilibrium-seeking
-- Robust Adversarial RL (RARL) with alternating training epochs
+- Robust Adversarial RL (RARL) with bounded rationality curriculum and alternating training epochs
+- Temperature-scheduled adversary: decays from exploratory to exploitative across RARL epochs
 - Q-table serialization for persistence and reproducibility
 
 **Data Integration**
-- 6 source adapters: FRED, IMF, Polymarket, GPR, OECD CLI, BIS
+- 12 source adapters: FRED, IMF, Polymarket, GPR, OECD CLI, BIS, BEA, Eurostat, Kalshi, PredictIt, World Bank, Kaggle
 - Multi-series FRED download (CPI, GDP, unemployment, fed funds, breakeven inflation) via `FRED_API_KEY`
 - Caching with checksum integrity, freshness checks, and force-redownload
 - Poisoning detection via z-score and modified z-score (MAD)
 - Chronological splitting with leakage prevention
 
 **Validation and Deployment**
-- 22-scenario validation framework with JSON/CSV reporting
+- 24-scenario validation framework with JSON/CSV reporting
 - 9 automated verification checks including 100-run determinism and 10k-round stress
-- 13 Hypothesis property-based tests for core invariants
+- 21 Hypothesis property-based tests for core invariants
 - Walk-forward backtesting and per-factor sensitivity analysis
 - Monte Carlo scenario generation with percentile trajectory fans
 - Docker containerization with healthcheck and CI/CD via GitHub Actions
@@ -49,7 +52,7 @@ The system is structured as a Markov game where agents interact through a shared
 ```mermaid
 graph LR
     subgraph data [Data Layer]
-        Adapters["Source Adapters<br/>FRED / IMF / Polymarket"]
+        Adapters["Source Adapters<br/>FRED / IMF / Polymarket / BIS / etc."]
         Cache["Cache + Validate"]
         Split["Chronological Split"]
     end
@@ -62,8 +65,8 @@ graph LR
     end
 
     subgraph learn [Learning]
-        Training["MARL Training<br/>Q / WoLF / RARL"]
-        BMA["Bayesian Aggregator"]
+        Training["MARL Training<br/>Q / WoLF / RARL + Bounded Rationality"]
+        BMA["Kelly-Criterion BMA"]
         Refiner["LLM Refiner"]
     end
 
@@ -87,7 +90,7 @@ pytest
 # Run verification (9 checks)
 python scripts/run_verification.py
 
-# Run all 22 validation scenarios
+# Run all 24 validation scenarios
 python scripts/run_validation_scenarios.py --scenarios all
 ```
 
@@ -136,9 +139,9 @@ The framework includes three layers of validation:
 
 | Layer | Count | Command |
 |---|---|---|
-| Unit + integration tests | 28 | `pytest tests/test_framework.py` |
-| Hypothesis property tests | 13 | `pytest tests/test_properties.py` |
-| Validation scenarios | 22 | `python scripts/run_validation_scenarios.py --scenarios all` |
+| Unit + integration tests | 70 | `pytest tests/test_framework.py` |
+| Hypothesis property tests | 21 | `pytest tests/test_properties.py` |
+| Validation scenarios | 24 | `python scripts/run_validation_scenarios.py --scenarios all` |
 | Verification checks | 9 | `python scripts/run_verification.py` |
 
 List available scenarios:
@@ -168,23 +171,23 @@ The image includes a healthcheck that runs core verification checks. See [docs/d
 marl-forecast-game/
 ├── framework/                     # Core library
 │   ├── types.py                   #   Frozen dataclasses: ForecastState, SimulationConfig, etc.
-│   ├── agents.py                  #   7 agent types + AgentRegistry + SafeAgentExecutor
+│   ├── agents.py                  #   8 agent types + AgentRegistry + SafeAgentExecutor
 │   ├── game.py                    #   ForecastGame engine and GameOutputs
-│   ├── aggregation.py             #   BayesianAggregator for BMA
+│   ├── aggregation.py             #   BayesianAggregator with Kelly-Criterion BMA
 │   ├── training.py                #   Q-learning, WoLF-PHC, RARL, TrainingLoop
 │   ├── backtesting.py             #   WalkForwardBacktester, SensitivityAnalyzer
 │   ├── scenarios.py               #   Monte Carlo ScenarioGenerator
 │   ├── distributed.py             #   ParallelGameRunner (multiprocessing)
 │   ├── hyperopt.py                #   BayesianOptimizer for config tuning
-│   ├── metrics.py                 #   MAE, RMSE, MAPE, PIT, CRPS, interval coverage
-│   ├── disturbances.py            #   7 disturbance models + factory
+│   ├── metrics.py                 #   MAE, RMSE, MAPE, PIT, CRPS, neg_crps, interval coverage
+│   ├── disturbances.py            #   10 disturbance models + factory
 │   ├── defenses.py                #   5 defense models + stacked combinator + factory
 │   ├── strategy_runtime.py        #   Runtime backends: Python, Haskell, Prompt, ModelBackend
 │   ├── data.py                    #   Dataset loading, splitting, poisoning detection
 │   ├── data_utils.py              #   Caching, integrity validation, FredTrainingDataBuilder
 │   ├── observability.py           #   structlog + Prometheus instrumentation
 │   ├── verify.py                  #   9-check verification suite
-│   ├── validation_scenarios.py    #   22-scenario validation framework
+│   ├── validation_scenarios.py    #   24-scenario validation framework
 │   ├── data_sources/              #   Source adapter subpackage
 │   │   ├── base.py                #     NormalizedRecord + SourceAdapter protocol
 │   │   ├── macro_fred.py          #     FRED adapter (single + multi-series)
@@ -203,13 +206,13 @@ marl-forecast-game/
 │   ├── run_training.py            #   MARL training (Q / WoLF / RARL)
 │   ├── run_backtest.py            #   Walk-forward backtesting
 │   ├── run_verification.py        #   9-check verification
-│   ├── run_validation_scenarios.py #  22-scenario validation
+│   ├── run_validation_scenarios.py #  24-scenario validation
 │   ├── run_test_suite.py          #   Extended test suite with reporting
 │   ├── run_container_test_harness.sh # Docker build + full test pipeline
 │   └── validate.sh                #   Minimal entrypoint (pytest + verify)
 ├── tests/                         # Test suite
-│   ├── test_framework.py          #   28 unit/integration tests
-│   └── test_properties.py         #   13 Hypothesis property-based tests
+│   ├── test_framework.py          #   70 unit/integration tests
+│   └── test_properties.py         #   21 Hypothesis property-based tests
 ├── haskell/                       # Haskell migration scaffold
 │   ├── src/Types.hs               #   ForecastState ADT
 │   ├── src/Game.hs                #   Pure evolveState transition
@@ -248,6 +251,12 @@ marl-forecast-game/
 | `enable_refactor` | bool | True | Enable refactoring agent |
 | `enable_llm_refactor` | bool | False | Use LLM for refactoring |
 | `attack_cost` | float | 0.0 | Cost penalty for adversary |
+| `convergence_threshold` | float | 0.0 | Rolling MAE threshold for early stop |
+| `adversary_tau_init` | float | 5.0 | Initial Boltzmann temperature (RARL bounded rationality) |
+| `adversary_tau_final` | float | 0.1 | Terminal Boltzmann temperature |
+| `tau_decay_rate` | float | 0.05 | Exponential decay rate for tau schedule |
+| `bankruptcy_threshold` | float | 0.01 | Kelly bankroll floor for agent pruning |
+| `wolfpack_correlation_threshold` | float | 0.7 | Pearson rho cutoff for wolfpack coalition |
 
 See [docs/configuration.md](docs/configuration.md) for `DataProfile`, runtime backends, and model name registries.
 
@@ -264,12 +273,12 @@ See [docs/configuration.md](docs/configuration.md) for `DataProfile`, runtime ba
 | Document | Description |
 |---|---|
 | [docs/architecture.md](docs/architecture.md) | System design, Markov game formulation, pure-functional principles |
-| [docs/agents.md](docs/agents.md) | All 7 agent types, registry pattern, ensemble aggregation |
+| [docs/agents.md](docs/agents.md) | All 8 agent types, registry pattern, wolfpack adversary, ensemble aggregation |
 | [docs/data-pipeline.md](docs/data-pipeline.md) | Source adapters, FRED integration, caching, poisoning detection |
-| [docs/training.md](docs/training.md) | Q-learning, WoLF-PHC, RARL algorithms and CLI |
-| [docs/bayesian-aggregation.md](docs/bayesian-aggregation.md) | BMA, probabilistic forecasts, calibration metrics, backtesting |
-| [docs/disturbances-and-defenses.md](docs/disturbances-and-defenses.md) | 7 disturbance and 5 defense models |
-| [docs/validation.md](docs/validation.md) | 22 scenarios, 9 checks, property tests |
+| [docs/training.md](docs/training.md) | Q-learning, WoLF-PHC, RARL with bounded rationality curriculum |
+| [docs/bayesian-aggregation.md](docs/bayesian-aggregation.md) | Kelly-Criterion BMA, bankruptcy pruning, probabilistic forecasts, backtesting |
+| [docs/disturbances-and-defenses.md](docs/disturbances-and-defenses.md) | 10 disturbance and 5 defense models |
+| [docs/validation.md](docs/validation.md) | 24 scenarios, 9 checks, property tests |
 | [docs/llm-integration.md](docs/llm-integration.md) | Ollama, DSPyLikeRepl, recursive strategy refinement |
 | [docs/configuration.md](docs/configuration.md) | SimulationConfig, DataProfile, model registries |
 | [docs/deployment.md](docs/deployment.md) | Docker, CI/CD, container harness, distributed execution |

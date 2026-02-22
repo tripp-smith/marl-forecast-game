@@ -82,17 +82,127 @@ The `scripts/run_container_test_harness.sh` script provides a comprehensive cont
 bash scripts/run_container_test_harness.sh
 ```
 
+## Docker Compose Stack
+
+The full observability stack is orchestrated via `docker-compose.yml`:
+
+| Service | Image | Ports | Purpose |
+|---|---|---|---|
+| `ray-head` | `rayproject/ray:2.9.0-py310` | 8265, 6379, 8080 | Ray head node + dashboard + metrics |
+| `ray-worker` | `rayproject/ray:2.9.0-py310` | -- | Scalable Ray worker |
+| `prometheus` | `prom/prometheus:latest` | 9090 | Metrics aggregation + alerting |
+| `grafana` | `grafana/grafana:latest` | 3000 | Dashboard visualization |
+| `app` | Built from `Dockerfile` (base) | 9091 | Python application + metrics server |
+| `streamlit` | Built from `Dockerfile` (streamlit) | 8501 | Explainability UI |
+
+### Quickstart
+
+```bash
+docker compose up -d
+docker compose logs -f app
+docker compose down
+```
+
+Scale Ray workers:
+
+```bash
+docker compose up -d --scale ray-worker=4
+```
+
+### Access Points
+
+| Service | URL |
+|---|---|
+| Ray Dashboard | http://localhost:8265 |
+| Prometheus | http://localhost:9090 |
+| Grafana | http://localhost:3000 (admin/admin) |
+| Streamlit UI | http://localhost:8501 |
+| App Metrics | http://localhost:9091/metrics |
+
+## Prometheus and Grafana
+
+### Configuration Files
+
+| File | Purpose |
+|---|---|
+| `infra/prometheus.yml` | Prometheus scrape config (ray-head:8080 + app:9090) |
+| `infra/alert_rules.yml` | Alert rules (AttackedMAETooLow, SimulationExceedsMaxRounds) |
+| `infra/grafana/provisioning/datasources/prometheus.yml` | Auto-provision Prometheus datasource |
+| `infra/grafana/provisioning/dashboards/dashboard.yml` | Auto-provision dashboard directory |
+
+### Grafana Dashboards
+
+| Dashboard | UID | Panels |
+|---|---|---|
+| Cluster Health | `marl-cluster-health` | Ray node count, CPU/memory utilization, task lifecycle, actor placement |
+| Simulation Metrics | `marl-sim-metrics` | MAE/RMSE/MAPE gauges, disturbance success rate, agent delta histograms, round latency heatmap, robustness delta trend |
+
+### Alert Rules
+
+| Alert | Condition | Severity |
+|---|---|---|
+| `AttackedMAETooLow` | Attacked MAE < Clean MAE * 1.05 | Warning |
+| `SimulationExceedsMaxRounds` | Rounds > 200 | Critical |
+| `HighDisturbanceSuccessRate` | Success rate > 80% for 2m | Warning |
+
+## Streamlit UI
+
+The explainability UI is accessible at `http://localhost:8501`.
+
+### Pages
+
+| Page | Description |
+|---|---|
+| Simulation Replay | Step-through round visualization with forecast/target charts |
+| Agent Contributions | Delta/reward analysis, correlation heatmap |
+| Metric Decomposition | Clean vs attacked comparison, error attribution waterfall |
+| What-If | Interactive parameter tweaking with on-demand simulation |
+| Data Lineage | Pipeline visualization, split boundaries, cache status |
+| LLM Inspection | Placeholder for DSPy-REPL / HaskellRLM integration |
+
+### Standalone Launch
+
+```bash
+streamlit run ui/app.py --server.port=8501 --server.headless=true
+```
+
+## Ray Cluster Deployment
+
+### Local Mode
+
+By default, `parallel_runner()` initializes a local Ray instance. No external cluster is needed.
+
+### Cluster Mode
+
+Connect to an existing Ray cluster by setting the `ray_address` parameter:
+
+```python
+runner = parallel_runner(backend="ray", ray_address="ray://cluster-head:10001")
+```
+
+Or via the `RAY_ADDRESS` environment variable:
+
+```bash
+export RAY_ADDRESS=ray://cluster-head:10001
+```
+
+### KubeRay / Anyscale
+
+For production scaling, deploy a Ray cluster on Kubernetes using [KubeRay](https://docs.ray.io/en/latest/cluster/kubernetes/index.html) or use [Anyscale](https://www.anyscale.com/) for managed Ray. The application requires no code changes -- only `ray_address` needs to point to the cluster head.
+
 ## CI/CD (GitHub Actions)
 
-The CI pipeline is defined in `.github/workflows/ci.yml` with 6 jobs:
+The CI pipeline is defined in `.github/workflows/ci.yml` with 8 jobs:
 
 | Job | Trigger | Purpose |
 |---|---|---|
 | `test` | Every push/PR | pytest + verification + artifact upload |
+| `test-distributed` | Every push/PR | Distributed and observability tests with `RAY_LOCAL_MODE=1` |
 | `training-smoke` | Every push/PR | 10-episode MARL training smoke test |
 | `backtest-smoke` | Every push/PR | 3-window walk-forward backtest |
-| `typecheck` | Every push/PR | `mypy` on core framework modules |
+| `typecheck` | Every push/PR | `mypy` on core framework modules including distributed/ray/rllib |
 | `property-tests` | Every push/PR | Hypothesis tests with `--hypothesis-seed=0` |
+| `streamlit-lint` | Every push/PR | Validates Streamlit app parses without errors |
 | `haskell-test` | `haskell/` changes only | `cabal build all && cabal test all` |
 
 ### Artifact Uploads
@@ -132,26 +242,44 @@ start_metrics_server()  # reads METRICS_PORT env var
 
 Exposes `/metrics` endpoint with:
 
-| Metric | Type | Description |
-|---|---|---|
-| `marl_game_rounds_total` | Counter | Total game rounds executed |
-| `marl_game_round_latency_seconds` | Histogram | Per-round execution latency |
+| Metric | Type | Labels | Description |
+|---|---|---|---|
+| `marl_game_rounds_total` | Counter | -- | Total game rounds executed |
+| `marl_game_round_latency_seconds` | Histogram | -- | Per-round execution latency |
+| `marl_sim_mae` | Gauge | `seed`, `disturbed` | Simulation MAE |
+| `marl_sim_rmse` | Gauge | `seed`, `disturbed` | Simulation RMSE |
+| `marl_sim_mape` | Gauge | `seed`, `disturbed` | Simulation MAPE |
+| `marl_sim_worst_case` | Gauge | `seed`, `disturbed` | Worst-case error |
+| `marl_sim_duration_seconds` | Histogram | -- | Simulation wall-clock time |
+| `marl_sim_rounds` | Gauge | `seed` | Rounds executed |
+| `marl_agent_delta` | Histogram | `actor`, `role` | Agent delta per round |
+| `marl_agent_reward_total` | Counter | `actor` | Cumulative agent reward |
+| `marl_disturbance_injections_total` | Counter | -- | Disturbance injection count |
+| `marl_disturbance_success_total` | Counter | -- | Disturbances that increased error |
+| `marl_alert_anomaly_total` | Counter | `alert_type` | Alert threshold breaches |
 
 ## Distributed Execution
 
-The `ParallelGameRunner` class provides concurrent game execution using `multiprocessing.Pool`:
+The `parallel_runner()` factory selects the appropriate backend automatically:
 
 ```python
-from framework.distributed import ParallelGameRunner
+from framework.distributed import parallel_runner
 from framework.types import ForecastState, SimulationConfig
 
-runner = ParallelGameRunner(n_workers=4)
+runner = parallel_runner()  # Ray if available, else multiprocessing
 config = SimulationConfig(horizon=100)
 init = ForecastState(t=0, value=10.0, exogenous=0.0, hidden_shift=0.0)
 
 results = runner.run_seeds(config, init, seeds=[1, 2, 3, 4, 5])
 for r in results:
     print(f"Seed {r['seed']}: {len(r['forecasts'])} forecasts")
+```
+
+Force a specific backend:
+
+```python
+runner = parallel_runner(backend="ray", ray_address="ray-head:6379")
+runner = parallel_runner(backend="multiprocessing", n_workers=8)
 ```
 
 ## JSON Trajectory Export
