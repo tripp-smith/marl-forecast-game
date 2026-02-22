@@ -68,24 +68,42 @@ class PythonStrategyRuntime:
 class HaskellRLMRuntime:
     """Haskell subprocess bridge with Python fallback.
 
-    Attempts to invoke the Haskell pure transition function via cabal.
-    Falls back to PythonStrategyRuntime on any error.
+    Tries the pre-built binary first (/usr/local/bin/marl-forecast-game),
+    then falls back to cabal run, then to PythonStrategyRuntime.
     """
 
     fallback: PythonStrategyRuntime = PythonStrategyRuntime()
     haskell_dir: str = "haskell"
+    binary_path: str = "/usr/local/bin/marl-forecast-game"
     timeout_s: float = 2.0
 
     def forecast_delta(self, state: ForecastState) -> float:
+        import json
+        import os
+        import subprocess
+
+        input_data = json.dumps({
+            "t": state.t,
+            "value": state.value,
+            "exogenous": state.exogenous,
+            "hidden_shift": state.hidden_shift,
+        })
+
+        if os.path.isfile(self.binary_path):
+            try:
+                result = subprocess.run(
+                    [self.binary_path, "--delta"],
+                    input=input_data,
+                    capture_output=True,
+                    text=True,
+                    timeout=self.timeout_s,
+                )
+                if result.returncode == 0 and result.stdout.strip():
+                    return float(result.stdout.strip())
+            except Exception:
+                pass
+
         try:
-            import json
-            import subprocess
-            input_data = json.dumps({
-                "t": state.t,
-                "value": state.value,
-                "exogenous": state.exogenous,
-                "hidden_shift": state.hidden_shift,
-            })
             result = subprocess.run(
                 ["cabal", "run", "marl-forecast-game", "--", "--delta"],
                 input=input_data,
@@ -98,6 +116,7 @@ class HaskellRLMRuntime:
                 return float(result.stdout.strip())
         except Exception:
             pass
+
         return self.fallback.forecast_delta(state)
 
 
@@ -141,6 +160,35 @@ class OllamaPromptClient:
             return "0.0"
 
 
+@dataclass(frozen=True)
+class ChatStrategyRuntime:
+    """Uses OllamaInterface.chat for strategy generation via conversation."""
+
+    base_url: str = "http://localhost:11434"
+    model: str = "llama3.2"
+    fallback: PythonStrategyRuntime = PythonStrategyRuntime()
+
+    def forecast_delta(self, state: ForecastState) -> float:
+        from .llm.ollama_interface import OllamaInterface
+        client = OllamaInterface(base_url=self.base_url, model=self.model)
+        messages = [
+            {"role": "system", "content": "You are a forecasting agent. Given state, return a single float delta."},
+            {"role": "user", "content": f"t={state.t}, value={state.value:.4f}, exogenous={state.exogenous:.4f}. Return delta:"},
+        ]
+        try:
+            response = client.chat(messages)
+            content = response.get("message", {}).get("content", "").strip()
+            tokens = content.replace(",", " ").split()
+            for token in tokens:
+                try:
+                    return float(token)
+                except ValueError:
+                    continue
+        except Exception:
+            pass
+        return self.fallback.forecast_delta(state)
+
+
 def runtime_from_name(name: str) -> StrategyRuntime:
     normalized = name.strip().lower()
     if normalized in {"python", "default"}:
@@ -149,4 +197,6 @@ def runtime_from_name(name: str) -> StrategyRuntime:
         return HaskellRLMRuntime()
     if normalized in {"prompt", "mock_llm", "llm"}:
         return PromptStrategyRuntime()
+    if normalized in {"chat", "ollama_chat"}:
+        return ChatStrategyRuntime()
     return PythonStrategyRuntime()

@@ -157,5 +157,30 @@ class SafeAgentExecutor:
             return AgentAction(actor="fallback", delta=self.fallback_delta)
 
 
+@dataclass(frozen=True)
+class LLMPolicyAgent:
+    """Wraps a ForecastingAgent and periodically refines its bias via LLM trajectory analysis."""
+
+    name: str = "llm_policy"
+    base_agent: ForecastingAgent = field(default_factory=ForecastingAgent)
+    refine_every_n: int = 10
+    clamp_min: float = -0.1
+    clamp_max: float = 0.1
+
+    def act(self, state: ForecastState, runtime: "StrategyRuntime", trajectories: list | None = None, round_idx: int = 0) -> AgentAction:
+        from .llm.refiner import RecursiveStrategyRefiner
+        from .types import TrajectoryEntry
+
+        base_action = self.base_agent.act(state, runtime)
+
+        if trajectories and round_idx > 0 and round_idx % self.refine_every_n == 0:
+            refiner = RecursiveStrategyRefiner()
+            result = refiner.refine(trajectories)
+            adjusted_delta = base_action.delta + result.bias_adjustment
+            return AgentAction(actor=self.name, delta=adjusted_delta)
+
+        return AgentAction(actor=self.name, delta=base_action.delta)
+
+
 def default_ollama_repl() -> DSPyLikeRepl:
     return DSPyLikeRepl(client=OllamaClient())

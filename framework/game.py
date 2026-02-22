@@ -119,6 +119,8 @@ class ForecastGame:
         confidence: List[ConfidenceInterval] = []
         refactor_bias = 0.0
         cumulative_rewards: dict[str, float] = {}
+        rolling_errors: List[float] = []
+        convergence_reason: str = "completed"
 
         for idx in range(n_rounds):
             start = time.perf_counter()
@@ -155,6 +157,13 @@ class ForecastGame:
 
             if self.config.enable_refactor and self.refactor is not None:
                 refactor_bias += self.refactor.revise(error, use_llm=self.config.enable_llm_refactor)
+
+            rolling_errors.append(abs(error))
+            if self.config.convergence_threshold > 0 and len(rolling_errors) >= 20:
+                window = rolling_errors[-20:]
+                rolling_mae = sum(window) / len(window)
+                if rolling_mae > self.config.convergence_threshold:
+                    convergence_reason = "divergence_threshold_exceeded"
 
             for a in all_forecast_actions:
                 cumulative_rewards[a.actor] = cumulative_rewards.get(a.actor, 0.0) + reward
@@ -223,10 +232,25 @@ class ForecastGame:
             confidence.append(ci)
             state = next_state
 
+            if convergence_reason != "completed":
+                break
+
+        total_attack_cost = sum(
+            abs(log["actions"][1]["delta"]) * self.config.attack_cost
+            for log in trajectory_logs
+        )
+        clean_errors = [abs(log["target"] - log["forecast"]) for log in trajectory_logs]
+        mean_error = sum(clean_errors) / max(1, len(clean_errors))
+        defense_efficacy = 1.0 - (mean_error / max(1e-9, mean_error + total_attack_cost))
+
         convergence = {
             "rounds_executed": len(steps),
             "max_rounds": self.config.max_rounds,
             "round_cap_hit": len(steps) == self.config.max_rounds,
+            "reason": convergence_reason,
+            "attack_cost_total": total_attack_cost,
+            "defense_efficacy_ratio": defense_efficacy,
+            "accuracy_vs_cost": mean_error / max(1e-9, total_attack_cost) if total_attack_cost > 0 else 0.0,
         }
         return GameOutputs(
             steps=steps,

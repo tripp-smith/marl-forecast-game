@@ -88,6 +88,55 @@ class DriftDisturbance:
         return direction * self.step_drift * (state.t + 1) * config.adversarial_intensity
 
 
+@dataclass(frozen=True)
+class HistoricalDisturbance:
+    """Samples disturbances from a fitted distribution on cached historical residuals."""
+
+    cache_path: str = "data/cache/fred.json"
+    fallback_std: float = 0.3
+
+    def _load_residuals(self) -> list[float]:
+        import json
+        from pathlib import Path
+        p = Path(self.cache_path)
+        if not p.exists():
+            return []
+        try:
+            payload = json.loads(p.read_text(encoding="utf-8"))
+            rows = payload.get("rows", [])
+            targets = [float(r["target"]) for r in rows if r.get("target") is not None]
+            if len(targets) < 3:
+                return []
+            mean = sum(targets) / len(targets)
+            return [t - mean for t in targets]
+        except Exception:
+            return []
+
+    def sample(self, state: ForecastState, rng: Random, config: SimulationConfig) -> float:
+        if rng.random() > config.disturbance_prob:
+            return 0.0
+        residuals = self._load_residuals()
+        if residuals:
+            sampled = rng.choice(residuals)
+            scale = max(0.01, sum(abs(r) for r in residuals) / len(residuals))
+            return (sampled / scale) * config.disturbance_scale * config.adversarial_intensity
+        return rng.gauss(0, self.fallback_std * config.adversarial_intensity)
+
+
+@dataclass(frozen=True)
+class EscalatingDisturbance:
+    """Disturbance that intensifies linearly with round index."""
+
+    base_scale: float = 0.1
+    escalation_rate: float = 0.01
+
+    def sample(self, state: ForecastState, rng: Random, config: SimulationConfig) -> float:
+        if rng.random() > config.disturbance_prob:
+            return 0.0
+        effective_scale = self.base_scale + self.escalation_rate * state.t
+        return rng.gauss(0, effective_scale * config.adversarial_intensity)
+
+
 def disturbance_from_name(name: str) -> DisturbanceModel:
     normalized = name.strip().lower()
     if normalized in {"gaussian", "default"}:
@@ -104,5 +153,9 @@ def disturbance_from_name(name: str) -> DisturbanceModel:
         return VolatilityBurstDisturbance()
     if normalized in {"drift", "systematic_drift"}:
         return DriftDisturbance()
+    if normalized in {"historical", "historical_residual"}:
+        return HistoricalDisturbance()
+    if normalized in {"escalating", "escalate"}:
+        return EscalatingDisturbance()
     logging.warning("Unknown disturbance model '%s', defaulting to GaussianDisturbance", name)
     return GaussianDisturbance()

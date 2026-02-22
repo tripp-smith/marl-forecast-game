@@ -61,6 +61,23 @@ class StackedDefense:
         return self.second.defend(forecast_delta + first_out, adversary_delta + first_out)
 
 
+@dataclass(frozen=True)
+class DANNDefenseStub:
+    """Domain Adversarial Neural Network defense stub.
+
+    Simulates domain-adaptation-style correction with a configurable
+    domain weight blending between source and target corrections.
+    """
+
+    dampening: float = 0.6
+    domain_weight: float = 0.3
+
+    def defend(self, forecast_delta: float, adversary_delta: float) -> float:
+        source_correction = -(adversary_delta * self.dampening)
+        target_correction = -0.1 * max(-1.0, min(1.0, forecast_delta))
+        return (1.0 - self.domain_weight) * source_correction + self.domain_weight * target_correction
+
+
 def defense_from_name(name: str) -> DefenseModel:
     normalized = name.strip().lower()
     if normalized.startswith("stack:"):
@@ -76,5 +93,7 @@ def defense_from_name(name: str) -> DefenseModel:
         return BiasGuardDefense()
     if normalized in {"ensemble", "filter_ensemble"}:
         return EnsembleDefense()
+    if normalized in {"dann", "domain_adversarial"}:
+        return DANNDefenseStub()
     logging.warning("Unknown defense model '%s', defaulting to DampeningDefense", name)
     return DampeningDefense()

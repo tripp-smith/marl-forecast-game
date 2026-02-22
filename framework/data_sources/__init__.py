@@ -1,6 +1,7 @@
 from .base import NormalizedRecord, SourceAdapter
 from .bis_policy_rate import BISPolicyRateAdapter
 from .geopolitical_risk import GeopoliticalRiskAdapter
+from .kaggle_demand import KaggleDemandAdapter
 from .macro_fred import FredMacroAdapter
 from .macro_imf import ImfMacroAdapter
 from .oecd_cli import OECDCLIAdapter
@@ -12,6 +13,7 @@ __all__ = [
     "BISPolicyRateAdapter",
     "FredMacroAdapter",
     "GeopoliticalRiskAdapter",
+    "KaggleDemandAdapter",
     "ImfMacroAdapter",
     "OECDCLIAdapter",
     "PolymarketAdapter",

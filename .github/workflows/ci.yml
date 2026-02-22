@@ -11,10 +11,92 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: '3.12'
       - name: Install dependencies
         run: pip install -r requirements.txt
       - name: Run test suite
         run: pytest -q
       - name: Run verification
         run: python scripts/run_verification.py
+      - name: Upload verification report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: verification-report
+          path: planning/verification_report.json
+
+  training-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Training smoke test
+        run: python scripts/run_training.py --episodes 10 --horizon 20
+
+  backtest-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Backtest smoke test
+        run: python scripts/run_backtest.py --windows 3 --window-size 40 --step-size 15
+
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run mypy
+        run: python -m mypy framework/types.py framework/game.py framework/metrics.py framework/observability.py framework/defenses.py framework/disturbances.py --ignore-missing-imports
+
+  property-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run Hypothesis property tests
+        run: pytest tests/test_properties.py -q --hypothesis-seed=0
+
+  haskell-test:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' || github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - name: Check for haskell changes
+        id: haskell-changes
+        run: |
+          if git diff --name-only HEAD~1 HEAD 2>/dev/null | grep -q '^haskell/'; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: haskell-actions/setup@v2
+        if: steps.haskell-changes.outputs.changed == 'true'
+        with:
+          ghc-version: '9.6'
+          cabal-version: 'latest'
+      - name: Build and test Haskell
+        if: steps.haskell-changes.outputs.changed == 'true'
+        working-directory: haskell
+        run: |
+          cabal update
+          cabal build all
+          cabal test all

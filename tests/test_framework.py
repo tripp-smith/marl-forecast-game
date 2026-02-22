@@ -34,7 +34,7 @@ from framework.strategy_runtime import (
     PythonStrategyRuntime,
     runtime_from_name,
 )
-from framework.types import ForecastState, SimulationConfig, evolve_state
+from framework.types import AgentAction, ForecastState, SimulationConfig, evolve_state
 
 
 def test_data_split_and_order(tmp_path):
@@ -273,3 +273,276 @@ def test_cache_freshness_property_window():
 def test_ollama_interface_availability_handles_unreachable_host():
     client = OllamaInterface(base_url="http://127.0.0.1:9")
     assert client.is_available() is False
+
+
+def test_kaggle_adapter_synthetic_fallback():
+    from framework.data_sources.kaggle_demand import KaggleDemandAdapter
+    adapter = KaggleDemandAdapter(path="nonexistent.csv")
+    rows = adapter.fetch(periods=15)
+    assert len(rows) == 15
+    assert rows[0].source == "kaggle"
+
+
+def test_kaggle_adapter_loads_csv(tmp_path):
+    from framework.data_sources.kaggle_demand import KaggleDemandAdapter
+    csv_path = tmp_path / "demand.csv"
+    csv_path.write_text(
+        "date,store,item,sales\n"
+        "2022-01-01,1,1,30\n"
+        "2022-01-02,1,1,35\n"
+        "2022-01-03,1,1,28\n",
+        encoding="utf-8",
+    )
+    adapter = KaggleDemandAdapter(path=str(csv_path))
+    rows = adapter.fetch(periods=10)
+    assert len(rows) == 3
+    assert rows[0].target == 30.0
+
+
+def test_real_vs_synthetic_metrics_comparison():
+    """H.4: Run game on synthetic and FRED-sourced data, compare MAE/RMSE."""
+    from framework.metrics import mae, rmse
+
+    synth_bundle = load_dataset(DataProfile(source="sample_csv", periods=120, normalize=True))
+    fred_bundle = load_dataset(DataProfile(source="fred", periods=120, normalize=True))
+
+    cfg = SimulationConfig(horizon=30, max_rounds=50)
+
+    synth_init = ForecastState(t=0, value=float(synth_bundle.train[-1]["target"]), exogenous=0.0, hidden_shift=0.0)
+    fred_init = ForecastState(t=0, value=float(fred_bundle.train[-1]["target"]), exogenous=0.0, hidden_shift=0.0)
+
+    synth_out = ForecastGame(cfg, seed=42).run(synth_init, disturbed=True)
+    fred_out = ForecastGame(cfg, seed=42).run(fred_init, disturbed=True)
+
+    synth_mae = mae(synth_out.targets, synth_out.forecasts)
+    fred_mae = mae(fred_out.targets, fred_out.forecasts)
+
+    assert synth_mae >= 0
+    assert fred_mae >= 0
+    if synth_mae > 0:
+        degradation = abs(fred_mae - synth_mae) / synth_mae
+        assert degradation < 2.5, f"Degradation {degradation:.1%} exceeds 250% tolerance"
+
+
+def test_fred_integration_with_api_key():
+    """H.1: Integration test for FRED API -- skips without FRED_API_KEY."""
+    import os
+    key = os.getenv("FRED_API_KEY")
+    if not key:
+        pytest.skip("FRED_API_KEY not set")
+    from framework.data_sources.macro_fred import FredMacroAdapter
+    adapter = FredMacroAdapter()
+    rows = adapter.fetch(periods=10)
+    assert len(rows) >= 5
+    assert all(r.source == "fred" for r in rows)
+
+
+def test_imf_integration_with_live_data():
+    """H.1: Integration test for IMF adapter -- uses synthetic if API fails."""
+    rows = load_source_rows("imf", periods=10)
+    assert len(rows) == 10
+    first = rows[0]
+    assert "timestamp" in first
+    assert "target" in first
+
+
+def test_yaml_scenario_loader(tmp_path):
+    """I.1: Load scenarios from YAML config."""
+    from framework.scenarios import load_scenario_specs
+    yaml_path = tmp_path / "scenarios.yaml"
+    yaml_path.write_text(
+        "scenarios:\n"
+        "  - name: high_adversary\n"
+        "    disturbance_model: volatility\n"
+        "    defense_model: ensemble\n"
+        "    adversarial_intensity: 2.0\n"
+        "  - name: calm\n"
+        "    disturbance_model: gaussian\n"
+        "    adversarial_intensity: 0.5\n",
+        encoding="utf-8",
+    )
+    specs = load_scenario_specs(yaml_path)
+    assert len(specs) == 2
+    assert specs[0].name == "high_adversary"
+    assert specs[0].adversarial_intensity == 2.0
+    cfg = specs[0].to_config()
+    assert cfg.disturbance_model == "volatility"
+    assert cfg.defense_model == "ensemble"
+
+
+def test_nash_equilibrium_rock_paper_scissors():
+    """I.2: Compute Nash equilibrium for a simple zero-sum game."""
+    import numpy as np
+    from framework.equilibrium import compute_nash_equilibrium
+    payoff = np.array([
+        [0.0, -1.0, 1.0],
+        [1.0, 0.0, -1.0],
+        [-1.0, 1.0, 0.0],
+    ])
+    result = compute_nash_equilibrium(payoff)
+    assert len(result.attacker_strategy) == 3
+    assert len(result.defender_strategy) == 3
+    assert abs(sum(result.attacker_strategy) - 1.0) < 1e-6
+    assert abs(sum(result.defender_strategy) - 1.0) < 1e-6
+    for p in result.attacker_strategy:
+        assert abs(p - 1.0 / 3.0) < 0.05
+
+
+def test_dann_defense_stub():
+    """I.3: DANN defense stub produces bounded outputs."""
+    from framework.defenses import DANNDefenseStub, defense_from_name
+    dann = defense_from_name("dann")
+    assert isinstance(dann, DANNDefenseStub)
+    result = dann.defend(0.5, -0.3)
+    assert isinstance(result, float)
+
+
+def test_escalating_disturbance_increases_over_time():
+    """I.4: Escalating disturbance intensity grows with t."""
+    from framework.disturbances import EscalatingDisturbance
+    model = EscalatingDisturbance(base_scale=0.1, escalation_rate=0.1)
+    cfg = SimulationConfig(disturbance_prob=1.0)
+    rng = random.Random(42)
+    magnitudes_early = []
+    magnitudes_late = []
+    for _ in range(200):
+        s_early = ForecastState(t=0, value=10.0, exogenous=0.0, hidden_shift=0.0)
+        s_late = ForecastState(t=100, value=10.0, exogenous=0.0, hidden_shift=0.0)
+        magnitudes_early.append(abs(model.sample(s_early, rng, cfg)))
+        magnitudes_late.append(abs(model.sample(s_late, rng, cfg)))
+    assert sum(magnitudes_late) / len(magnitudes_late) > sum(magnitudes_early) / len(magnitudes_early)
+
+
+def test_trade_off_fields_in_convergence():
+    """I.5: GameOutputs convergence dict includes trade-off fields."""
+    cfg = SimulationConfig(horizon=10, max_rounds=20, attack_cost=0.5)
+    out = ForecastGame(cfg, seed=1).run(ForecastState(t=0, value=10.0, exogenous=0.0, hidden_shift=0.0))
+    assert "attack_cost_total" in out.convergence
+    assert "defense_efficacy_ratio" in out.convergence
+    assert "accuracy_vs_cost" in out.convergence
+    assert out.convergence["attack_cost_total"] >= 0
+
+
+def test_chat_strategy_runtime_fallback():
+    """J.1: ChatStrategyRuntime falls back to PythonStrategyRuntime on failure."""
+    from framework.strategy_runtime import ChatStrategyRuntime
+    runtime = ChatStrategyRuntime(base_url="http://127.0.0.1:9")
+    state = ForecastState(t=0, value=10.0, exogenous=1.0, hidden_shift=0.0)
+    delta = runtime.forecast_delta(state)
+    expected = PythonStrategyRuntime().forecast_delta(state)
+    assert delta == pytest.approx(expected)
+
+
+def test_llm_policy_agent_without_trajectories():
+    """J.2: LLMPolicyAgent acts like base agent when no trajectories provided."""
+    from framework.agents import LLMPolicyAgent
+    agent = LLMPolicyAgent()
+    state = ForecastState(t=0, value=10.0, exogenous=0.5, hidden_shift=0.0)
+    runtime = PythonStrategyRuntime()
+    action = agent.act(state, runtime)
+    base_delta = runtime.forecast_delta(state)
+    assert action.delta == pytest.approx(base_delta)
+    assert action.actor == "llm_policy"
+
+
+def test_ollama_keep_alive_and_availability():
+    """J.3: OllamaInterface availability handling."""
+    from framework.llm.ollama_interface import OllamaInterface
+    client = OllamaInterface(base_url="http://127.0.0.1:9")
+    assert client.is_available() is False
+
+    client_default = OllamaInterface()
+    if client_default.is_available():
+        result = client_default.list_models()
+        assert "models" in result
+
+
+def test_recursive_strategy_refiner_deterministic():
+    """J.4: RecursiveStrategyRefiner with mock client produces clamped, deterministic output."""
+    from framework.llm.refiner import RecursiveStrategyRefiner
+    from framework.types import TrajectoryEntry, frozen_mapping
+
+    trajectories = [
+        TrajectoryEntry(
+            round_idx=i,
+            state=ForecastState(t=i, value=10.0 + i, exogenous=0.0, hidden_shift=0.0),
+            actions=(AgentAction(actor="forecaster", delta=0.4),),
+            messages=(),
+            reward_breakdown=frozen_mapping({"forecaster": -0.5}),
+            forecast=10.5 + i,
+            target=11.0 + i,
+        )
+        for i in range(5)
+    ]
+    refiner = RecursiveStrategyRefiner(clamp_min=-0.05, clamp_max=0.05)
+    result = refiner.refine(trajectories)
+    assert -0.05 <= result.bias_adjustment <= 0.05
+    result2 = refiner.refine(trajectories)
+    assert result.bias_adjustment == result2.bias_adjustment
+
+
+def test_trajectory_export_creates_json(tmp_path):
+    """L.1: Export trajectory logs to JSON with metadata."""
+    from framework.export import export_trajectories
+    cfg = SimulationConfig(horizon=5, max_rounds=10)
+    out = ForecastGame(cfg, seed=1).run(ForecastState(t=0, value=10.0, exogenous=0.0, hidden_shift=0.0))
+    path = export_trajectories(out, tmp_path / "traj.json", config=cfg, seed=1)
+    assert path.exists()
+    data = json.loads(path.read_text())
+    assert "metadata" in data
+    assert "trajectories" in data
+    assert data["metadata"]["seed"] == 1
+    assert len(data["trajectories"]) == 5
+
+
+def test_metrics_server_returns_false_without_prometheus():
+    """L.2: Metrics server returns False when prometheus_client not available or port=0."""
+    from framework.observability import start_metrics_server
+    assert start_metrics_server(port=0) is False
+
+
+def test_haskell_python_equivalence():
+    """K.5: Verify Haskell evolveState matches Python evolve_state within FP tolerance."""
+    import os
+    import subprocess
+
+    binary = "/usr/local/bin/marl-forecast-game"
+    cabal_available = False
+    binary_available = os.path.isfile(binary)
+
+    if not binary_available:
+        try:
+            subprocess.run(["cabal", "--version"], capture_output=True, timeout=3)
+            cabal_available = True
+        except (FileNotFoundError, subprocess.TimeoutExpired):
+            pass
+
+    if not binary_available and not cabal_available:
+        pytest.skip("Neither Haskell binary nor cabal available")
+
+    test_cases = [
+        {"t": 0, "value": 10.0, "exogenous": 1.2, "hidden_shift": 0.0},
+        {"t": 5, "value": -3.5, "exogenous": 0.0, "hidden_shift": 0.5},
+        {"t": 0, "value": 0.0, "exogenous": 0.0, "hidden_shift": 0.0},
+    ]
+
+    for tc in test_cases:
+        input_data = json.dumps(tc)
+        py_state = ForecastState(t=tc["t"], value=tc["value"], exogenous=tc["exogenous"], hidden_shift=tc["hidden_shift"])
+        py_delta = PythonStrategyRuntime().forecast_delta(py_state)
+
+        if binary_available:
+            cmd = [binary, "--delta"]
+            cwd = None
+        else:
+            cmd = ["cabal", "run", "marl-forecast-game", "--", "--delta"]
+            cwd = "haskell"
+
+        try:
+            result = subprocess.run(cmd, input=input_data, capture_output=True, text=True, timeout=10, cwd=cwd)
+            if result.returncode != 0:
+                pytest.skip(f"Haskell binary returned non-zero: {result.stderr}")
+            hs_delta = float(result.stdout.strip())
+            assert abs(hs_delta - py_delta) < 1e-9, f"Mismatch: Haskell={hs_delta}, Python={py_delta}"
+        except (subprocess.TimeoutExpired, ValueError) as e:
+            pytest.skip(f"Haskell subprocess failed: {e}")

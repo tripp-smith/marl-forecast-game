@@ -23,7 +23,11 @@
     "worst_case": 1.816494829890928
   },
   "convergence": {
+    "accuracy_vs_cost": 0.0,
+    "attack_cost_total": 0.0,
+    "defense_efficacy_ratio": 0.0,
     "max_rounds": 200,
+    "reason": "completed",
     "round_cap_hit": false,
     "rounds_executed": 80
   },

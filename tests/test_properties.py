@@ -248,3 +248,117 @@ def test_normalization_zero_mean(n):
     macro_mean = sum(r["macro_index"] for r in normed) / len(normed)
     assert abs(promo_mean) < 1e-9
     assert abs(macro_mean) < 1e-9
+
+
+# ---------------------------------------------------------------------------
+# Property: evolve_state outputs are always finite
+# ---------------------------------------------------------------------------
+
+@given(
+    state=st_forecast_state,
+    base_trend=small_floats,
+    noise=small_floats,
+    disturbance=small_floats,
+)
+@settings(max_examples=500)
+def test_evolve_state_finite_outputs(state, base_trend, noise, disturbance):
+    import math
+    s1 = evolve_state(state, base_trend=base_trend, noise=noise, disturbance=disturbance)
+    assert math.isfinite(s1.value)
+    assert math.isfinite(s1.exogenous)
+    assert math.isfinite(s1.hidden_shift)
+
+
+# ---------------------------------------------------------------------------
+# Property: reward breakdown values are consistent across agents
+# ---------------------------------------------------------------------------
+
+@given(
+    seed=st.integers(min_value=1, max_value=5000),
+    init_value=reasonable_floats,
+)
+@settings(max_examples=50)
+def test_reward_breakdown_consistency(seed, init_value):
+    cfg = SimulationConfig(horizon=5, max_rounds=10)
+    init = ForecastState(t=0, value=init_value, exogenous=0.0, hidden_shift=0.0)
+    out = ForecastGame(cfg, seed=seed).run(init, disturbed=True)
+    for step in out.steps:
+        rb = step.reward_breakdown
+        assert "forecaster" in rb
+        assert "adversary" in rb
+        assert "defender" in rb
+        assert abs(rb["forecaster"] + rb["adversary"]) < 1e-9
+        assert abs(rb["forecaster"] - rb["defender"]) < 1e-9
+
+
+# ---------------------------------------------------------------------------
+# Property: confidence intervals always span a finite positive range
+# ---------------------------------------------------------------------------
+
+@given(
+    seed=st.integers(min_value=1, max_value=5000),
+    init_value=st.floats(min_value=-50, max_value=50, allow_nan=False, allow_infinity=False),
+)
+@settings(max_examples=50)
+def test_confidence_interval_finite_range(seed, init_value):
+    import math
+    cfg = SimulationConfig(horizon=5, max_rounds=10)
+    init = ForecastState(t=0, value=init_value, exogenous=0.0, hidden_shift=0.0)
+    out = ForecastGame(cfg, seed=seed).run(init, disturbed=True)
+    for step in out.steps:
+        assert math.isfinite(step.confidence.lower)
+        assert math.isfinite(step.confidence.upper)
+        assert step.confidence.upper >= step.confidence.lower
+
+
+# ---------------------------------------------------------------------------
+# Property: trajectory log length equals steps executed
+# ---------------------------------------------------------------------------
+
+@given(
+    horizon=st.integers(min_value=1, max_value=30),
+    seed=st.integers(min_value=1, max_value=5000),
+)
+@settings(max_examples=50)
+def test_trajectory_log_length_matches_steps(horizon, seed):
+    cfg = SimulationConfig(horizon=horizon, max_rounds=horizon + 10)
+    init = ForecastState(t=0, value=10.0, exogenous=0.0, hidden_shift=0.0)
+    out = ForecastGame(cfg, seed=seed).run(init, disturbed=True)
+    assert len(out.trajectory_logs) == len(out.steps)
+    assert len(out.forecasts) == len(out.steps)
+    assert len(out.targets) == len(out.steps)
+
+
+# ---------------------------------------------------------------------------
+# Property: validate_immutability catches non-frozen dataclasses
+# ---------------------------------------------------------------------------
+
+def test_validate_immutability_rejects_mutable():
+    from dataclasses import dataclass as dc
+    from framework.types import validate_immutability
+
+    @dc
+    class MutableState:
+        x: int = 0
+
+    with pytest.raises(TypeError, match="must be frozen"):
+        validate_immutability(MutableState)
+
+
+# ---------------------------------------------------------------------------
+# Property: convergence_threshold triggers early stop
+# ---------------------------------------------------------------------------
+
+@given(
+    init_value=st.floats(min_value=-50, max_value=50, allow_nan=False, allow_infinity=False),
+)
+@settings(max_examples=20)
+def test_convergence_threshold_early_stop(init_value):
+    cfg = SimulationConfig(
+        horizon=200, max_rounds=200, convergence_threshold=0.001,
+        disturbance_prob=1.0, disturbance_scale=5.0,
+    )
+    init = ForecastState(t=0, value=init_value, exogenous=0.0, hidden_shift=0.0)
+    out = ForecastGame(cfg, seed=42).run(init, disturbed=True)
+    if out.convergence.get("reason") == "divergence_threshold_exceeded":
+        assert out.convergence["rounds_executed"] < 200

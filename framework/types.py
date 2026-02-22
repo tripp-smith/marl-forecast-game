@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field, replace
+import dataclasses
+from dataclasses import dataclass, field, fields, replace
 from types import MappingProxyType
 from typing import Mapping, Tuple
 
@@ -10,6 +11,16 @@ _EMPTY_MAPPING: Mapping[str, float] = MappingProxyType({})
 
 def frozen_mapping(values: dict[str, float]) -> Mapping[str, float]:
     return MappingProxyType(dict(values))
+
+
+def validate_immutability(*classes: type) -> None:
+    """Assert that all given dataclasses are frozen. Called at import time."""
+    for cls in classes:
+        if not dataclasses.is_dataclass(cls):
+            raise TypeError(f"{cls.__name__} is not a dataclass")
+        params = cls.__dataclass_params__  # type: ignore[attr-defined]
+        if not params.frozen:
+            raise TypeError(f"{cls.__name__} must be frozen")
 
 
 @dataclass(frozen=True)
@@ -89,6 +100,7 @@ class SimulationConfig:
     enable_refactor: bool = True
     enable_llm_refactor: bool = False
     attack_cost: float = 0.0
+    convergence_threshold: float = 0.0
 
     def __post_init__(self) -> None:
         if self.horizon < 0:
@@ -107,6 +119,8 @@ class SimulationConfig:
             raise ValueError("adversarial_intensity must be >= 0")
         if self.attack_cost < 0:
             raise ValueError("attack_cost must be >= 0")
+        if self.convergence_threshold < 0:
+            raise ValueError("convergence_threshold must be >= 0")
 
 
 def evolve_state(
@@ -132,3 +146,9 @@ def evolve_state(
         exogenous=new_exogenous,
         hidden_shift=disturbance,
     )
+
+
+validate_immutability(
+    ForecastState, AgentAction, AgentMessage, ConfidenceInterval,
+    ProbabilisticForecast, TrajectoryEntry, StepResult, SimulationConfig,
+)
