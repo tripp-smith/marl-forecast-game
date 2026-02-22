@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from random import Random
 from typing import Protocol
@@ -103,4 +104,5 @@ def disturbance_from_name(name: str) -> DisturbanceModel:
         return VolatilityBurstDisturbance()
     if normalized in {"drift", "systematic_drift"}:
         return DriftDisturbance()
+    logging.warning("Unknown disturbance model '%s', defaulting to GaussianDisturbance", name)
     return GaussianDisturbance()

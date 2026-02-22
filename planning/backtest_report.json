@@ -1,0 +1,52 @@
+{
+  "timestamp": "2026-02-22T00:33:46Z",
+  "source": "fred_training",
+  "n_windows": 3,
+  "aggregate_mae": 0.43119211681780095,
+  "aggregate_rmse": 0.629782647492469,
+  "elapsed_s": 0.0011,
+  "windows": [
+    {
+      "idx": 0,
+      "train_range": [
+        0,
+        40
+      ],
+      "test_range": [
+        40,
+        55
+      ],
+      "mae": 0.6539364148175537,
+      "rmse": 0.9285167541473942,
+      "n_forecasts": 15
+    },
+    {
+      "idx": 1,
+      "train_range": [
+        15,
+        55
+      ],
+      "test_range": [
+        55,
+        70
+      ],
+      "mae": 0.29226143679197397,
+      "rmse": 0.4225835118076775,
+      "n_forecasts": 15
+    },
+    {
+      "idx": 2,
+      "train_range": [
+        30,
+        70
+      ],
+      "test_range": [
+        70,
+        85
+      ],
+      "mae": 0.34737849884387517,
+      "rmse": 0.3862102562902087,
+      "n_forecasts": 15
+    }
+  ]
+}

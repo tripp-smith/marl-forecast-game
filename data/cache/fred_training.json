@@ -1,0 +1,3847 @@
+{
+  "checksum": "410598081fd7343ec2905c7730256d75c63531f409e45f475c77f53187594bdf",
+  "fetched_at": "2026-02-22T00:33:46.200076",
+  "rows": [
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 314.062,
+        "FEDFUNDS": 5.33,
+        "GDP": 0.0,
+        "T10YIE": 0.0,
+        "UNRATE": 4.2
+      },
+      "macro_index": 0.0,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 314.062,
+      "timestamp": "2024-08-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 314.732,
+        "FEDFUNDS": 5.13,
+        "GDP": 0.0,
+        "T10YIE": 0.0,
+        "UNRATE": 4.1
+      },
+      "macro_index": 0.0,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 314.732,
+      "timestamp": "2024-09-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 315.631,
+        "FEDFUNDS": 4.83,
+        "GDP": 29825.182,
+        "T10YIE": 0.0,
+        "UNRATE": 4.1
+      },
+      "macro_index": 29825.182,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 315.631,
+      "timestamp": "2024-10-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 316.528,
+        "FEDFUNDS": 4.64,
+        "GDP": 29825.182,
+        "T10YIE": 0.0,
+        "UNRATE": 4.2
+      },
+      "macro_index": 29825.182,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 316.528,
+      "timestamp": "2024-11-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 317.604,
+        "FEDFUNDS": 4.48,
+        "GDP": 29825.182,
+        "T10YIE": 0.0,
+        "UNRATE": 4.1
+      },
+      "macro_index": 29825.182,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 317.604,
+      "timestamp": "2024-12-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 318.961,
+        "FEDFUNDS": 4.33,
+        "GDP": 30042.113,
+        "T10YIE": 0.0,
+        "UNRATE": 4.0
+      },
+      "macro_index": 30042.113,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 318.961,
+      "timestamp": "2025-01-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 319.679,
+        "FEDFUNDS": 4.33,
+        "GDP": 30042.113,
+        "T10YIE": 0.0,
+        "UNRATE": 4.2
+      },
+      "macro_index": 30042.113,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 319.679,
+      "timestamp": "2025-02-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 319.785,
+        "FEDFUNDS": 4.33,
+        "GDP": 30042.113,
+        "T10YIE": 0.0,
+        "UNRATE": 4.2
+      },
+      "macro_index": 30042.113,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 319.785,
+      "timestamp": "2025-03-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 319.785,
+        "FEDFUNDS": 4.33,
+        "GDP": 30042.113,
+        "T10YIE": 2.36,
+        "UNRATE": 4.2
+      },
+      "macro_index": 30042.113,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 319.785,
+      "timestamp": "2025-03-24 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 319.785,
+        "FEDFUNDS": 4.33,
+        "GDP": 30042.113,
+        "T10YIE": 2.35,
+        "UNRATE": 4.2
+      },
+      "macro_index": 30042.113,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 319.785,
+      "timestamp": "2025-03-25 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 319.785,
+        "FEDFUNDS": 4.33,
+        "GDP": 30042.113,
+        "T10YIE": 2.37,
+        "UNRATE": 4.2
+      },
+      "macro_index": 30042.113,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 319.785,
+      "timestamp": "2025-03-26 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 319.785,
+        "FEDFUNDS": 4.33,
+        "GDP": 30042.113,
+        "T10YIE": 2.39,
+        "UNRATE": 4.2
+      },
+      "macro_index": 30042.113,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 319.785,
+      "timestamp": "2025-03-27 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 319.785,
+        "FEDFUNDS": 4.33,
+        "GDP": 30042.113,
+        "T10YIE": 2.37,
+        "UNRATE": 4.2
+      },
+      "macro_index": 30042.113,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 319.785,
+      "timestamp": "2025-03-28 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 319.785,
+        "FEDFUNDS": 4.33,
+        "GDP": 30042.113,
+        "T10YIE": 2.38,
+        "UNRATE": 4.2
+      },
+      "macro_index": 30042.113,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 319.785,
+      "timestamp": "2025-03-31 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 320.302,
+        "FEDFUNDS": 4.33,
+        "GDP": 30485.729,
+        "T10YIE": 2.33,
+        "UNRATE": 4.2
+      },
+      "macro_index": 30485.729,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 320.302,
+      "timestamp": "2025-04-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 320.302,
+        "FEDFUNDS": 4.33,
+        "GDP": 30485.729,
+        "T10YIE": 2.32,
+        "UNRATE": 4.2
+      },
+      "macro_index": 30485.729,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 320.302,
+      "timestamp": "2025-04-02 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 320.302,
+        "FEDFUNDS": 4.33,
+        "GDP": 30485.729,
+        "T10YIE": 2.28,
+        "UNRATE": 4.2
+      },
+      "macro_index": 30485.729,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 320.302,
+      "timestamp": "2025-04-03 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 320.302,
+        "FEDFUNDS": 4.33,
+        "GDP": 30485.729,
+        "T10YIE": 2.18,
+        "UNRATE": 4.2
+      },
+      "macro_index": 30485.729,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 320.302,
+      "timestamp": "2025-04-04 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 320.302,
+        "FEDFUNDS": 4.33,
+        "GDP": 30485.729,
+        "T10YIE": 2.19,
+        "UNRATE": 4.2
+      },
+      "macro_index": 30485.729,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 320.302,
+      "timestamp": "2025-04-07 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 320.302,
+        "FEDFUNDS": 4.33,
+        "GDP": 30485.729,
+        "T10YIE": 2.22,
+        "UNRATE": 4.2
+      },
+      "macro_index": 30485.729,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 320.302,
+      "timestamp": "2025-04-08 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 320.302,
+        "FEDFUNDS": 4.33,
+        "GDP": 30485.729,
+        "T10YIE": 2.27,
+        "UNRATE": 4.2
+      },
+      "macro_index": 30485.729,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 320.302,
+      "timestamp": "2025-04-09 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 320.302,
+        "FEDFUNDS": 4.33,
+        "GDP": 30485.729,
+        "T10YIE": 2.19,
+        "UNRATE": 4.2
+      },
+      "macro_index": 30485.729,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 320.302,
+      "timestamp": "2025-04-10 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 320.302,
+        "FEDFUNDS": 4.33,
+        "GDP": 30485.729,
+        "T10YIE": 2.2,
+        "UNRATE": 4.2
+      },
+      "macro_index": 30485.729,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 320.302,
+      "timestamp": "2025-04-11 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 320.302,
+        "FEDFUNDS": 4.33,
+        "GDP": 30485.729,
+        "T10YIE": 2.23,
+        "UNRATE": 4.2
+      },
+      "macro_index": 30485.729,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 320.302,
+      "timestamp": "2025-04-14 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 320.302,
+        "FEDFUNDS": 4.33,
+        "GDP": 30485.729,
+        "T10YIE": 2.19,
+        "UNRATE": 4.2
+      },
+      "macro_index": 30485.729,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 320.302,
+      "timestamp": "2025-04-15 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 320.302,
+        "FEDFUNDS": 4.33,
+        "GDP": 30485.729,
+        "T10YIE": 2.17,
+        "UNRATE": 4.2
+      },
+      "macro_index": 30485.729,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 320.302,
+      "timestamp": "2025-04-16 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 320.302,
+        "FEDFUNDS": 4.33,
+        "GDP": 30485.729,
+        "T10YIE": 2.23,
+        "UNRATE": 4.2
+      },
+      "macro_index": 30485.729,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 320.302,
+      "timestamp": "2025-04-17 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 320.302,
+        "FEDFUNDS": 4.33,
+        "GDP": 30485.729,
+        "T10YIE": 2.22,
+        "UNRATE": 4.2
+      },
+      "macro_index": 30485.729,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 320.302,
+      "timestamp": "2025-04-21 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 320.302,
+        "FEDFUNDS": 4.33,
+        "GDP": 30485.729,
+        "T10YIE": 2.27,
+        "UNRATE": 4.2
+      },
+      "macro_index": 30485.729,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 320.302,
+      "timestamp": "2025-04-22 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 320.302,
+        "FEDFUNDS": 4.33,
+        "GDP": 30485.729,
+        "T10YIE": 2.29,
+        "UNRATE": 4.2
+      },
+      "macro_index": 30485.729,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 320.302,
+      "timestamp": "2025-04-23 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 320.302,
+        "FEDFUNDS": 4.33,
+        "GDP": 30485.729,
+        "T10YIE": 2.3,
+        "UNRATE": 4.2
+      },
+      "macro_index": 30485.729,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 320.302,
+      "timestamp": "2025-04-24 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 320.302,
+        "FEDFUNDS": 4.33,
+        "GDP": 30485.729,
+        "T10YIE": 2.27,
+        "UNRATE": 4.2
+      },
+      "macro_index": 30485.729,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 320.302,
+      "timestamp": "2025-04-25 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 320.302,
+        "FEDFUNDS": 4.33,
+        "GDP": 30485.729,
+        "T10YIE": 2.25,
+        "UNRATE": 4.2
+      },
+      "macro_index": 30485.729,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 320.302,
+      "timestamp": "2025-04-28 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 320.302,
+        "FEDFUNDS": 4.33,
+        "GDP": 30485.729,
+        "T10YIE": 2.23,
+        "UNRATE": 4.2
+      },
+      "macro_index": 30485.729,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 320.302,
+      "timestamp": "2025-04-29 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 320.302,
+        "FEDFUNDS": 4.33,
+        "GDP": 30485.729,
+        "T10YIE": 2.23,
+        "UNRATE": 4.2
+      },
+      "macro_index": 30485.729,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 320.302,
+      "timestamp": "2025-04-30 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 320.62,
+        "FEDFUNDS": 4.33,
+        "GDP": 30485.729,
+        "T10YIE": 2.25,
+        "UNRATE": 4.3
+      },
+      "macro_index": 30485.729,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 320.62,
+      "timestamp": "2025-05-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 320.62,
+        "FEDFUNDS": 4.33,
+        "GDP": 30485.729,
+        "T10YIE": 2.27,
+        "UNRATE": 4.3
+      },
+      "macro_index": 30485.729,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 320.62,
+      "timestamp": "2025-05-02 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 320.62,
+        "FEDFUNDS": 4.33,
+        "GDP": 30485.729,
+        "T10YIE": 2.28,
+        "UNRATE": 4.3
+      },
+      "macro_index": 30485.729,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 320.62,
+      "timestamp": "2025-05-05 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 320.62,
+        "FEDFUNDS": 4.33,
+        "GDP": 30485.729,
+        "T10YIE": 2.26,
+        "UNRATE": 4.3
+      },
+      "macro_index": 30485.729,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 320.62,
+      "timestamp": "2025-05-06 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 320.62,
+        "FEDFUNDS": 4.33,
+        "GDP": 30485.729,
+        "T10YIE": 2.25,
+        "UNRATE": 4.3
+      },
+      "macro_index": 30485.729,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 320.62,
+      "timestamp": "2025-05-07 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 320.62,
+        "FEDFUNDS": 4.33,
+        "GDP": 30485.729,
+        "T10YIE": 2.29,
+        "UNRATE": 4.3
+      },
+      "macro_index": 30485.729,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 320.62,
+      "timestamp": "2025-05-08 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 320.62,
+        "FEDFUNDS": 4.33,
+        "GDP": 30485.729,
+        "T10YIE": 2.29,
+        "UNRATE": 4.3
+      },
+      "macro_index": 30485.729,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 320.62,
+      "timestamp": "2025-05-09 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 320.62,
+        "FEDFUNDS": 4.33,
+        "GDP": 30485.729,
+        "T10YIE": 2.29,
+        "UNRATE": 4.3
+      },
+      "macro_index": 30485.729,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 320.62,
+      "timestamp": "2025-05-12 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 320.62,
+        "FEDFUNDS": 4.33,
+        "GDP": 30485.729,
+        "T10YIE": 2.32,
+        "UNRATE": 4.3
+      },
+      "macro_index": 30485.729,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 320.62,
+      "timestamp": "2025-05-13 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 320.62,
+        "FEDFUNDS": 4.33,
+        "GDP": 30485.729,
+        "T10YIE": 2.37,
+        "UNRATE": 4.3
+      },
+      "macro_index": 30485.729,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 320.62,
+      "timestamp": "2025-05-14 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 320.62,
+        "FEDFUNDS": 4.33,
+        "GDP": 30485.729,
+        "T10YIE": 2.34,
+        "UNRATE": 4.3
+      },
+      "macro_index": 30485.729,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 320.62,
+      "timestamp": "2025-05-15 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 320.62,
+        "FEDFUNDS": 4.33,
+        "GDP": 30485.729,
+        "T10YIE": 2.34,
+        "UNRATE": 4.3
+      },
+      "macro_index": 30485.729,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 320.62,
+      "timestamp": "2025-05-16 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 320.62,
+        "FEDFUNDS": 4.33,
+        "GDP": 30485.729,
+        "T10YIE": 2.36,
+        "UNRATE": 4.3
+      },
+      "macro_index": 30485.729,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 320.62,
+      "timestamp": "2025-05-19 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 320.62,
+        "FEDFUNDS": 4.33,
+        "GDP": 30485.729,
+        "T10YIE": 2.35,
+        "UNRATE": 4.3
+      },
+      "macro_index": 30485.729,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 320.62,
+      "timestamp": "2025-05-20 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 320.62,
+        "FEDFUNDS": 4.33,
+        "GDP": 30485.729,
+        "T10YIE": 2.35,
+        "UNRATE": 4.3
+      },
+      "macro_index": 30485.729,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 320.62,
+      "timestamp": "2025-05-21 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 320.62,
+        "FEDFUNDS": 4.33,
+        "GDP": 30485.729,
+        "T10YIE": 2.34,
+        "UNRATE": 4.3
+      },
+      "macro_index": 30485.729,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 320.62,
+      "timestamp": "2025-05-22 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 320.62,
+        "FEDFUNDS": 4.33,
+        "GDP": 30485.729,
+        "T10YIE": 2.33,
+        "UNRATE": 4.3
+      },
+      "macro_index": 30485.729,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 320.62,
+      "timestamp": "2025-05-23 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 320.62,
+        "FEDFUNDS": 4.33,
+        "GDP": 30485.729,
+        "T10YIE": 2.32,
+        "UNRATE": 4.3
+      },
+      "macro_index": 30485.729,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 320.62,
+      "timestamp": "2025-05-27 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 320.62,
+        "FEDFUNDS": 4.33,
+        "GDP": 30485.729,
+        "T10YIE": 2.32,
+        "UNRATE": 4.3
+      },
+      "macro_index": 30485.729,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 320.62,
+      "timestamp": "2025-05-28 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 320.62,
+        "FEDFUNDS": 4.33,
+        "GDP": 30485.729,
+        "T10YIE": 2.32,
+        "UNRATE": 4.3
+      },
+      "macro_index": 30485.729,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 320.62,
+      "timestamp": "2025-05-29 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 320.62,
+        "FEDFUNDS": 4.33,
+        "GDP": 30485.729,
+        "T10YIE": 2.34,
+        "UNRATE": 4.3
+      },
+      "macro_index": 30485.729,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 320.62,
+      "timestamp": "2025-05-30 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 321.435,
+        "FEDFUNDS": 4.33,
+        "GDP": 30485.729,
+        "T10YIE": 2.34,
+        "UNRATE": 4.1
+      },
+      "macro_index": 30485.729,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 321.435,
+      "timestamp": "2025-06-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 321.435,
+        "FEDFUNDS": 4.33,
+        "GDP": 30485.729,
+        "T10YIE": 2.33,
+        "UNRATE": 4.1
+      },
+      "macro_index": 30485.729,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 321.435,
+      "timestamp": "2025-06-02 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 321.435,
+        "FEDFUNDS": 4.33,
+        "GDP": 30485.729,
+        "T10YIE": 2.32,
+        "UNRATE": 4.1
+      },
+      "macro_index": 30485.729,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 321.435,
+      "timestamp": "2025-06-03 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 321.435,
+        "FEDFUNDS": 4.33,
+        "GDP": 30485.729,
+        "T10YIE": 2.31,
+        "UNRATE": 4.1
+      },
+      "macro_index": 30485.729,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 321.435,
+      "timestamp": "2025-06-04 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 321.435,
+        "FEDFUNDS": 4.33,
+        "GDP": 30485.729,
+        "T10YIE": 2.29,
+        "UNRATE": 4.1
+      },
+      "macro_index": 30485.729,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 321.435,
+      "timestamp": "2025-06-05 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 321.435,
+        "FEDFUNDS": 4.33,
+        "GDP": 30485.729,
+        "T10YIE": 2.31,
+        "UNRATE": 4.1
+      },
+      "macro_index": 30485.729,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 321.435,
+      "timestamp": "2025-06-06 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 321.435,
+        "FEDFUNDS": 4.33,
+        "GDP": 30485.729,
+        "T10YIE": 2.31,
+        "UNRATE": 4.1
+      },
+      "macro_index": 30485.729,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 321.435,
+      "timestamp": "2025-06-09 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 321.435,
+        "FEDFUNDS": 4.33,
+        "GDP": 30485.729,
+        "T10YIE": 2.29,
+        "UNRATE": 4.1
+      },
+      "macro_index": 30485.729,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 321.435,
+      "timestamp": "2025-06-10 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 321.435,
+        "FEDFUNDS": 4.33,
+        "GDP": 30485.729,
+        "T10YIE": 2.27,
+        "UNRATE": 4.1
+      },
+      "macro_index": 30485.729,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 321.435,
+      "timestamp": "2025-06-11 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 321.435,
+        "FEDFUNDS": 4.33,
+        "GDP": 30485.729,
+        "T10YIE": 2.25,
+        "UNRATE": 4.1
+      },
+      "macro_index": 30485.729,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 321.435,
+      "timestamp": "2025-06-12 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 321.435,
+        "FEDFUNDS": 4.33,
+        "GDP": 30485.729,
+        "T10YIE": 2.28,
+        "UNRATE": 4.1
+      },
+      "macro_index": 30485.729,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 321.435,
+      "timestamp": "2025-06-13 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 321.435,
+        "FEDFUNDS": 4.33,
+        "GDP": 30485.729,
+        "T10YIE": 2.3,
+        "UNRATE": 4.1
+      },
+      "macro_index": 30485.729,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 321.435,
+      "timestamp": "2025-06-16 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 321.435,
+        "FEDFUNDS": 4.33,
+        "GDP": 30485.729,
+        "T10YIE": 2.31,
+        "UNRATE": 4.1
+      },
+      "macro_index": 30485.729,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 321.435,
+      "timestamp": "2025-06-17 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 321.435,
+        "FEDFUNDS": 4.33,
+        "GDP": 30485.729,
+        "T10YIE": 2.31,
+        "UNRATE": 4.1
+      },
+      "macro_index": 30485.729,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 321.435,
+      "timestamp": "2025-06-18 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 321.435,
+        "FEDFUNDS": 4.33,
+        "GDP": 30485.729,
+        "T10YIE": 2.33,
+        "UNRATE": 4.1
+      },
+      "macro_index": 30485.729,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 321.435,
+      "timestamp": "2025-06-20 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 321.435,
+        "FEDFUNDS": 4.33,
+        "GDP": 30485.729,
+        "T10YIE": 2.3,
+        "UNRATE": 4.1
+      },
+      "macro_index": 30485.729,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 321.435,
+      "timestamp": "2025-06-23 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 321.435,
+        "FEDFUNDS": 4.33,
+        "GDP": 30485.729,
+        "T10YIE": 2.29,
+        "UNRATE": 4.1
+      },
+      "macro_index": 30485.729,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 321.435,
+      "timestamp": "2025-06-24 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 321.435,
+        "FEDFUNDS": 4.33,
+        "GDP": 30485.729,
+        "T10YIE": 2.28,
+        "UNRATE": 4.1
+      },
+      "macro_index": 30485.729,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 321.435,
+      "timestamp": "2025-06-25 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 321.435,
+        "FEDFUNDS": 4.33,
+        "GDP": 30485.729,
+        "T10YIE": 2.28,
+        "UNRATE": 4.1
+      },
+      "macro_index": 30485.729,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 321.435,
+      "timestamp": "2025-06-26 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 321.435,
+        "FEDFUNDS": 4.33,
+        "GDP": 30485.729,
+        "T10YIE": 2.29,
+        "UNRATE": 4.1
+      },
+      "macro_index": 30485.729,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 321.435,
+      "timestamp": "2025-06-27 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 321.435,
+        "FEDFUNDS": 4.33,
+        "GDP": 30485.729,
+        "T10YIE": 2.29,
+        "UNRATE": 4.1
+      },
+      "macro_index": 30485.729,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 321.435,
+      "timestamp": "2025-06-30 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 322.169,
+        "FEDFUNDS": 4.33,
+        "GDP": 31098.027,
+        "T10YIE": 2.29,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 322.169,
+      "timestamp": "2025-07-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 322.169,
+        "FEDFUNDS": 4.33,
+        "GDP": 31098.027,
+        "T10YIE": 2.3,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 322.169,
+      "timestamp": "2025-07-02 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 322.169,
+        "FEDFUNDS": 4.33,
+        "GDP": 31098.027,
+        "T10YIE": 2.33,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 322.169,
+      "timestamp": "2025-07-03 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 322.169,
+        "FEDFUNDS": 4.33,
+        "GDP": 31098.027,
+        "T10YIE": 2.35,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 322.169,
+      "timestamp": "2025-07-07 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 322.169,
+        "FEDFUNDS": 4.33,
+        "GDP": 31098.027,
+        "T10YIE": 2.35,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 322.169,
+      "timestamp": "2025-07-08 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 322.169,
+        "FEDFUNDS": 4.33,
+        "GDP": 31098.027,
+        "T10YIE": 2.33,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 322.169,
+      "timestamp": "2025-07-09 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 322.169,
+        "FEDFUNDS": 4.33,
+        "GDP": 31098.027,
+        "T10YIE": 2.34,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 322.169,
+      "timestamp": "2025-07-10 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 322.169,
+        "FEDFUNDS": 4.33,
+        "GDP": 31098.027,
+        "T10YIE": 2.37,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 322.169,
+      "timestamp": "2025-07-11 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 322.169,
+        "FEDFUNDS": 4.33,
+        "GDP": 31098.027,
+        "T10YIE": 2.39,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 322.169,
+      "timestamp": "2025-07-14 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 322.169,
+        "FEDFUNDS": 4.33,
+        "GDP": 31098.027,
+        "T10YIE": 2.41,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 322.169,
+      "timestamp": "2025-07-15 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 322.169,
+        "FEDFUNDS": 4.33,
+        "GDP": 31098.027,
+        "T10YIE": 2.41,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 322.169,
+      "timestamp": "2025-07-16 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 322.169,
+        "FEDFUNDS": 4.33,
+        "GDP": 31098.027,
+        "T10YIE": 2.43,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 322.169,
+      "timestamp": "2025-07-17 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 322.169,
+        "FEDFUNDS": 4.33,
+        "GDP": 31098.027,
+        "T10YIE": 2.41,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 322.169,
+      "timestamp": "2025-07-18 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 322.169,
+        "FEDFUNDS": 4.33,
+        "GDP": 31098.027,
+        "T10YIE": 2.4,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 322.169,
+      "timestamp": "2025-07-21 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 322.169,
+        "FEDFUNDS": 4.33,
+        "GDP": 31098.027,
+        "T10YIE": 2.39,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 322.169,
+      "timestamp": "2025-07-22 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 322.169,
+        "FEDFUNDS": 4.33,
+        "GDP": 31098.027,
+        "T10YIE": 2.37,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 322.169,
+      "timestamp": "2025-07-23 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 322.169,
+        "FEDFUNDS": 4.33,
+        "GDP": 31098.027,
+        "T10YIE": 2.45,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 322.169,
+      "timestamp": "2025-07-24 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 322.169,
+        "FEDFUNDS": 4.33,
+        "GDP": 31098.027,
+        "T10YIE": 2.44,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 322.169,
+      "timestamp": "2025-07-25 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 322.169,
+        "FEDFUNDS": 4.33,
+        "GDP": 31098.027,
+        "T10YIE": 2.44,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 322.169,
+      "timestamp": "2025-07-28 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 322.169,
+        "FEDFUNDS": 4.33,
+        "GDP": 31098.027,
+        "T10YIE": 2.43,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 322.169,
+      "timestamp": "2025-07-29 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 322.169,
+        "FEDFUNDS": 4.33,
+        "GDP": 31098.027,
+        "T10YIE": 2.42,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 322.169,
+      "timestamp": "2025-07-30 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 322.169,
+        "FEDFUNDS": 4.33,
+        "GDP": 31098.027,
+        "T10YIE": 2.39,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 322.169,
+      "timestamp": "2025-07-31 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 323.291,
+        "FEDFUNDS": 4.33,
+        "GDP": 31098.027,
+        "T10YIE": 2.33,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 323.291,
+      "timestamp": "2025-08-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 323.291,
+        "FEDFUNDS": 4.33,
+        "GDP": 31098.027,
+        "T10YIE": 2.37,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 323.291,
+      "timestamp": "2025-08-04 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 323.291,
+        "FEDFUNDS": 4.33,
+        "GDP": 31098.027,
+        "T10YIE": 2.36,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 323.291,
+      "timestamp": "2025-08-05 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 323.291,
+        "FEDFUNDS": 4.33,
+        "GDP": 31098.027,
+        "T10YIE": 2.34,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 323.291,
+      "timestamp": "2025-08-06 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 323.291,
+        "FEDFUNDS": 4.33,
+        "GDP": 31098.027,
+        "T10YIE": 2.35,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 323.291,
+      "timestamp": "2025-08-07 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 323.291,
+        "FEDFUNDS": 4.33,
+        "GDP": 31098.027,
+        "T10YIE": 2.39,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 323.291,
+      "timestamp": "2025-08-08 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 323.291,
+        "FEDFUNDS": 4.33,
+        "GDP": 31098.027,
+        "T10YIE": 2.4,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 323.291,
+      "timestamp": "2025-08-11 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 323.291,
+        "FEDFUNDS": 4.33,
+        "GDP": 31098.027,
+        "T10YIE": 2.38,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 323.291,
+      "timestamp": "2025-08-12 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 323.291,
+        "FEDFUNDS": 4.33,
+        "GDP": 31098.027,
+        "T10YIE": 2.37,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 323.291,
+      "timestamp": "2025-08-13 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 323.291,
+        "FEDFUNDS": 4.33,
+        "GDP": 31098.027,
+        "T10YIE": 2.39,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 323.291,
+      "timestamp": "2025-08-14 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 323.291,
+        "FEDFUNDS": 4.33,
+        "GDP": 31098.027,
+        "T10YIE": 2.38,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 323.291,
+      "timestamp": "2025-08-15 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 323.291,
+        "FEDFUNDS": 4.33,
+        "GDP": 31098.027,
+        "T10YIE": 2.38,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 323.291,
+      "timestamp": "2025-08-18 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 323.291,
+        "FEDFUNDS": 4.33,
+        "GDP": 31098.027,
+        "T10YIE": 2.35,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 323.291,
+      "timestamp": "2025-08-19 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 323.291,
+        "FEDFUNDS": 4.33,
+        "GDP": 31098.027,
+        "T10YIE": 2.35,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 323.291,
+      "timestamp": "2025-08-20 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 323.291,
+        "FEDFUNDS": 4.33,
+        "GDP": 31098.027,
+        "T10YIE": 2.39,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 323.291,
+      "timestamp": "2025-08-21 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 323.291,
+        "FEDFUNDS": 4.33,
+        "GDP": 31098.027,
+        "T10YIE": 2.41,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 323.291,
+      "timestamp": "2025-08-22 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 323.291,
+        "FEDFUNDS": 4.33,
+        "GDP": 31098.027,
+        "T10YIE": 2.41,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 323.291,
+      "timestamp": "2025-08-25 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 323.291,
+        "FEDFUNDS": 4.33,
+        "GDP": 31098.027,
+        "T10YIE": 2.42,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 323.291,
+      "timestamp": "2025-08-26 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 323.291,
+        "FEDFUNDS": 4.33,
+        "GDP": 31098.027,
+        "T10YIE": 2.43,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 323.291,
+      "timestamp": "2025-08-27 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 323.291,
+        "FEDFUNDS": 4.33,
+        "GDP": 31098.027,
+        "T10YIE": 2.41,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 323.291,
+      "timestamp": "2025-08-28 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 323.291,
+        "FEDFUNDS": 4.33,
+        "GDP": 31098.027,
+        "T10YIE": 2.41,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 323.291,
+      "timestamp": "2025-08-29 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 324.245,
+        "FEDFUNDS": 4.22,
+        "GDP": 31098.027,
+        "T10YIE": 2.41,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 324.245,
+      "timestamp": "2025-09-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 324.245,
+        "FEDFUNDS": 4.22,
+        "GDP": 31098.027,
+        "T10YIE": 2.41,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 324.245,
+      "timestamp": "2025-09-02 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 324.245,
+        "FEDFUNDS": 4.22,
+        "GDP": 31098.027,
+        "T10YIE": 2.4,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 324.245,
+      "timestamp": "2025-09-03 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 324.245,
+        "FEDFUNDS": 4.22,
+        "GDP": 31098.027,
+        "T10YIE": 2.38,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 324.245,
+      "timestamp": "2025-09-04 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 324.245,
+        "FEDFUNDS": 4.22,
+        "GDP": 31098.027,
+        "T10YIE": 2.37,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 324.245,
+      "timestamp": "2025-09-05 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 324.245,
+        "FEDFUNDS": 4.22,
+        "GDP": 31098.027,
+        "T10YIE": 2.35,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 324.245,
+      "timestamp": "2025-09-08 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 324.245,
+        "FEDFUNDS": 4.22,
+        "GDP": 31098.027,
+        "T10YIE": 2.36,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 324.245,
+      "timestamp": "2025-09-09 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 324.245,
+        "FEDFUNDS": 4.22,
+        "GDP": 31098.027,
+        "T10YIE": 2.35,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 324.245,
+      "timestamp": "2025-09-10 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 324.245,
+        "FEDFUNDS": 4.22,
+        "GDP": 31098.027,
+        "T10YIE": 2.34,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 324.245,
+      "timestamp": "2025-09-11 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 324.245,
+        "FEDFUNDS": 4.22,
+        "GDP": 31098.027,
+        "T10YIE": 2.36,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 324.245,
+      "timestamp": "2025-09-12 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 324.245,
+        "FEDFUNDS": 4.22,
+        "GDP": 31098.027,
+        "T10YIE": 2.37,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 324.245,
+      "timestamp": "2025-09-15 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 324.245,
+        "FEDFUNDS": 4.22,
+        "GDP": 31098.027,
+        "T10YIE": 2.37,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 324.245,
+      "timestamp": "2025-09-16 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 324.245,
+        "FEDFUNDS": 4.22,
+        "GDP": 31098.027,
+        "T10YIE": 2.38,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 324.245,
+      "timestamp": "2025-09-17 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 324.245,
+        "FEDFUNDS": 4.22,
+        "GDP": 31098.027,
+        "T10YIE": 2.38,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 324.245,
+      "timestamp": "2025-09-18 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 324.245,
+        "FEDFUNDS": 4.22,
+        "GDP": 31098.027,
+        "T10YIE": 2.39,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 324.245,
+      "timestamp": "2025-09-19 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 324.245,
+        "FEDFUNDS": 4.22,
+        "GDP": 31098.027,
+        "T10YIE": 2.37,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 324.245,
+      "timestamp": "2025-09-22 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 324.245,
+        "FEDFUNDS": 4.22,
+        "GDP": 31098.027,
+        "T10YIE": 2.37,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 324.245,
+      "timestamp": "2025-09-23 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 324.245,
+        "FEDFUNDS": 4.22,
+        "GDP": 31098.027,
+        "T10YIE": 2.38,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 324.245,
+      "timestamp": "2025-09-24 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 324.245,
+        "FEDFUNDS": 4.22,
+        "GDP": 31098.027,
+        "T10YIE": 2.38,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 324.245,
+      "timestamp": "2025-09-25 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 324.245,
+        "FEDFUNDS": 4.22,
+        "GDP": 31098.027,
+        "T10YIE": 2.38,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 324.245,
+      "timestamp": "2025-09-26 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 324.245,
+        "FEDFUNDS": 4.22,
+        "GDP": 31098.027,
+        "T10YIE": 2.35,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 324.245,
+      "timestamp": "2025-09-29 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 324.245,
+        "FEDFUNDS": 4.22,
+        "GDP": 31098.027,
+        "T10YIE": 2.36,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31098.027,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 324.245,
+      "timestamp": "2025-09-30 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 324.245,
+        "FEDFUNDS": 4.09,
+        "GDP": 31490.07,
+        "T10YIE": 2.35,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 324.245,
+      "timestamp": "2025-10-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 324.245,
+        "FEDFUNDS": 4.09,
+        "GDP": 31490.07,
+        "T10YIE": 2.34,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 324.245,
+      "timestamp": "2025-10-02 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 324.245,
+        "FEDFUNDS": 4.09,
+        "GDP": 31490.07,
+        "T10YIE": 2.33,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 324.245,
+      "timestamp": "2025-10-03 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 324.245,
+        "FEDFUNDS": 4.09,
+        "GDP": 31490.07,
+        "T10YIE": 2.34,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 324.245,
+      "timestamp": "2025-10-06 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 324.245,
+        "FEDFUNDS": 4.09,
+        "GDP": 31490.07,
+        "T10YIE": 2.35,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 324.245,
+      "timestamp": "2025-10-07 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 324.245,
+        "FEDFUNDS": 4.09,
+        "GDP": 31490.07,
+        "T10YIE": 2.35,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 324.245,
+      "timestamp": "2025-10-08 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 324.245,
+        "FEDFUNDS": 4.09,
+        "GDP": 31490.07,
+        "T10YIE": 2.34,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 324.245,
+      "timestamp": "2025-10-09 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 324.245,
+        "FEDFUNDS": 4.09,
+        "GDP": 31490.07,
+        "T10YIE": 2.3,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 324.245,
+      "timestamp": "2025-10-10 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 324.245,
+        "FEDFUNDS": 4.09,
+        "GDP": 31490.07,
+        "T10YIE": 2.3,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 324.245,
+      "timestamp": "2025-10-14 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 324.245,
+        "FEDFUNDS": 4.09,
+        "GDP": 31490.07,
+        "T10YIE": 2.29,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 324.245,
+      "timestamp": "2025-10-15 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 324.245,
+        "FEDFUNDS": 4.09,
+        "GDP": 31490.07,
+        "T10YIE": 2.28,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 324.245,
+      "timestamp": "2025-10-16 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 324.245,
+        "FEDFUNDS": 4.09,
+        "GDP": 31490.07,
+        "T10YIE": 2.27,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 324.245,
+      "timestamp": "2025-10-17 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 324.245,
+        "FEDFUNDS": 4.09,
+        "GDP": 31490.07,
+        "T10YIE": 2.26,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 324.245,
+      "timestamp": "2025-10-20 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 324.245,
+        "FEDFUNDS": 4.09,
+        "GDP": 31490.07,
+        "T10YIE": 2.28,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 324.245,
+      "timestamp": "2025-10-21 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 324.245,
+        "FEDFUNDS": 4.09,
+        "GDP": 31490.07,
+        "T10YIE": 2.29,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 324.245,
+      "timestamp": "2025-10-22 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 324.245,
+        "FEDFUNDS": 4.09,
+        "GDP": 31490.07,
+        "T10YIE": 2.3,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 324.245,
+      "timestamp": "2025-10-23 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 324.245,
+        "FEDFUNDS": 4.09,
+        "GDP": 31490.07,
+        "T10YIE": 2.29,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 324.245,
+      "timestamp": "2025-10-24 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 324.245,
+        "FEDFUNDS": 4.09,
+        "GDP": 31490.07,
+        "T10YIE": 2.28,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 324.245,
+      "timestamp": "2025-10-27 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 324.245,
+        "FEDFUNDS": 4.09,
+        "GDP": 31490.07,
+        "T10YIE": 2.28,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 324.245,
+      "timestamp": "2025-10-28 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 324.245,
+        "FEDFUNDS": 4.09,
+        "GDP": 31490.07,
+        "T10YIE": 2.3,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 324.245,
+      "timestamp": "2025-10-29 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 324.245,
+        "FEDFUNDS": 4.09,
+        "GDP": 31490.07,
+        "T10YIE": 2.29,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 324.245,
+      "timestamp": "2025-10-30 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 324.245,
+        "FEDFUNDS": 4.09,
+        "GDP": 31490.07,
+        "T10YIE": 2.3,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 324.245,
+      "timestamp": "2025-10-31 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 325.063,
+        "FEDFUNDS": 3.88,
+        "GDP": 31490.07,
+        "T10YIE": 2.3,
+        "UNRATE": 4.5
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 325.063,
+      "timestamp": "2025-11-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 325.063,
+        "FEDFUNDS": 3.88,
+        "GDP": 31490.07,
+        "T10YIE": 2.31,
+        "UNRATE": 4.5
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 325.063,
+      "timestamp": "2025-11-03 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 325.063,
+        "FEDFUNDS": 3.88,
+        "GDP": 31490.07,
+        "T10YIE": 2.29,
+        "UNRATE": 4.5
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 325.063,
+      "timestamp": "2025-11-04 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 325.063,
+        "FEDFUNDS": 3.88,
+        "GDP": 31490.07,
+        "T10YIE": 2.3,
+        "UNRATE": 4.5
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 325.063,
+      "timestamp": "2025-11-05 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 325.063,
+        "FEDFUNDS": 3.88,
+        "GDP": 31490.07,
+        "T10YIE": 2.28,
+        "UNRATE": 4.5
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 325.063,
+      "timestamp": "2025-11-06 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 325.063,
+        "FEDFUNDS": 3.88,
+        "GDP": 31490.07,
+        "T10YIE": 2.28,
+        "UNRATE": 4.5
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 325.063,
+      "timestamp": "2025-11-07 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 325.063,
+        "FEDFUNDS": 3.88,
+        "GDP": 31490.07,
+        "T10YIE": 2.29,
+        "UNRATE": 4.5
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 325.063,
+      "timestamp": "2025-11-10 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 325.063,
+        "FEDFUNDS": 3.88,
+        "GDP": 31490.07,
+        "T10YIE": 2.27,
+        "UNRATE": 4.5
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 325.063,
+      "timestamp": "2025-11-12 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 325.063,
+        "FEDFUNDS": 3.88,
+        "GDP": 31490.07,
+        "T10YIE": 2.28,
+        "UNRATE": 4.5
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 325.063,
+      "timestamp": "2025-11-13 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 325.063,
+        "FEDFUNDS": 3.88,
+        "GDP": 31490.07,
+        "T10YIE": 2.28,
+        "UNRATE": 4.5
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 325.063,
+      "timestamp": "2025-11-14 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 325.063,
+        "FEDFUNDS": 3.88,
+        "GDP": 31490.07,
+        "T10YIE": 2.28,
+        "UNRATE": 4.5
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 325.063,
+      "timestamp": "2025-11-17 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 325.063,
+        "FEDFUNDS": 3.88,
+        "GDP": 31490.07,
+        "T10YIE": 2.27,
+        "UNRATE": 4.5
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 325.063,
+      "timestamp": "2025-11-18 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 325.063,
+        "FEDFUNDS": 3.88,
+        "GDP": 31490.07,
+        "T10YIE": 2.27,
+        "UNRATE": 4.5
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 325.063,
+      "timestamp": "2025-11-19 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 325.063,
+        "FEDFUNDS": 3.88,
+        "GDP": 31490.07,
+        "T10YIE": 2.24,
+        "UNRATE": 4.5
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 325.063,
+      "timestamp": "2025-11-20 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 325.063,
+        "FEDFUNDS": 3.88,
+        "GDP": 31490.07,
+        "T10YIE": 2.24,
+        "UNRATE": 4.5
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 325.063,
+      "timestamp": "2025-11-21 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 325.063,
+        "FEDFUNDS": 3.88,
+        "GDP": 31490.07,
+        "T10YIE": 2.23,
+        "UNRATE": 4.5
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 325.063,
+      "timestamp": "2025-11-24 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 325.063,
+        "FEDFUNDS": 3.88,
+        "GDP": 31490.07,
+        "T10YIE": 2.22,
+        "UNRATE": 4.5
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 325.063,
+      "timestamp": "2025-11-25 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 325.063,
+        "FEDFUNDS": 3.88,
+        "GDP": 31490.07,
+        "T10YIE": 2.23,
+        "UNRATE": 4.5
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 325.063,
+      "timestamp": "2025-11-26 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 325.063,
+        "FEDFUNDS": 3.88,
+        "GDP": 31490.07,
+        "T10YIE": 2.23,
+        "UNRATE": 4.5
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 325.063,
+      "timestamp": "2025-11-28 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 326.031,
+        "FEDFUNDS": 3.72,
+        "GDP": 31490.07,
+        "T10YIE": 2.24,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 326.031,
+      "timestamp": "2025-12-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 326.031,
+        "FEDFUNDS": 3.72,
+        "GDP": 31490.07,
+        "T10YIE": 2.24,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 326.031,
+      "timestamp": "2025-12-02 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 326.031,
+        "FEDFUNDS": 3.72,
+        "GDP": 31490.07,
+        "T10YIE": 2.24,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 326.031,
+      "timestamp": "2025-12-03 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 326.031,
+        "FEDFUNDS": 3.72,
+        "GDP": 31490.07,
+        "T10YIE": 2.26,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 326.031,
+      "timestamp": "2025-12-04 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 326.031,
+        "FEDFUNDS": 3.72,
+        "GDP": 31490.07,
+        "T10YIE": 2.26,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 326.031,
+      "timestamp": "2025-12-05 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 326.031,
+        "FEDFUNDS": 3.72,
+        "GDP": 31490.07,
+        "T10YIE": 2.26,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 326.031,
+      "timestamp": "2025-12-08 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 326.031,
+        "FEDFUNDS": 3.72,
+        "GDP": 31490.07,
+        "T10YIE": 2.26,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 326.031,
+      "timestamp": "2025-12-09 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 326.031,
+        "FEDFUNDS": 3.72,
+        "GDP": 31490.07,
+        "T10YIE": 2.25,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 326.031,
+      "timestamp": "2025-12-10 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 326.031,
+        "FEDFUNDS": 3.72,
+        "GDP": 31490.07,
+        "T10YIE": 2.25,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 326.031,
+      "timestamp": "2025-12-11 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 326.031,
+        "FEDFUNDS": 3.72,
+        "GDP": 31490.07,
+        "T10YIE": 2.26,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 326.031,
+      "timestamp": "2025-12-12 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 326.031,
+        "FEDFUNDS": 3.72,
+        "GDP": 31490.07,
+        "T10YIE": 2.25,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 326.031,
+      "timestamp": "2025-12-15 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 326.031,
+        "FEDFUNDS": 3.72,
+        "GDP": 31490.07,
+        "T10YIE": 2.23,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 326.031,
+      "timestamp": "2025-12-16 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 326.031,
+        "FEDFUNDS": 3.72,
+        "GDP": 31490.07,
+        "T10YIE": 2.24,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 326.031,
+      "timestamp": "2025-12-17 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 326.031,
+        "FEDFUNDS": 3.72,
+        "GDP": 31490.07,
+        "T10YIE": 2.24,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 326.031,
+      "timestamp": "2025-12-18 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 326.031,
+        "FEDFUNDS": 3.72,
+        "GDP": 31490.07,
+        "T10YIE": 2.24,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 326.031,
+      "timestamp": "2025-12-19 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 326.031,
+        "FEDFUNDS": 3.72,
+        "GDP": 31490.07,
+        "T10YIE": 2.23,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 326.031,
+      "timestamp": "2025-12-22 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 326.031,
+        "FEDFUNDS": 3.72,
+        "GDP": 31490.07,
+        "T10YIE": 2.24,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 326.031,
+      "timestamp": "2025-12-23 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 326.031,
+        "FEDFUNDS": 3.72,
+        "GDP": 31490.07,
+        "T10YIE": 2.24,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 326.031,
+      "timestamp": "2025-12-24 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 326.031,
+        "FEDFUNDS": 3.72,
+        "GDP": 31490.07,
+        "T10YIE": 2.23,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 326.031,
+      "timestamp": "2025-12-26 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 326.031,
+        "FEDFUNDS": 3.72,
+        "GDP": 31490.07,
+        "T10YIE": 2.22,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 326.031,
+      "timestamp": "2025-12-29 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 326.031,
+        "FEDFUNDS": 3.72,
+        "GDP": 31490.07,
+        "T10YIE": 2.24,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 326.031,
+      "timestamp": "2025-12-30 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 326.031,
+        "FEDFUNDS": 3.72,
+        "GDP": 31490.07,
+        "T10YIE": 2.25,
+        "UNRATE": 4.4
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 326.031,
+      "timestamp": "2025-12-31 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 326.588,
+        "FEDFUNDS": 3.64,
+        "GDP": 31490.07,
+        "T10YIE": 2.25,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 326.588,
+      "timestamp": "2026-01-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 326.588,
+        "FEDFUNDS": 3.64,
+        "GDP": 31490.07,
+        "T10YIE": 2.25,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 326.588,
+      "timestamp": "2026-01-02 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 326.588,
+        "FEDFUNDS": 3.64,
+        "GDP": 31490.07,
+        "T10YIE": 2.26,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 326.588,
+      "timestamp": "2026-01-05 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 326.588,
+        "FEDFUNDS": 3.64,
+        "GDP": 31490.07,
+        "T10YIE": 2.27,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 326.588,
+      "timestamp": "2026-01-06 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 326.588,
+        "FEDFUNDS": 3.64,
+        "GDP": 31490.07,
+        "T10YIE": 2.27,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 326.588,
+      "timestamp": "2026-01-07 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 326.588,
+        "FEDFUNDS": 3.64,
+        "GDP": 31490.07,
+        "T10YIE": 2.27,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 326.588,
+      "timestamp": "2026-01-08 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 326.588,
+        "FEDFUNDS": 3.64,
+        "GDP": 31490.07,
+        "T10YIE": 2.28,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 326.588,
+      "timestamp": "2026-01-09 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 326.588,
+        "FEDFUNDS": 3.64,
+        "GDP": 31490.07,
+        "T10YIE": 2.29,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 326.588,
+      "timestamp": "2026-01-12 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 326.588,
+        "FEDFUNDS": 3.64,
+        "GDP": 31490.07,
+        "T10YIE": 2.3,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 326.588,
+      "timestamp": "2026-01-13 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 326.588,
+        "FEDFUNDS": 3.64,
+        "GDP": 31490.07,
+        "T10YIE": 2.29,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 326.588,
+      "timestamp": "2026-01-14 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 326.588,
+        "FEDFUNDS": 3.64,
+        "GDP": 31490.07,
+        "T10YIE": 2.29,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 326.588,
+      "timestamp": "2026-01-15 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 326.588,
+        "FEDFUNDS": 3.64,
+        "GDP": 31490.07,
+        "T10YIE": 2.33,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 326.588,
+      "timestamp": "2026-01-16 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 326.588,
+        "FEDFUNDS": 3.64,
+        "GDP": 31490.07,
+        "T10YIE": 2.33,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 326.588,
+      "timestamp": "2026-01-20 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 326.588,
+        "FEDFUNDS": 3.64,
+        "GDP": 31490.07,
+        "T10YIE": 2.34,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 326.588,
+      "timestamp": "2026-01-21 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 326.588,
+        "FEDFUNDS": 3.64,
+        "GDP": 31490.07,
+        "T10YIE": 2.31,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 326.588,
+      "timestamp": "2026-01-22 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 326.588,
+        "FEDFUNDS": 3.64,
+        "GDP": 31490.07,
+        "T10YIE": 2.32,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 326.588,
+      "timestamp": "2026-01-23 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 326.588,
+        "FEDFUNDS": 3.64,
+        "GDP": 31490.07,
+        "T10YIE": 2.32,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 326.588,
+      "timestamp": "2026-01-26 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 326.588,
+        "FEDFUNDS": 3.64,
+        "GDP": 31490.07,
+        "T10YIE": 2.34,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 326.588,
+      "timestamp": "2026-01-27 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 326.588,
+        "FEDFUNDS": 3.64,
+        "GDP": 31490.07,
+        "T10YIE": 2.36,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 326.588,
+      "timestamp": "2026-01-28 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 326.588,
+        "FEDFUNDS": 3.64,
+        "GDP": 31490.07,
+        "T10YIE": 2.35,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 326.588,
+      "timestamp": "2026-01-29 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 326.588,
+        "FEDFUNDS": 3.64,
+        "GDP": 31490.07,
+        "T10YIE": 2.36,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 326.588,
+      "timestamp": "2026-01-30 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 326.588,
+        "FEDFUNDS": 3.64,
+        "GDP": 31490.07,
+        "T10YIE": 2.35,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 326.588,
+      "timestamp": "2026-02-02 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 326.588,
+        "FEDFUNDS": 3.64,
+        "GDP": 31490.07,
+        "T10YIE": 2.36,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 326.588,
+      "timestamp": "2026-02-03 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 326.588,
+        "FEDFUNDS": 3.64,
+        "GDP": 31490.07,
+        "T10YIE": 2.35,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 326.588,
+      "timestamp": "2026-02-04 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 326.588,
+        "FEDFUNDS": 3.64,
+        "GDP": 31490.07,
+        "T10YIE": 2.32,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 326.588,
+      "timestamp": "2026-02-05 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 326.588,
+        "FEDFUNDS": 3.64,
+        "GDP": 31490.07,
+        "T10YIE": 2.34,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 326.588,
+      "timestamp": "2026-02-06 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 326.588,
+        "FEDFUNDS": 3.64,
+        "GDP": 31490.07,
+        "T10YIE": 2.35,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 326.588,
+      "timestamp": "2026-02-09 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 326.588,
+        "FEDFUNDS": 3.64,
+        "GDP": 31490.07,
+        "T10YIE": 2.32,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 326.588,
+      "timestamp": "2026-02-10 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 326.588,
+        "FEDFUNDS": 3.64,
+        "GDP": 31490.07,
+        "T10YIE": 2.32,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 326.588,
+      "timestamp": "2026-02-11 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 326.588,
+        "FEDFUNDS": 3.64,
+        "GDP": 31490.07,
+        "T10YIE": 2.29,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 326.588,
+      "timestamp": "2026-02-12 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 326.588,
+        "FEDFUNDS": 3.64,
+        "GDP": 31490.07,
+        "T10YIE": 2.27,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 326.588,
+      "timestamp": "2026-02-13 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 326.588,
+        "FEDFUNDS": 3.64,
+        "GDP": 31490.07,
+        "T10YIE": 2.26,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 326.588,
+      "timestamp": "2026-02-17 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 326.588,
+        "FEDFUNDS": 3.64,
+        "GDP": 31490.07,
+        "T10YIE": 2.29,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 326.588,
+      "timestamp": "2026-02-18 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 326.588,
+        "FEDFUNDS": 3.64,
+        "GDP": 31490.07,
+        "T10YIE": 2.29,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 326.588,
+      "timestamp": "2026-02-19 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:46.199745",
+      "macro_context": {
+        "CPIAUCSL": 326.588,
+        "FEDFUNDS": 3.64,
+        "GDP": 31490.07,
+        "T10YIE": 2.28,
+        "UNRATE": 4.3
+      },
+      "macro_index": 31490.07,
+      "promo": 0.0,
+      "series_id": "fred_multi",
+      "source": "fred",
+      "target": 326.588,
+      "timestamp": "2026-02-20 00:00:00"
+    }
+  ],
+  "source": "fred_training"
+}

@@ -1,0 +1,10 @@
+check,passed
+split_non_empty,True
+pure_transition,True
+max_rounds_respected,True
+source_adapter_rows,True
+real_data_split_non_empty,True
+hybrid_data_non_empty,True
+attack_differs_from_clean,True
+deterministic_100_runs,True
+stress_10k_rounds,True

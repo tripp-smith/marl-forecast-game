@@ -1,0 +1,538 @@
+{
+  "checksum": "2abed7c2a05690da0fb72f8b579f270ba2d562651134a58e502b4aeb9f397c42",
+  "fetched_at": "2026-02-22T00:34:43.038792",
+  "rows": [
+    {
+      "fetched_at": "2026-02-22 00:34:43.038283",
+      "macro_index": 100.0,
+      "promo": 0.0,
+      "series_id": "fred_cpiaucsl",
+      "source": "fred",
+      "target": 263.579,
+      "timestamp": "2021-02-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:34:43.038283",
+      "macro_index": 100.03,
+      "promo": 0.0,
+      "series_id": "fred_cpiaucsl",
+      "source": "fred",
+      "target": 264.961,
+      "timestamp": "2021-03-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:34:43.038283",
+      "macro_index": 100.06,
+      "promo": 0.0,
+      "series_id": "fred_cpiaucsl",
+      "source": "fred",
+      "target": 266.614,
+      "timestamp": "2021-04-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:34:43.038283",
+      "macro_index": 100.09,
+      "promo": 0.0,
+      "series_id": "fred_cpiaucsl",
+      "source": "fred",
+      "target": 268.383,
+      "timestamp": "2021-05-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:34:43.038283",
+      "macro_index": 100.12,
+      "promo": 0.0,
+      "series_id": "fred_cpiaucsl",
+      "source": "fred",
+      "target": 270.654,
+      "timestamp": "2021-06-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:34:43.038283",
+      "macro_index": 100.15,
+      "promo": 0.0,
+      "series_id": "fred_cpiaucsl",
+      "source": "fred",
+      "target": 271.903,
+      "timestamp": "2021-07-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:34:43.038283",
+      "macro_index": 100.18,
+      "promo": 0.0,
+      "series_id": "fred_cpiaucsl",
+      "source": "fred",
+      "target": 272.676,
+      "timestamp": "2021-08-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:34:43.038283",
+      "macro_index": 100.21,
+      "promo": 0.0,
+      "series_id": "fred_cpiaucsl",
+      "source": "fred",
+      "target": 273.91,
+      "timestamp": "2021-09-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:34:43.038283",
+      "macro_index": 100.24,
+      "promo": 0.0,
+      "series_id": "fred_cpiaucsl",
+      "source": "fred",
+      "target": 276.55,
+      "timestamp": "2021-10-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:34:43.038283",
+      "macro_index": 100.27,
+      "promo": 0.0,
+      "series_id": "fred_cpiaucsl",
+      "source": "fred",
+      "target": 278.919,
+      "timestamp": "2021-11-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:34:43.038283",
+      "macro_index": 100.3,
+      "promo": 0.0,
+      "series_id": "fred_cpiaucsl",
+      "source": "fred",
+      "target": 280.845,
+      "timestamp": "2021-12-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:34:43.038283",
+      "macro_index": 100.33,
+      "promo": 0.0,
+      "series_id": "fred_cpiaucsl",
+      "source": "fred",
+      "target": 282.543,
+      "timestamp": "2022-01-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:34:43.038283",
+      "macro_index": 100.36,
+      "promo": 0.0,
+      "series_id": "fred_cpiaucsl",
+      "source": "fred",
+      "target": 284.5,
+      "timestamp": "2022-02-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:34:43.038283",
+      "macro_index": 100.39,
+      "promo": 0.0,
+      "series_id": "fred_cpiaucsl",
+      "source": "fred",
+      "target": 287.674,
+      "timestamp": "2022-03-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:34:43.038283",
+      "macro_index": 100.42,
+      "promo": 0.0,
+      "series_id": "fred_cpiaucsl",
+      "source": "fred",
+      "target": 288.561,
+      "timestamp": "2022-04-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:34:43.038283",
+      "macro_index": 100.45,
+      "promo": 0.0,
+      "series_id": "fred_cpiaucsl",
+      "source": "fred",
+      "target": 291.298,
+      "timestamp": "2022-05-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:34:43.038283",
+      "macro_index": 100.48,
+      "promo": 0.0,
+      "series_id": "fred_cpiaucsl",
+      "source": "fred",
+      "target": 294.957,
+      "timestamp": "2022-06-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:34:43.038283",
+      "macro_index": 100.51,
+      "promo": 0.0,
+      "series_id": "fred_cpiaucsl",
+      "source": "fred",
+      "target": 294.913,
+      "timestamp": "2022-07-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:34:43.038283",
+      "macro_index": 100.54,
+      "promo": 0.0,
+      "series_id": "fred_cpiaucsl",
+      "source": "fred",
+      "target": 295.097,
+      "timestamp": "2022-08-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:34:43.038283",
+      "macro_index": 100.57,
+      "promo": 0.0,
+      "series_id": "fred_cpiaucsl",
+      "source": "fred",
+      "target": 296.349,
+      "timestamp": "2022-09-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:34:43.038283",
+      "macro_index": 100.6,
+      "promo": 0.0,
+      "series_id": "fred_cpiaucsl",
+      "source": "fred",
+      "target": 298.007,
+      "timestamp": "2022-10-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:34:43.038283",
+      "macro_index": 100.63,
+      "promo": 0.0,
+      "series_id": "fred_cpiaucsl",
+      "source": "fred",
+      "target": 298.786,
+      "timestamp": "2022-11-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:34:43.038283",
+      "macro_index": 100.66,
+      "promo": 0.0,
+      "series_id": "fred_cpiaucsl",
+      "source": "fred",
+      "target": 298.832,
+      "timestamp": "2022-12-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:34:43.038283",
+      "macro_index": 100.69,
+      "promo": 0.0,
+      "series_id": "fred_cpiaucsl",
+      "source": "fred",
+      "target": 300.42,
+      "timestamp": "2023-01-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:34:43.038283",
+      "macro_index": 100.72,
+      "promo": 0.0,
+      "series_id": "fred_cpiaucsl",
+      "source": "fred",
+      "target": 301.45,
+      "timestamp": "2023-02-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:34:43.038283",
+      "macro_index": 100.75,
+      "promo": 0.0,
+      "series_id": "fred_cpiaucsl",
+      "source": "fred",
+      "target": 301.821,
+      "timestamp": "2023-03-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:34:43.038283",
+      "macro_index": 100.78,
+      "promo": 0.0,
+      "series_id": "fred_cpiaucsl",
+      "source": "fred",
+      "target": 302.845,
+      "timestamp": "2023-04-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:34:43.038283",
+      "macro_index": 100.81,
+      "promo": 0.0,
+      "series_id": "fred_cpiaucsl",
+      "source": "fred",
+      "target": 303.334,
+      "timestamp": "2023-05-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:34:43.038283",
+      "macro_index": 100.84,
+      "promo": 0.0,
+      "series_id": "fred_cpiaucsl",
+      "source": "fred",
+      "target": 304.014,
+      "timestamp": "2023-06-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:34:43.038283",
+      "macro_index": 100.87,
+      "promo": 0.0,
+      "series_id": "fred_cpiaucsl",
+      "source": "fred",
+      "target": 304.609,
+      "timestamp": "2023-07-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:34:43.038283",
+      "macro_index": 100.9,
+      "promo": 0.0,
+      "series_id": "fred_cpiaucsl",
+      "source": "fred",
+      "target": 306.082,
+      "timestamp": "2023-08-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:34:43.038283",
+      "macro_index": 100.93,
+      "promo": 0.0,
+      "series_id": "fred_cpiaucsl",
+      "source": "fred",
+      "target": 307.276,
+      "timestamp": "2023-09-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:34:43.038283",
+      "macro_index": 100.96,
+      "promo": 0.0,
+      "series_id": "fred_cpiaucsl",
+      "source": "fred",
+      "target": 307.696,
+      "timestamp": "2023-10-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:34:43.038283",
+      "macro_index": 100.99,
+      "promo": 0.0,
+      "series_id": "fred_cpiaucsl",
+      "source": "fred",
+      "target": 308.148,
+      "timestamp": "2023-11-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:34:43.038283",
+      "macro_index": 101.02,
+      "promo": 0.0,
+      "series_id": "fred_cpiaucsl",
+      "source": "fred",
+      "target": 308.741,
+      "timestamp": "2023-12-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:34:43.038283",
+      "macro_index": 101.05,
+      "promo": 0.0,
+      "series_id": "fred_cpiaucsl",
+      "source": "fred",
+      "target": 309.698,
+      "timestamp": "2024-01-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:34:43.038283",
+      "macro_index": 101.08,
+      "promo": 0.0,
+      "series_id": "fred_cpiaucsl",
+      "source": "fred",
+      "target": 310.967,
+      "timestamp": "2024-02-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:34:43.038283",
+      "macro_index": 101.11,
+      "promo": 0.0,
+      "series_id": "fred_cpiaucsl",
+      "source": "fred",
+      "target": 312.345,
+      "timestamp": "2024-03-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:34:43.038283",
+      "macro_index": 101.14,
+      "promo": 0.0,
+      "series_id": "fred_cpiaucsl",
+      "source": "fred",
+      "target": 313.023,
+      "timestamp": "2024-04-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:34:43.038283",
+      "macro_index": 101.17,
+      "promo": 0.0,
+      "series_id": "fred_cpiaucsl",
+      "source": "fred",
+      "target": 313.175,
+      "timestamp": "2024-05-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:34:43.038283",
+      "macro_index": 101.2,
+      "promo": 0.0,
+      "series_id": "fred_cpiaucsl",
+      "source": "fred",
+      "target": 313.044,
+      "timestamp": "2024-06-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:34:43.038283",
+      "macro_index": 101.23,
+      "promo": 0.0,
+      "series_id": "fred_cpiaucsl",
+      "source": "fred",
+      "target": 313.569,
+      "timestamp": "2024-07-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:34:43.038283",
+      "macro_index": 101.26,
+      "promo": 0.0,
+      "series_id": "fred_cpiaucsl",
+      "source": "fred",
+      "target": 314.062,
+      "timestamp": "2024-08-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:34:43.038283",
+      "macro_index": 101.29,
+      "promo": 0.0,
+      "series_id": "fred_cpiaucsl",
+      "source": "fred",
+      "target": 314.732,
+      "timestamp": "2024-09-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:34:43.038283",
+      "macro_index": 101.32,
+      "promo": 0.0,
+      "series_id": "fred_cpiaucsl",
+      "source": "fred",
+      "target": 315.631,
+      "timestamp": "2024-10-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:34:43.038283",
+      "macro_index": 101.35,
+      "promo": 0.0,
+      "series_id": "fred_cpiaucsl",
+      "source": "fred",
+      "target": 316.528,
+      "timestamp": "2024-11-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:34:43.038283",
+      "macro_index": 101.38,
+      "promo": 0.0,
+      "series_id": "fred_cpiaucsl",
+      "source": "fred",
+      "target": 317.604,
+      "timestamp": "2024-12-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:34:43.038283",
+      "macro_index": 101.41,
+      "promo": 0.0,
+      "series_id": "fred_cpiaucsl",
+      "source": "fred",
+      "target": 318.961,
+      "timestamp": "2025-01-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:34:43.038283",
+      "macro_index": 101.44,
+      "promo": 0.0,
+      "series_id": "fred_cpiaucsl",
+      "source": "fred",
+      "target": 319.679,
+      "timestamp": "2025-02-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:34:43.038283",
+      "macro_index": 101.47,
+      "promo": 0.0,
+      "series_id": "fred_cpiaucsl",
+      "source": "fred",
+      "target": 319.785,
+      "timestamp": "2025-03-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:34:43.038283",
+      "macro_index": 101.5,
+      "promo": 0.0,
+      "series_id": "fred_cpiaucsl",
+      "source": "fred",
+      "target": 320.302,
+      "timestamp": "2025-04-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:34:43.038283",
+      "macro_index": 101.53,
+      "promo": 0.0,
+      "series_id": "fred_cpiaucsl",
+      "source": "fred",
+      "target": 320.62,
+      "timestamp": "2025-05-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:34:43.038283",
+      "macro_index": 101.56,
+      "promo": 0.0,
+      "series_id": "fred_cpiaucsl",
+      "source": "fred",
+      "target": 321.435,
+      "timestamp": "2025-06-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:34:43.038283",
+      "macro_index": 101.59,
+      "promo": 0.0,
+      "series_id": "fred_cpiaucsl",
+      "source": "fred",
+      "target": 322.169,
+      "timestamp": "2025-07-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:34:43.038283",
+      "macro_index": 101.62,
+      "promo": 0.0,
+      "series_id": "fred_cpiaucsl",
+      "source": "fred",
+      "target": 323.291,
+      "timestamp": "2025-08-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:34:43.038283",
+      "macro_index": 101.65,
+      "promo": 0.0,
+      "series_id": "fred_cpiaucsl",
+      "source": "fred",
+      "target": 324.245,
+      "timestamp": "2025-09-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:34:43.038283",
+      "macro_index": 101.68,
+      "promo": 0.0,
+      "series_id": "fred_cpiaucsl",
+      "source": "fred",
+      "target": 325.063,
+      "timestamp": "2025-11-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:34:43.038283",
+      "macro_index": 101.71,
+      "promo": 0.0,
+      "series_id": "fred_cpiaucsl",
+      "source": "fred",
+      "target": 326.031,
+      "timestamp": "2025-12-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:34:43.038283",
+      "macro_index": 101.74,
+      "promo": 0.0,
+      "series_id": "fred_cpiaucsl",
+      "source": "fred",
+      "target": 326.588,
+      "timestamp": "2026-01-01 00:00:00"
+    }
+  ],
+  "source": "fred"
+}

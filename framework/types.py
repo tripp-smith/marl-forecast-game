@@ -1,8 +1,15 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from types import MappingProxyType
 from typing import Mapping, Tuple
+
+
+_EMPTY_MAPPING: Mapping[str, float] = MappingProxyType({})
+
+
+def frozen_mapping(values: dict[str, float]) -> Mapping[str, float]:
+    return MappingProxyType(dict(values))
 
 
 @dataclass(frozen=True)
@@ -13,6 +20,9 @@ class ForecastState:
     value: float
     exogenous: float
     hidden_shift: float
+    segment_id: str = ""
+    segment_values: Mapping[str, float] = field(default_factory=lambda: _EMPTY_MAPPING)
+    macro_context: Mapping[str, float] = field(default_factory=lambda: _EMPTY_MAPPING)
 
 
 @dataclass(frozen=True)
@@ -35,6 +45,13 @@ class ConfidenceInterval:
 
 
 @dataclass(frozen=True)
+class ProbabilisticForecast:
+    mean: float
+    variance: float
+    quantiles: Tuple[float, ...] = ()
+
+
+@dataclass(frozen=True)
 class TrajectoryEntry:
     round_idx: int
     state: ForecastState
@@ -54,6 +71,7 @@ class StepResult:
     target: float
     confidence: ConfidenceInterval
     messages: Tuple[AgentMessage, ...]
+    probabilistic: ProbabilisticForecast | None = None
 
 
 @dataclass(frozen=True)
@@ -91,18 +109,21 @@ class SimulationConfig:
             raise ValueError("attack_cost must be >= 0")
 
 
-def frozen_mapping(values: dict[str, float]) -> Mapping[str, float]:
-    return MappingProxyType(dict(values))
-
-
 def evolve_state(
     state: ForecastState,
     *,
     base_trend: float,
     noise: float,
     disturbance: float,
+    coeff_map: dict[str, float] | None = None,
 ) -> ForecastState:
-    new_value = state.value + base_trend + 0.4 * state.exogenous + noise + disturbance
+    macro_contribution = 0.0
+    if coeff_map and state.macro_context:
+        for k, coeff in coeff_map.items():
+            if k in state.macro_context:
+                macro_contribution += coeff * state.macro_context[k]
+
+    new_value = state.value + base_trend + 0.4 * state.exogenous + noise + disturbance + macro_contribution
     new_exogenous = 0.6 * state.exogenous + 0.2 * disturbance
     return replace(
         state,

@@ -1,0 +1,108 @@
+[harness] Started at 2026-02-21T22:10:33Z
+[harness] Building Docker image marl-forecast-game:test-harness
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 498B done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/python:3.10-slim
+#2 DONE 0.6s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 86B done
+#3 DONE 0.0s
+
+#4 [1/6] FROM docker.io/library/python:3.10-slim@sha256:e508a34e5491225a76fbb9e0f43ebde1f691c6a689d096d7510cf7fb17d4ba6f
+#4 resolve docker.io/library/python:3.10-slim@sha256:e508a34e5491225a76fbb9e0f43ebde1f691c6a689d096d7510cf7fb17d4ba6f 0.0s done
+#4 DONE 0.0s
+
+#5 [internal] load build context
+#5 transferring context: 42.95kB done
+#5 DONE 0.0s
+
+#6 [2/6] WORKDIR /app
+#6 CACHED
+
+#7 [3/6] COPY requirements.txt ./
+#7 CACHED
+
+#8 [4/6] RUN pip install --no-cache-dir -r requirements.txt
+#8 CACHED
+
+#9 [5/6] COPY . .
+#9 DONE 0.0s
+
+#10 [6/6] RUN chmod +x scripts/validate.sh
+#10 DONE 0.2s
+
+#11 exporting to image
+#11 exporting layers 0.0s done
+#11 exporting manifest sha256:11f403a0b1dfd9fab959d7031147008cbaceb99b6ba74a71d361b2f742d9d41a done
+#11 exporting config sha256:a26543c7236c30156ae2d1545078492e15e19cf792b00b796aab0db66bcc7f83 done
+#11 exporting attestation manifest sha256:798751a815c5aeacab32bd94aead667e6627b17993de2fe510f4c364fe215d28 0.0s done
+#11 exporting manifest list sha256:1c2701ac176ae494c33651292653335eaacd18bb4ec5b9a3b97d12a767a563cc done
+#11 naming to docker.io/library/marl-forecast-game:test-harness done
+#11 unpacking to docker.io/library/marl-forecast-game:test-harness 0.0s done
+#11 DONE 0.1s
+[harness] Running full containerized test suite
+............................                                             [100%]
+28 passed in 0.15s
+{
+  "attack": {
+    "mae": 0.4822269334388304,
+    "mape": 0.7644012358206366,
+    "rmse": 0.6256532176747827,
+    "worst_case": 1.7464752407741173
+  },
+  "checks": {
+    "attack_differs_from_clean": true,
+    "deterministic_100_runs": true,
+    "hybrid_data_non_empty": true,
+    "max_rounds_respected": true,
+    "pure_transition": true,
+    "real_data_split_non_empty": true,
+    "source_adapter_rows": true,
+    "split_non_empty": true,
+    "stress_10k_rounds": true
+  },
+  "clean": {
+    "mae": 0.804828391419137,
+    "mape": 1.2110252087541828,
+    "rmse": 0.9403988511179874,
+    "worst_case": 1.8681614965576046
+  },
+  "convergence": {
+    "max_rounds": 200,
+    "round_cap_hit": false,
+    "rounds_executed": 80
+  },
+  "prometheus_metrics_present": false,
+  "robustness": {
+    "mae_delta": -0.3226014579803066,
+    "mae_ratio": 0.5991673983922582
+  },
+  "rows": {
+    "test": 72,
+    "train": 336,
+    "valid": 72
+  },
+  "scenario_sweep": {
+    "0.5": {
+      "mae_delta": 0.06452083635737493,
+      "mae_ratio": 1.0795468558180152
+    },
+    "1.0": {
+      "mae_delta": -0.32664732655960943,
+      "mae_ratio": 0.5941404030446303
+    },
+    "1.5": {
+      "mae_delta": -0.02937257745704791,
+      "mae_ratio": 0.9716607577373111
+    }
+  }
+}
+verification_report=/app/planning/verification_report.json
+report_json=/app/planning/test_suite_report.json
+report_csv=/app/planning/test_suite_summary.csv
+[harness] Finished at 2026-02-21T22:10:37Z

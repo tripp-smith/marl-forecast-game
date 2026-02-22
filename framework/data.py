@@ -7,7 +7,7 @@ import csv
 import json
 import math
 
-from .data_utils import ensure_source_data
+from .data_utils import build_fred_training_set, ensure_source_data
 
 
 REQUIRED_COLUMNS = ["timestamp", "series_id", "target", "promo", "macro_index"]
@@ -203,6 +203,13 @@ def load_dataset(profile: DataProfile, path: str | Path = "data/sample_demand.cs
     if profile.source == "sample_csv":
         build_sample_dataset(path, periods=profile.periods)
         rows = load_csv(path)
+    elif profile.source == "fred_training":
+        import logging
+        import os
+        if not os.getenv("FRED_API_KEY"):
+            logging.warning("FRED_API_KEY not set; fred_training will use synthetic proxy")
+        fred_rows, _meta = build_fred_training_set(periods=profile.periods)
+        rows = fred_rows
     elif profile.source in {"fred", "imf", "polymarket"}:
         rows = load_source_rows(profile.source, periods=profile.periods, realtime_refresh=profile.realtime_refresh)
     elif profile.source == "hybrid":

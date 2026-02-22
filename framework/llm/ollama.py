@@ -1,12 +1,15 @@
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from typing import Any
 
 import json
 import os
-from urllib.parse import urlencode
 from urllib.request import urlopen
+
+from .base import RefactorRequest, RefactorSuggestion
+from .mock import MockLLMRefactorClient
 
 
 @dataclass(frozen=True)
@@ -47,3 +50,32 @@ class DSPyLikeRepl:
             "model": self.client.model,
             "keep_alive": self.client.keep_alive,
         }
+
+
+@dataclass(frozen=True)
+class OllamaRefactorClient:
+    """LLMRefactorClient implementation backed by Ollama generate API.
+
+    Falls back to MockLLMRefactorClient behaviour on network or parse errors.
+    """
+
+    client: OllamaClient = OllamaClient()
+    _fallback: MockLLMRefactorClient = MockLLMRefactorClient()
+
+    def suggest(self, request: RefactorRequest) -> RefactorSuggestion:
+        prompt = (
+            f"Given a forecasting strategy '{request.strategy_name}' with latest error "
+            f"{request.latest_error:.6f}, suggest a numeric bias adjustment (single float) "
+            f"and a one-sentence rationale. Reply as JSON: "
+            f'{{"bias_adjustment": <float>, "rationale": "<string>"}}'
+        )
+        try:
+            raw = self.client.generate(prompt)
+            parsed = json.loads(raw.strip())
+            return RefactorSuggestion(
+                bias_adjustment=float(parsed["bias_adjustment"]),
+                rationale=str(parsed.get("rationale", "LLM-generated")),
+            )
+        except Exception:
+            logging.debug("OllamaRefactorClient falling back to mock for '%s'", request.strategy_name)
+            return self._fallback.suggest(request)

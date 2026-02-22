@@ -1,0 +1,466 @@
+{
+  "checksum": "9f4717c835427f4f9cc7a6be2a880bd6d674fa196579d46361545177fd6b0ec6",
+  "fetched_at": "2026-02-22T00:33:36.650382",
+  "rows": [
+    {
+      "fetched_at": "2026-02-22 00:33:36.649826",
+      "macro_index": 100.0,
+      "promo": 0.0,
+      "series_id": "imf_ngdp_rpch",
+      "source": "imf",
+      "target": 2.5,
+      "timestamp": "1980-01-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:36.649826",
+      "macro_index": 100.1,
+      "promo": 0.0,
+      "series_id": "imf_ngdp_rpch",
+      "source": "imf",
+      "target": 6.3,
+      "timestamp": "1981-01-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:36.649826",
+      "macro_index": 100.2,
+      "promo": 0.0,
+      "series_id": "imf_ngdp_rpch",
+      "source": "imf",
+      "target": 4.1,
+      "timestamp": "1982-01-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:36.649826",
+      "macro_index": 100.3,
+      "promo": 0.0,
+      "series_id": "imf_ngdp_rpch",
+      "source": "imf",
+      "target": -1.5,
+      "timestamp": "1983-01-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:36.649826",
+      "macro_index": 100.4,
+      "promo": 0.0,
+      "series_id": "imf_ngdp_rpch",
+      "source": "imf",
+      "target": -5.6,
+      "timestamp": "1984-01-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:36.649826",
+      "macro_index": 100.5,
+      "promo": 0.0,
+      "series_id": "imf_ngdp_rpch",
+      "source": "imf",
+      "target": -0.6,
+      "timestamp": "1985-01-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:36.649826",
+      "macro_index": 100.6,
+      "promo": 0.0,
+      "series_id": "imf_ngdp_rpch",
+      "source": "imf",
+      "target": 9.9,
+      "timestamp": "1986-01-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:36.649826",
+      "macro_index": 100.7,
+      "promo": 0.0,
+      "series_id": "imf_ngdp_rpch",
+      "source": "imf",
+      "target": 6.5,
+      "timestamp": "1987-01-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:36.649826",
+      "macro_index": 100.8,
+      "promo": 0.0,
+      "series_id": "imf_ngdp_rpch",
+      "source": "imf",
+      "target": 4.3,
+      "timestamp": "1988-01-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:36.649826",
+      "macro_index": 100.9,
+      "promo": 0.0,
+      "series_id": "imf_ngdp_rpch",
+      "source": "imf",
+      "target": 1.4,
+      "timestamp": "1989-01-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:36.649826",
+      "macro_index": 101.0,
+      "promo": 0.0,
+      "series_id": "imf_ngdp_rpch",
+      "source": "imf",
+      "target": 0.8,
+      "timestamp": "1990-01-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:36.649826",
+      "macro_index": 101.1,
+      "promo": 0.0,
+      "series_id": "imf_ngdp_rpch",
+      "source": "imf",
+      "target": 7.0,
+      "timestamp": "1991-01-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:36.649826",
+      "macro_index": 101.2,
+      "promo": 0.0,
+      "series_id": "imf_ngdp_rpch",
+      "source": "imf",
+      "target": 5.5,
+      "timestamp": "1992-01-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:36.649826",
+      "macro_index": 101.3,
+      "promo": 0.0,
+      "series_id": "imf_ngdp_rpch",
+      "source": "imf",
+      "target": 2.8,
+      "timestamp": "1993-01-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:36.649826",
+      "macro_index": 101.4,
+      "promo": 0.0,
+      "series_id": "imf_ngdp_rpch",
+      "source": "imf",
+      "target": 3.5,
+      "timestamp": "1994-01-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:36.649826",
+      "macro_index": 101.5,
+      "promo": 0.0,
+      "series_id": "imf_ngdp_rpch",
+      "source": "imf",
+      "target": 8.9,
+      "timestamp": "1995-01-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:36.649826",
+      "macro_index": 101.6,
+      "promo": 0.0,
+      "series_id": "imf_ngdp_rpch",
+      "source": "imf",
+      "target": 5.5,
+      "timestamp": "1996-01-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:36.649826",
+      "macro_index": 101.7,
+      "promo": 0.0,
+      "series_id": "imf_ngdp_rpch",
+      "source": "imf",
+      "target": 6.1,
+      "timestamp": "1997-01-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:36.649826",
+      "macro_index": 101.8,
+      "promo": 0.0,
+      "series_id": "imf_ngdp_rpch",
+      "source": "imf",
+      "target": 8.2,
+      "timestamp": "1998-01-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:36.649826",
+      "macro_index": 101.9,
+      "promo": 0.0,
+      "series_id": "imf_ngdp_rpch",
+      "source": "imf",
+      "target": 4.2,
+      "timestamp": "1999-01-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:36.649826",
+      "macro_index": 102.0,
+      "promo": 0.0,
+      "series_id": "imf_ngdp_rpch",
+      "source": "imf",
+      "target": 8.4,
+      "timestamp": "2000-01-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:36.649826",
+      "macro_index": 102.1,
+      "promo": 0.0,
+      "series_id": "imf_ngdp_rpch",
+      "source": "imf",
+      "target": 10.9,
+      "timestamp": "2001-01-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:36.649826",
+      "macro_index": 102.2,
+      "promo": 0.0,
+      "series_id": "imf_ngdp_rpch",
+      "source": "imf",
+      "target": 5.9,
+      "timestamp": "2002-01-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:36.649826",
+      "macro_index": 102.3,
+      "promo": 0.0,
+      "series_id": "imf_ngdp_rpch",
+      "source": "imf",
+      "target": 6.3,
+      "timestamp": "2003-01-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:36.649826",
+      "macro_index": 102.4,
+      "promo": 0.0,
+      "series_id": "imf_ngdp_rpch",
+      "source": "imf",
+      "target": 5.1,
+      "timestamp": "2004-01-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:36.649826",
+      "macro_index": 102.5,
+      "promo": 0.0,
+      "series_id": "imf_ngdp_rpch",
+      "source": "imf",
+      "target": 5.6,
+      "timestamp": "2005-01-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:36.649826",
+      "macro_index": 102.6,
+      "promo": 0.0,
+      "series_id": "imf_ngdp_rpch",
+      "source": "imf",
+      "target": 6.5,
+      "timestamp": "2006-01-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:36.649826",
+      "macro_index": 102.7,
+      "promo": 0.0,
+      "series_id": "imf_ngdp_rpch",
+      "source": "imf",
+      "target": 5.7,
+      "timestamp": "2007-01-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:36.649826",
+      "macro_index": 102.8,
+      "promo": 0.0,
+      "series_id": "imf_ngdp_rpch",
+      "source": "imf",
+      "target": 3.8,
+      "timestamp": "2008-01-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:36.649826",
+      "macro_index": 102.9,
+      "promo": 0.0,
+      "series_id": "imf_ngdp_rpch",
+      "source": "imf",
+      "target": -2.8,
+      "timestamp": "2009-01-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:36.649826",
+      "macro_index": 103.0,
+      "promo": 0.0,
+      "series_id": "imf_ngdp_rpch",
+      "source": "imf",
+      "target": 3.9,
+      "timestamp": "2010-01-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:36.649826",
+      "macro_index": 103.1,
+      "promo": 0.0,
+      "series_id": "imf_ngdp_rpch",
+      "source": "imf",
+      "target": -3.2,
+      "timestamp": "2011-01-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:36.649826",
+      "macro_index": 103.2,
+      "promo": 0.0,
+      "series_id": "imf_ngdp_rpch",
+      "source": "imf",
+      "target": -17.0,
+      "timestamp": "2012-01-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:36.649826",
+      "macro_index": 103.3,
+      "promo": 0.0,
+      "series_id": "imf_ngdp_rpch",
+      "source": "imf",
+      "target": 2.0,
+      "timestamp": "2013-01-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:36.649826",
+      "macro_index": 103.4,
+      "promo": 0.0,
+      "series_id": "imf_ngdp_rpch",
+      "source": "imf",
+      "target": 4.7,
+      "timestamp": "2014-01-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:36.649826",
+      "macro_index": 103.5,
+      "promo": 0.0,
+      "series_id": "imf_ngdp_rpch",
+      "source": "imf",
+      "target": 4.9,
+      "timestamp": "2015-01-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:36.649826",
+      "macro_index": 103.6,
+      "promo": 0.0,
+      "series_id": "imf_ngdp_rpch",
+      "source": "imf",
+      "target": 4.7,
+      "timestamp": "2016-01-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:36.649826",
+      "macro_index": 103.7,
+      "promo": 0.0,
+      "series_id": "imf_ngdp_rpch",
+      "source": "imf",
+      "target": 0.8,
+      "timestamp": "2017-01-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:36.649826",
+      "macro_index": 103.8,
+      "promo": 0.0,
+      "series_id": "imf_ngdp_rpch",
+      "source": "imf",
+      "target": -2.3,
+      "timestamp": "2018-01-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:36.649826",
+      "macro_index": 103.9,
+      "promo": 0.0,
+      "series_id": "imf_ngdp_rpch",
+      "source": "imf",
+      "target": -2.5,
+      "timestamp": "2019-01-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:36.649826",
+      "macro_index": 104.0,
+      "promo": 0.0,
+      "series_id": "imf_ngdp_rpch",
+      "source": "imf",
+      "target": -3.6,
+      "timestamp": "2020-01-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:36.649826",
+      "macro_index": 104.1,
+      "promo": 0.0,
+      "series_id": "imf_ngdp_rpch",
+      "source": "imf",
+      "target": 0.5,
+      "timestamp": "2021-01-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:36.649826",
+      "macro_index": 104.2,
+      "promo": 0.0,
+      "series_id": "imf_ngdp_rpch",
+      "source": "imf",
+      "target": -2.5,
+      "timestamp": "2022-01-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:36.649826",
+      "macro_index": 104.3,
+      "promo": 0.0,
+      "series_id": "imf_ngdp_rpch",
+      "source": "imf",
+      "target": -20.8,
+      "timestamp": "2023-01-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:36.649826",
+      "macro_index": 104.4,
+      "promo": 0.0,
+      "series_id": "imf_ngdp_rpch",
+      "source": "imf",
+      "target": -23.4,
+      "timestamp": "2024-01-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:36.649826",
+      "macro_index": 104.5,
+      "promo": 0.0,
+      "series_id": "imf_ngdp_rpch",
+      "source": "imf",
+      "target": 3.2,
+      "timestamp": "2025-01-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:36.649826",
+      "macro_index": 104.6,
+      "promo": 0.0,
+      "series_id": "imf_ngdp_rpch",
+      "source": "imf",
+      "target": 9.5,
+      "timestamp": "2026-01-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:36.649826",
+      "macro_index": 104.7,
+      "promo": 0.0,
+      "series_id": "imf_ngdp_rpch",
+      "source": "imf",
+      "target": 14.9,
+      "timestamp": "2027-01-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:36.649826",
+      "macro_index": 104.8,
+      "promo": 0.0,
+      "series_id": "imf_ngdp_rpch",
+      "source": "imf",
+      "target": 9.3,
+      "timestamp": "2028-01-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:36.649826",
+      "macro_index": 104.9,
+      "promo": 0.0,
+      "series_id": "imf_ngdp_rpch",
+      "source": "imf",
+      "target": 6.5,
+      "timestamp": "2029-01-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 00:33:36.649826",
+      "macro_index": 105.0,
+      "promo": 0.0,
+      "series_id": "imf_ngdp_rpch",
+      "source": "imf",
+      "target": 5.5,
+      "timestamp": "2030-01-01 00:00:00"
+    }
+  ],
+  "source": "imf"
+}

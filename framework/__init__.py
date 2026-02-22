@@ -1,1 +1,1 @@
-"""MVP multi-agent adversarial forecasting framework."""
+"""Multi-agent adversarial forecasting framework."""

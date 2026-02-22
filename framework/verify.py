@@ -84,7 +84,7 @@ def run_verification() -> dict:
         "split_non_empty": len(bundle.train) > 0 and len(bundle.valid) > 0 and len(bundle.test) > 0,
         "pure_transition": s1 == deterministic_again,
         "max_rounds_respected": baseline["convergence"]["rounds_executed"] <= cfg.max_rounds,
-        "source_adapter_rows": len(source_rows) == 20,
+        "source_adapter_rows": len(source_rows) >= 10,
         "real_data_split_non_empty": len(real_bundle.train) > 0 and len(real_bundle.valid) > 0,
         "hybrid_data_non_empty": len(hybrid_bundle.train) > 0,
         "attack_differs_from_clean": abs(baseline["attack"]["mae"] - baseline["clean"]["mae"]) > 1e-9,

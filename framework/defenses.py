@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from typing import Protocol
 
@@ -75,4 +76,5 @@ def defense_from_name(name: str) -> DefenseModel:
         return BiasGuardDefense()
     if normalized in {"ensemble", "filter_ensemble"}:
         return EnsembleDefense()
+    logging.warning("Unknown defense model '%s', defaulting to DampeningDefense", name)
     return DampeningDefense()

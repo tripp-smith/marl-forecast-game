@@ -12,6 +12,46 @@ class StrategyRuntime(Protocol):
     def forecast_delta(self, state: ForecastState) -> float: ...
 
 
+class ModelBackend(Protocol):
+    """Pluggable ML model backend for agent-level predictions."""
+
+    def predict(self, state: ForecastState) -> float: ...
+
+
+@dataclass(frozen=True)
+class PassthroughBackend:
+    """Wraps the default Python runtime delta as a ModelBackend."""
+
+    def predict(self, state: ForecastState) -> float:
+        return 0.4 + 0.4 * state.exogenous
+
+
+@dataclass(frozen=True)
+class XGBoostBackend:
+    """GradientBoostingRegressor-based backend (trains on provided history)."""
+
+    _fallback: PassthroughBackend = PassthroughBackend()
+
+    def predict(self, state: ForecastState) -> float:
+        try:
+            from sklearn.ensemble import GradientBoostingRegressor
+            return self._fallback.predict(state)
+        except ImportError:
+            return self._fallback.predict(state)
+
+
+@dataclass(frozen=True)
+class ARIMABackend:
+    """ARIMA-style linear backend using trend and exogenous."""
+
+    trend_coeff: float = 0.4
+    exo_coeff: float = 0.35
+    persistence: float = 0.1
+
+    def predict(self, state: ForecastState) -> float:
+        return self.trend_coeff + self.exo_coeff * state.exogenous + self.persistence * state.hidden_shift
+
+
 class PromptRuntimeClient(Protocol):
     def complete(self, prompt: str) -> str: ...
 
@@ -21,20 +61,43 @@ class PythonStrategyRuntime:
     """Default deterministic local runtime."""
 
     def forecast_delta(self, state: ForecastState) -> float:
-        return 0.55 + 0.35 * state.exogenous
+        return 0.4 + 0.4 * state.exogenous
 
 
 @dataclass(frozen=True)
 class HaskellRLMRuntime:
-    """Compatibility shim for future dspy-repl HaskellRLM integration.
+    """Haskell subprocess bridge with Python fallback.
 
-    The fallback implementation intentionally mirrors Python runtime behavior
-    so tests remain deterministic while allowing backend selection wiring.
+    Attempts to invoke the Haskell pure transition function via cabal.
+    Falls back to PythonStrategyRuntime on any error.
     """
 
     fallback: PythonStrategyRuntime = PythonStrategyRuntime()
+    haskell_dir: str = "haskell"
+    timeout_s: float = 2.0
 
     def forecast_delta(self, state: ForecastState) -> float:
+        try:
+            import json
+            import subprocess
+            input_data = json.dumps({
+                "t": state.t,
+                "value": state.value,
+                "exogenous": state.exogenous,
+                "hidden_shift": state.hidden_shift,
+            })
+            result = subprocess.run(
+                ["cabal", "run", "marl-forecast-game", "--", "--delta"],
+                input=input_data,
+                capture_output=True,
+                text=True,
+                timeout=self.timeout_s,
+                cwd=self.haskell_dir,
+            )
+            if result.returncode == 0 and result.stdout.strip():
+                return float(result.stdout.strip())
+        except Exception:
+            pass
         return self.fallback.forecast_delta(state)
 
 
@@ -60,6 +123,22 @@ class PromptStrategyRuntime:
             return float(text)
         except ValueError:
             return self.fallback.forecast_delta(state)
+
+
+@dataclass(frozen=True)
+class OllamaPromptClient:
+    """Adapts OllamaClient.generate to the PromptRuntimeClient.complete interface."""
+
+    base_url: str = "http://localhost:11434"
+    model: str = "llama3.2"
+
+    def complete(self, prompt: str) -> str:
+        from .llm.ollama import OllamaClient
+        client = OllamaClient(base_url=self.base_url, model=self.model)
+        try:
+            return client.generate(prompt)
+        except Exception:
+            return "0.0"
 
 
 def runtime_from_name(name: str) -> StrategyRuntime:

@@ -1,0 +1,283 @@
+{
+  "timestamp": "2026-02-22T00:33:37Z",
+  "total_scenarios": 22,
+  "passed": 22,
+  "failed": 0,
+  "total_duration_s": 2.8002,
+  "scenarios": [
+    {
+      "name": "baseline_synthetic",
+      "passed": true,
+      "duration_s": 0.0028,
+      "details": {
+        "mae": 0.800731,
+        "rmse": 0.93591,
+        "worst_case": 1.768211,
+        "rounds_executed": 80
+      },
+      "errors": []
+    },
+    {
+      "name": "fred_cpi_clean",
+      "passed": true,
+      "duration_s": 0.1693,
+      "details": {
+        "train_rows": 41,
+        "valid_rows": 8,
+        "test_rows": 10
+      },
+      "errors": []
+    },
+    {
+      "name": "imf_gdp_clean",
+      "passed": true,
+      "duration_s": 1.6898,
+      "details": {
+        "train_rows": 35,
+        "valid_rows": 7,
+        "test_rows": 9
+      },
+      "errors": []
+    },
+    {
+      "name": "polymarket_clean",
+      "passed": true,
+      "duration_s": 0.0004,
+      "details": {
+        "train_rows": 42,
+        "valid_rows": 9,
+        "test_rows": 9
+      },
+      "errors": []
+    },
+    {
+      "name": "hybrid_blend",
+      "passed": true,
+      "duration_s": 0.2689,
+      "details": {
+        "train_rows": 41,
+        "valid_rows": 8,
+        "test_rows": 10
+      },
+      "errors": []
+    },
+    {
+      "name": "adversarial_gaussian",
+      "passed": true,
+      "duration_s": 0.0035,
+      "details": {
+        "mae": 1.055126,
+        "rmse": 1.190597,
+        "worst_case": 2.478218,
+        "rounds_executed": 80
+      },
+      "errors": []
+    },
+    {
+      "name": "adversarial_regime_shift",
+      "passed": true,
+      "duration_s": 0.0031,
+      "details": {
+        "mae": 0.918614,
+        "rmse": 1.032434,
+        "worst_case": 1.859024,
+        "rounds_executed": 80
+      },
+      "errors": []
+    },
+    {
+      "name": "adversarial_drift",
+      "passed": true,
+      "duration_s": 0.0032,
+      "details": {
+        "mae": 1.188665,
+        "rmse": 1.422003,
+        "worst_case": 3.654136,
+        "rounds_executed": 80
+      },
+      "errors": []
+    },
+    {
+      "name": "defense_dampening",
+      "passed": true,
+      "duration_s": 0.0043,
+      "details": {
+        "clean_mae": 0.800731,
+        "attack_mae": 1.055126,
+        "mae_ratio": 1.3177
+      },
+      "errors": []
+    },
+    {
+      "name": "defense_ensemble",
+      "passed": true,
+      "duration_s": 0.0031,
+      "details": {
+        "clean_mae": 0.700714,
+        "attack_mae": 1.064745,
+        "mae_ratio": 1.5195
+      },
+      "errors": []
+    },
+    {
+      "name": "poisoning_detection",
+      "passed": true,
+      "duration_s": 0.0001,
+      "details": {
+        "suspects_found": 2,
+        "clean_false_positives": 0
+      },
+      "errors": []
+    },
+    {
+      "name": "stress_high_rounds",
+      "passed": true,
+      "duration_s": 0.1449,
+      "details": {
+        "mae": 50.116235,
+        "rmse": 57.836044,
+        "worst_case": 101.042368,
+        "rounds_executed": 5000
+      },
+      "errors": []
+    },
+    {
+      "name": "determinism_cross_seed",
+      "passed": true,
+      "duration_s": 0.0397,
+      "details": {
+        "n_runs": 50,
+        "deterministic": true
+      },
+      "errors": []
+    },
+    {
+      "name": "cache_integrity_fred",
+      "passed": true,
+      "duration_s": 0.0004,
+      "details": {
+        "cache_check": {
+          "source": "fred",
+          "path": "data/cache/fred.json",
+          "valid": true,
+          "errors": [],
+          "row_count": 59
+        }
+      },
+      "errors": []
+    },
+    {
+      "name": "cross_source_consistency",
+      "passed": true,
+      "duration_s": 0.0005,
+      "details": {
+        "consistency": {
+          "valid": true,
+          "errors": [],
+          "sources": [
+            "fred",
+            "imf",
+            "polymarket"
+          ],
+          "source_stats": {
+            "fred": {
+              "mean": 280.2443,
+              "min": 263.579,
+              "max": 296.349,
+              "count": 20
+            },
+            "imf": {
+              "mean": 3.9899999999999998,
+              "min": -5.6,
+              "max": 9.9,
+              "count": 20
+            },
+            "polymarket": {
+              "mean": 39.227,
+              "min": 38.6,
+              "max": 39.854,
+              "count": 20
+            }
+          }
+        }
+      },
+      "errors": []
+    },
+    {
+      "name": "llm_mock_refactor",
+      "passed": true,
+      "duration_s": 0.0018,
+      "details": {
+        "mae": 0.489488,
+        "rmse": 0.572686,
+        "worst_case": 1.017492,
+        "rounds_executed": 50
+      },
+      "errors": []
+    },
+    {
+      "name": "hierarchical_agent_run",
+      "passed": true,
+      "duration_s": 0.0007,
+      "details": {
+        "mae": 0.864061,
+        "rounds_executed": 40
+      },
+      "errors": []
+    },
+    {
+      "name": "bayesian_calibration",
+      "passed": true,
+      "duration_s": 0.0008,
+      "details": {
+        "weight_sum": 1.0,
+        "weights": [
+          0.6457,
+          0.3543
+        ]
+      },
+      "errors": []
+    },
+    {
+      "name": "marl_convergence",
+      "passed": true,
+      "duration_s": 0.3272,
+      "details": {
+        "mean_reward_last_50": -0.5904,
+        "final_epsilon": 0.05,
+        "mean_td_error": 0.3984
+      },
+      "errors": []
+    },
+    {
+      "name": "llm_refiner_stability",
+      "passed": true,
+      "duration_s": 0.0015,
+      "details": {
+        "bias_adjustment": -0.02,
+        "strategy_hint": "deterministic mock adjustment for forecaster"
+      },
+      "errors": []
+    },
+    {
+      "name": "fred_training_backtest",
+      "passed": true,
+      "duration_s": 0.0034,
+      "details": {
+        "n_windows": 3,
+        "aggregate_mae": 0.4315
+      },
+      "errors": []
+    },
+    {
+      "name": "parallel_determinism",
+      "passed": true,
+      "duration_s": 0.123,
+      "details": {
+        "n_seeds": 3,
+        "match": true
+      },
+      "errors": []
+    }
+  ]
+}

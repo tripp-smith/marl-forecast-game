@@ -1,0 +1,547 @@
+{
+  "checksum": "fc27ed13d46a2a1fd21c45da82ded7f25ca1237643b89139c88c935a122d85d5",
+  "fetched_at": "2026-02-21T23:40:57.975433",
+  "rows": [
+    {
+      "fetched_at": "2026-02-21 23:40:57.974888",
+      "macro_index": 100.0,
+      "promo": 1.0,
+      "series_id": "polymarket_macro_contract",
+      "source": "polymarket",
+      "target": 38.6,
+      "timestamp": "2023-01-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-21 23:40:57.974888",
+      "macro_index": 100.03,
+      "promo": 0.0,
+      "series_id": "polymarket_macro_contract",
+      "source": "polymarket",
+      "target": 38.666,
+      "timestamp": "2023-01-02 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-21 23:40:57.974888",
+      "macro_index": 100.06,
+      "promo": 0.0,
+      "series_id": "polymarket_macro_contract",
+      "source": "polymarket",
+      "target": 38.732,
+      "timestamp": "2023-01-03 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-21 23:40:57.974888",
+      "macro_index": 100.09,
+      "promo": 0.0,
+      "series_id": "polymarket_macro_contract",
+      "source": "polymarket",
+      "target": 38.798,
+      "timestamp": "2023-01-04 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-21 23:40:57.974888",
+      "macro_index": 100.12,
+      "promo": 0.0,
+      "series_id": "polymarket_macro_contract",
+      "source": "polymarket",
+      "target": 38.864000000000004,
+      "timestamp": "2023-01-05 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-21 23:40:57.974888",
+      "macro_index": 100.15,
+      "promo": 0.0,
+      "series_id": "polymarket_macro_contract",
+      "source": "polymarket",
+      "target": 38.93,
+      "timestamp": "2023-01-06 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-21 23:40:57.974888",
+      "macro_index": 100.18,
+      "promo": 0.0,
+      "series_id": "polymarket_macro_contract",
+      "source": "polymarket",
+      "target": 38.995999999999995,
+      "timestamp": "2023-01-07 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-21 23:40:57.974888",
+      "macro_index": 100.21,
+      "promo": 0.0,
+      "series_id": "polymarket_macro_contract",
+      "source": "polymarket",
+      "target": 39.062000000000005,
+      "timestamp": "2023-01-08 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-21 23:40:57.974888",
+      "macro_index": 100.24,
+      "promo": 0.0,
+      "series_id": "polymarket_macro_contract",
+      "source": "polymarket",
+      "target": 39.128,
+      "timestamp": "2023-01-09 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-21 23:40:57.974888",
+      "macro_index": 100.27,
+      "promo": 0.0,
+      "series_id": "polymarket_macro_contract",
+      "source": "polymarket",
+      "target": 39.194,
+      "timestamp": "2023-01-10 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-21 23:40:57.974888",
+      "macro_index": 100.3,
+      "promo": 1.0,
+      "series_id": "polymarket_macro_contract",
+      "source": "polymarket",
+      "target": 39.26,
+      "timestamp": "2023-01-11 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-21 23:40:57.974888",
+      "macro_index": 100.33,
+      "promo": 0.0,
+      "series_id": "polymarket_macro_contract",
+      "source": "polymarket",
+      "target": 39.326,
+      "timestamp": "2023-01-12 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-21 23:40:57.974888",
+      "macro_index": 100.36,
+      "promo": 0.0,
+      "series_id": "polymarket_macro_contract",
+      "source": "polymarket",
+      "target": 39.392,
+      "timestamp": "2023-01-13 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-21 23:40:57.974888",
+      "macro_index": 100.39,
+      "promo": 0.0,
+      "series_id": "polymarket_macro_contract",
+      "source": "polymarket",
+      "target": 39.458,
+      "timestamp": "2023-01-14 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-21 23:40:57.974888",
+      "macro_index": 100.42,
+      "promo": 0.0,
+      "series_id": "polymarket_macro_contract",
+      "source": "polymarket",
+      "target": 39.524,
+      "timestamp": "2023-01-15 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-21 23:40:57.974888",
+      "macro_index": 100.45,
+      "promo": 0.0,
+      "series_id": "polymarket_macro_contract",
+      "source": "polymarket",
+      "target": 39.59,
+      "timestamp": "2023-01-16 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-21 23:40:57.974888",
+      "macro_index": 100.48,
+      "promo": 0.0,
+      "series_id": "polymarket_macro_contract",
+      "source": "polymarket",
+      "target": 39.656,
+      "timestamp": "2023-01-17 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-21 23:40:57.974888",
+      "macro_index": 100.51,
+      "promo": 0.0,
+      "series_id": "polymarket_macro_contract",
+      "source": "polymarket",
+      "target": 39.722,
+      "timestamp": "2023-01-18 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-21 23:40:57.974888",
+      "macro_index": 100.54,
+      "promo": 0.0,
+      "series_id": "polymarket_macro_contract",
+      "source": "polymarket",
+      "target": 39.788,
+      "timestamp": "2023-01-19 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-21 23:40:57.974888",
+      "macro_index": 100.57,
+      "promo": 0.0,
+      "series_id": "polymarket_macro_contract",
+      "source": "polymarket",
+      "target": 39.854,
+      "timestamp": "2023-01-20 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-21 23:40:57.974888",
+      "macro_index": 100.6,
+      "promo": 1.0,
+      "series_id": "polymarket_macro_contract",
+      "source": "polymarket",
+      "target": 39.92,
+      "timestamp": "2023-01-21 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-21 23:40:57.974888",
+      "macro_index": 100.63,
+      "promo": 0.0,
+      "series_id": "polymarket_macro_contract",
+      "source": "polymarket",
+      "target": 39.986,
+      "timestamp": "2023-01-22 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-21 23:40:57.974888",
+      "macro_index": 100.66,
+      "promo": 0.0,
+      "series_id": "polymarket_macro_contract",
+      "source": "polymarket",
+      "target": 40.052,
+      "timestamp": "2023-01-23 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-21 23:40:57.974888",
+      "macro_index": 100.69,
+      "promo": 0.0,
+      "series_id": "polymarket_macro_contract",
+      "source": "polymarket",
+      "target": 40.118,
+      "timestamp": "2023-01-24 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-21 23:40:57.974888",
+      "macro_index": 100.72,
+      "promo": 0.0,
+      "series_id": "polymarket_macro_contract",
+      "source": "polymarket",
+      "target": 40.184000000000005,
+      "timestamp": "2023-01-25 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-21 23:40:57.974888",
+      "macro_index": 100.75,
+      "promo": 0.0,
+      "series_id": "polymarket_macro_contract",
+      "source": "polymarket",
+      "target": 40.25,
+      "timestamp": "2023-01-26 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-21 23:40:57.974888",
+      "macro_index": 100.78,
+      "promo": 0.0,
+      "series_id": "polymarket_macro_contract",
+      "source": "polymarket",
+      "target": 40.315999999999995,
+      "timestamp": "2023-01-27 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-21 23:40:57.974888",
+      "macro_index": 100.81,
+      "promo": 0.0,
+      "series_id": "polymarket_macro_contract",
+      "source": "polymarket",
+      "target": 40.382,
+      "timestamp": "2023-01-28 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-21 23:40:57.974888",
+      "macro_index": 100.84,
+      "promo": 0.0,
+      "series_id": "polymarket_macro_contract",
+      "source": "polymarket",
+      "target": 40.448,
+      "timestamp": "2023-01-29 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-21 23:40:57.974888",
+      "macro_index": 100.87,
+      "promo": 0.0,
+      "series_id": "polymarket_macro_contract",
+      "source": "polymarket",
+      "target": 40.514,
+      "timestamp": "2023-01-30 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-21 23:40:57.974888",
+      "macro_index": 100.9,
+      "promo": 1.0,
+      "series_id": "polymarket_macro_contract",
+      "source": "polymarket",
+      "target": 40.58,
+      "timestamp": "2023-01-31 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-21 23:40:57.974888",
+      "macro_index": 100.93,
+      "promo": 0.0,
+      "series_id": "polymarket_macro_contract",
+      "source": "polymarket",
+      "target": 40.646,
+      "timestamp": "2023-02-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-21 23:40:57.974888",
+      "macro_index": 100.96,
+      "promo": 0.0,
+      "series_id": "polymarket_macro_contract",
+      "source": "polymarket",
+      "target": 40.712,
+      "timestamp": "2023-02-02 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-21 23:40:57.974888",
+      "macro_index": 100.99,
+      "promo": 0.0,
+      "series_id": "polymarket_macro_contract",
+      "source": "polymarket",
+      "target": 40.778,
+      "timestamp": "2023-02-03 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-21 23:40:57.974888",
+      "macro_index": 101.02,
+      "promo": 0.0,
+      "series_id": "polymarket_macro_contract",
+      "source": "polymarket",
+      "target": 40.844,
+      "timestamp": "2023-02-04 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-21 23:40:57.974888",
+      "macro_index": 101.05,
+      "promo": 0.0,
+      "series_id": "polymarket_macro_contract",
+      "source": "polymarket",
+      "target": 40.91,
+      "timestamp": "2023-02-05 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-21 23:40:57.974888",
+      "macro_index": 101.08,
+      "promo": 0.0,
+      "series_id": "polymarket_macro_contract",
+      "source": "polymarket",
+      "target": 40.976,
+      "timestamp": "2023-02-06 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-21 23:40:57.974888",
+      "macro_index": 101.11,
+      "promo": 0.0,
+      "series_id": "polymarket_macro_contract",
+      "source": "polymarket",
+      "target": 41.042,
+      "timestamp": "2023-02-07 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-21 23:40:57.974888",
+      "macro_index": 101.14,
+      "promo": 0.0,
+      "series_id": "polymarket_macro_contract",
+      "source": "polymarket",
+      "target": 41.108,
+      "timestamp": "2023-02-08 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-21 23:40:57.974888",
+      "macro_index": 101.17,
+      "promo": 0.0,
+      "series_id": "polymarket_macro_contract",
+      "source": "polymarket",
+      "target": 41.17400000000001,
+      "timestamp": "2023-02-09 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-21 23:40:57.974888",
+      "macro_index": 101.2,
+      "promo": 1.0,
+      "series_id": "polymarket_macro_contract",
+      "source": "polymarket",
+      "target": 41.24,
+      "timestamp": "2023-02-10 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-21 23:40:57.974888",
+      "macro_index": 101.23,
+      "promo": 0.0,
+      "series_id": "polymarket_macro_contract",
+      "source": "polymarket",
+      "target": 41.306,
+      "timestamp": "2023-02-11 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-21 23:40:57.974888",
+      "macro_index": 101.26,
+      "promo": 0.0,
+      "series_id": "polymarket_macro_contract",
+      "source": "polymarket",
+      "target": 41.372,
+      "timestamp": "2023-02-12 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-21 23:40:57.974888",
+      "macro_index": 101.29,
+      "promo": 0.0,
+      "series_id": "polymarket_macro_contract",
+      "source": "polymarket",
+      "target": 41.437999999999995,
+      "timestamp": "2023-02-13 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-21 23:40:57.974888",
+      "macro_index": 101.32,
+      "promo": 0.0,
+      "series_id": "polymarket_macro_contract",
+      "source": "polymarket",
+      "target": 41.504000000000005,
+      "timestamp": "2023-02-14 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-21 23:40:57.974888",
+      "macro_index": 101.35,
+      "promo": 0.0,
+      "series_id": "polymarket_macro_contract",
+      "source": "polymarket",
+      "target": 41.57,
+      "timestamp": "2023-02-15 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-21 23:40:57.974888",
+      "macro_index": 101.38,
+      "promo": 0.0,
+      "series_id": "polymarket_macro_contract",
+      "source": "polymarket",
+      "target": 41.635999999999996,
+      "timestamp": "2023-02-16 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-21 23:40:57.974888",
+      "macro_index": 101.41,
+      "promo": 0.0,
+      "series_id": "polymarket_macro_contract",
+      "source": "polymarket",
+      "target": 41.702000000000005,
+      "timestamp": "2023-02-17 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-21 23:40:57.974888",
+      "macro_index": 101.44,
+      "promo": 0.0,
+      "series_id": "polymarket_macro_contract",
+      "source": "polymarket",
+      "target": 41.768,
+      "timestamp": "2023-02-18 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-21 23:40:57.974888",
+      "macro_index": 101.47,
+      "promo": 0.0,
+      "series_id": "polymarket_macro_contract",
+      "source": "polymarket",
+      "target": 41.834,
+      "timestamp": "2023-02-19 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-21 23:40:57.974888",
+      "macro_index": 101.5,
+      "promo": 1.0,
+      "series_id": "polymarket_macro_contract",
+      "source": "polymarket",
+      "target": 41.9,
+      "timestamp": "2023-02-20 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-21 23:40:57.974888",
+      "macro_index": 101.53,
+      "promo": 0.0,
+      "series_id": "polymarket_macro_contract",
+      "source": "polymarket",
+      "target": 41.965999999999994,
+      "timestamp": "2023-02-21 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-21 23:40:57.974888",
+      "macro_index": 101.56,
+      "promo": 0.0,
+      "series_id": "polymarket_macro_contract",
+      "source": "polymarket",
+      "target": 42.032000000000004,
+      "timestamp": "2023-02-22 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-21 23:40:57.974888",
+      "macro_index": 101.59,
+      "promo": 0.0,
+      "series_id": "polymarket_macro_contract",
+      "source": "polymarket",
+      "target": 42.098,
+      "timestamp": "2023-02-23 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-21 23:40:57.974888",
+      "macro_index": 101.62,
+      "promo": 0.0,
+      "series_id": "polymarket_macro_contract",
+      "source": "polymarket",
+      "target": 42.164,
+      "timestamp": "2023-02-24 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-21 23:40:57.974888",
+      "macro_index": 101.65,
+      "promo": 0.0,
+      "series_id": "polymarket_macro_contract",
+      "source": "polymarket",
+      "target": 42.230000000000004,
+      "timestamp": "2023-02-25 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-21 23:40:57.974888",
+      "macro_index": 101.68,
+      "promo": 0.0,
+      "series_id": "polymarket_macro_contract",
+      "source": "polymarket",
+      "target": 42.296,
+      "timestamp": "2023-02-26 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-21 23:40:57.974888",
+      "macro_index": 101.71,
+      "promo": 0.0,
+      "series_id": "polymarket_macro_contract",
+      "source": "polymarket",
+      "target": 42.362,
+      "timestamp": "2023-02-27 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-21 23:40:57.974888",
+      "macro_index": 101.74,
+      "promo": 0.0,
+      "series_id": "polymarket_macro_contract",
+      "source": "polymarket",
+      "target": 42.428,
+      "timestamp": "2023-02-28 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-21 23:40:57.974888",
+      "macro_index": 101.77,
+      "promo": 0.0,
+      "series_id": "polymarket_macro_contract",
+      "source": "polymarket",
+      "target": 42.494,
+      "timestamp": "2023-03-01 00:00:00"
+    }
+  ],
+  "source": "polymarket"
+}

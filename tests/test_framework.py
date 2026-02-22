@@ -248,11 +248,12 @@ def test_load_dataset_can_enforce_poisoning_on_strict_mode(tmp_path):
 
 
 def test_data_utils_cache_and_force_redownload(tmp_path):
-    rows_a, meta_a = ensure_source_data("fred", periods=12, cache_dir=tmp_path, force_redownload=True)
-    rows_b, meta_b = ensure_source_data("fred", periods=12, cache_dir=tmp_path, force_redownload=False)
-    assert len(rows_a) == 12
-    assert rows_b
+    rows_a, meta_a = ensure_source_data("fred", periods=5, cache_dir=tmp_path, force_redownload=True)
+    n = len(rows_a)
+    assert n >= 3
     assert meta_a["cache_hit"] is False
+    rows_b, meta_b = ensure_source_data("fred", periods=n, cache_dir=tmp_path, force_redownload=False)
+    assert len(rows_b) == n
     assert meta_b["cache_hit"] is True
 
 

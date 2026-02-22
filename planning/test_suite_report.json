@@ -1,0 +1,65 @@
+{
+  "finished_at": "2026-02-21T23:46:24.981419",
+  "ollama_failure_analysis": "",
+  "pytest": {
+    "cmd": "/usr/local/bin/python -m pytest -q",
+    "returncode": 0,
+    "stderr_tail": "",
+    "stdout_tail": ".........................................                                [100%]\n41 passed in 1.93s\n"
+  },
+  "started_at": "2026-02-21T23:46:21.972747",
+  "verification": {
+    "attack": {
+      "mae": 0.9227784050320231,
+      "mape": 1.484735946213109,
+      "rmse": 1.059107677755137,
+      "worst_case": 2.2677560272521546
+    },
+    "checks": {
+      "attack_differs_from_clean": true,
+      "deterministic_100_runs": true,
+      "hybrid_data_non_empty": true,
+      "max_rounds_respected": true,
+      "pure_transition": true,
+      "real_data_split_non_empty": true,
+      "source_adapter_rows": true,
+      "split_non_empty": true,
+      "stress_10k_rounds": true
+    },
+    "clean": {
+      "mae": 0.7557450580858018,
+      "mape": 1.131097944176148,
+      "rmse": 0.8968592950829571,
+      "worst_case": 1.816494829890928
+    },
+    "convergence": {
+      "max_rounds": 200,
+      "round_cap_hit": false,
+      "rounds_executed": 80
+    },
+    "prometheus_metrics_present": false,
+    "robustness": {
+      "mae_delta": 0.1670333469462213,
+      "mae_ratio": 1.2210181133956652
+    },
+    "rows": {
+      "test": 72,
+      "train": 336,
+      "valid": 72
+    },
+    "scenario_sweep": {
+      "0.5": {
+        "mae_delta": -0.3008531876248963,
+        "mae_ratio": 0.6019118029207945
+      },
+      "1.0": {
+        "mae_delta": 0.23666129111425538,
+        "mae_ratio": 1.3131496376750194
+      },
+      "1.5": {
+        "mae_delta": 0.39636759492196294,
+        "mae_ratio": 1.524472625631066
+      }
+    }
+  }
+}

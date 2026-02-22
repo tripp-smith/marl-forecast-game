@@ -1,9 +1,9 @@
 {
   "attack": {
-    "mae": 0.4822269334388304,
-    "mape": 0.7644012358206366,
-    "rmse": 0.6256532176747827,
-    "worst_case": 1.7464752407741173
+    "mae": 0.9227784050320231,
+    "mape": 1.484735946213109,
+    "rmse": 1.0591076777551371,
+    "worst_case": 2.2677560272521546
   },
   "checks": {
     "attack_differs_from_clean": true,
@@ -17,20 +17,20 @@
     "stress_10k_rounds": true
   },
   "clean": {
-    "mae": 0.804828391419137,
-    "mape": 1.2110252087541828,
-    "rmse": 0.9403988511179874,
-    "worst_case": 1.8681614965576046
+    "mae": 0.7557450580858018,
+    "mape": 1.1310979441761477,
+    "rmse": 0.8968592950829571,
+    "worst_case": 1.816494829890928
   },
   "convergence": {
     "max_rounds": 200,
     "round_cap_hit": false,
     "rounds_executed": 80
   },
-  "prometheus_metrics_present": false,
+  "prometheus_metrics_present": true,
   "robustness": {
-    "mae_delta": -0.3226014579803066,
-    "mae_ratio": 0.5991673983922582
+    "mae_delta": 0.1670333469462213,
+    "mae_ratio": 1.2210181133956652
   },
   "rows": {
     "test": 72,
@@ -39,16 +39,16 @@
   },
   "scenario_sweep": {
     "0.5": {
-      "mae_delta": 0.06452083635737493,
-      "mae_ratio": 1.0795468558180152
+      "mae_delta": -0.3008531876248963,
+      "mae_ratio": 0.6019118029207945
     },
     "1.0": {
-      "mae_delta": -0.32664732655960943,
-      "mae_ratio": 0.5941404030446303
+      "mae_delta": 0.2366612911142556,
+      "mae_ratio": 1.3131496376750198
     },
     "1.5": {
-      "mae_delta": -0.02937257745704791,
-      "mae_ratio": 0.9716607577373111
+      "mae_delta": 0.39636759492196294,
+      "mae_ratio": 1.524472625631066
     }
   }
 }
