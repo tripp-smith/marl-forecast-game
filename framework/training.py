@@ -74,6 +74,16 @@ class QTableAgent:
         q = self._get_q(state_key)
         return int(np.argmax(q))
 
+    def boltzmann_act(self, state: ForecastState, tau: float) -> int:
+        """Quantal-response (Boltzmann) action selection with temperature *tau*."""
+        state_key = _state_hash(state)
+        q = self._get_q(state_key)
+        scaled = q / max(tau, 1e-12)
+        scaled -= scaled.max()
+        exp_q = np.exp(scaled)
+        probs = exp_q / exp_q.sum()
+        return int(self._rng.choices(range(len(probs)), weights=probs.tolist())[0])
+
     def update(self, state: ForecastState, action: int, reward: float, next_state: ForecastState) -> float:
         s_key = _state_hash(state)
         ns_key = _state_hash(next_state)
@@ -251,6 +261,12 @@ class RADversarialTrainer:
     total_epochs: int = 100
     seed: int = 42
 
+    def _compute_tau(self, epoch: int) -> float:
+        """Bounded-rationality temperature: decays from tau_init toward tau_final."""
+        return self.config.adversary_tau_final + (
+            self.config.adversary_tau_init - self.config.adversary_tau_final
+        ) * math.exp(-self.config.tau_decay_rate * epoch)
+
     def train(
         self,
         forecaster: QTableAgent,
@@ -264,6 +280,7 @@ class RADversarialTrainer:
 
         for epoch in range(self.total_epochs):
             train_forecaster = (epoch // self.alternation_schedule) % 2 == 0
+            tau = self._compute_tau(epoch)
             game = ForecastGame(self.config, seed=self.seed + epoch)
             out = game.run(init_state, disturbed=True)
 
@@ -276,6 +293,7 @@ class RADversarialTrainer:
                 if train_forecaster:
                     idx = forecaster.act(s)
                     forecaster.update(s, idx, reward, ns)
+                    adversary.boltzmann_act(s, tau)
                 else:
                     idx = adversary.act(s)
                     adversary.update(s, idx, -reward, ns)
@@ -283,6 +301,7 @@ class RADversarialTrainer:
             epoch_results.append({
                 "epoch": epoch,
                 "training": "forecaster" if train_forecaster else "adversary",
+                "tau": tau,
                 "mean_reward": sum(l["reward"] for l in out.trajectory_logs) / max(1, len(out.trajectory_logs)),
             })
 

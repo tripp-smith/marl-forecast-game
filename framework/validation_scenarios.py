@@ -551,6 +551,27 @@ _register(ValidationScenario(
     expected_properties={},
 ))
 
+_register(ValidationScenario(
+    name="rarl_bounded_rationality_convergence",
+    description="RARL with bounded rationality curriculum converges faster than vanilla RARL",
+    data_source="sample_csv",
+    n_rounds=80,
+    seed=42,
+    expected_properties={"early_epoch_learning_positive": True},
+))
+
+_register(ValidationScenario(
+    name="wolfpack_ensemble_stress_test",
+    description="Stacked defense maintains robustness under coordinated wolfpack attack",
+    data_source="sample_csv",
+    adversarial_intensity=1.5,
+    disturbance_model="wolfpack",
+    defense_model="stack:dampening,ensemble",
+    n_rounds=80,
+    seed=42,
+    expected_properties={"robustness_delta_bounded": True},
+))
+
 
 # ---------------------------------------------------------------------------
 # Phase V scenario handlers
@@ -756,6 +777,100 @@ def _run_parallel_determinism(scenario: ValidationScenario) -> ScenarioResult:
                           duration_s=round(time.perf_counter() - start, 4), details=details, errors=errors)
 
 
+def _run_rarl_bounded_rationality(scenario: ValidationScenario) -> ScenarioResult:
+    start = time.perf_counter()
+    errors: list[str] = []
+    details: dict[str, Any] = {}
+
+    try:
+        from .training import DiscreteActionSpace, QTableAgent, RADversarialTrainer
+        cfg = SimulationConfig(
+            horizon=scenario.n_rounds,
+            max_rounds=scenario.n_rounds * 2,
+            adversarial_intensity=0.5,
+        )
+        bounded_f = QTableAgent(action_space=DiscreteActionSpace())
+        bounded_a = QTableAgent(action_space=DiscreteActionSpace())
+        trainer = RADversarialTrainer(config=cfg, total_epochs=60, alternation_schedule=10, seed=scenario.seed)
+        result = trainer.train(bounded_f, bounded_a)
+
+        early_rewards = [
+            ep["mean_reward"] for ep in result["epoch_results"][:20]
+            if ep["training"] == "forecaster"
+        ]
+        mean_early = sum(early_rewards) / max(1, len(early_rewards))
+        details["mean_early_reward"] = round(mean_early, 6)
+        details["epochs"] = result["total_epochs"]
+        if mean_early < -5.0:
+            errors.append(f"Early-epoch forecaster reward {mean_early:.4f} indicates gradient starvation")
+    except Exception as exc:
+        errors.append(f"exception: {exc}")
+
+    return ScenarioResult(name=scenario.name, passed=len(errors) == 0,
+                          duration_s=round(time.perf_counter() - start, 4), details=details, errors=errors)
+
+
+def _run_wolfpack_stress_test(scenario: ValidationScenario) -> ScenarioResult:
+    start = time.perf_counter()
+    errors: list[str] = []
+    details: dict[str, Any] = {}
+
+    try:
+        from .agents import (
+            AgentRegistry, DefenderAgent, EnsembleAggregatorAgent,
+            ForecastingAgent, RefactoringAgent, WolfpackAdversary,
+        )
+        wolf = WolfpackAdversary(aggressiveness=scenario.adversarial_intensity, correlation_threshold=0.7)
+        registry = AgentRegistry(
+            forecasters=(ForecastingAgent(name="f1"), ForecastingAgent(name="f2"), ForecastingAgent(name="f3")),
+            adversaries=(wolf,),
+            defenders=(DefenderAgent(),),
+            refactorer=RefactoringAgent(),
+            aggregator=EnsembleAggregatorAgent(mode="equal"),
+        )
+
+        clean_cfg = SimulationConfig(
+            horizon=scenario.n_rounds,
+            max_rounds=scenario.n_rounds * 2,
+            adversarial_intensity=0.0,
+        )
+        init = ForecastState(t=0, value=10.0, exogenous=0.0, hidden_shift=0.0)
+        clean_game = ForecastGame(clean_cfg, seed=scenario.seed, registry=registry)
+        clean_out = clean_game.run(init, disturbed=False)
+        clean_mae = mae(clean_out.targets, clean_out.forecasts)
+
+        attack_cfg = SimulationConfig(
+            horizon=scenario.n_rounds,
+            max_rounds=scenario.n_rounds * 2,
+            adversarial_intensity=scenario.adversarial_intensity,
+            disturbance_model=scenario.disturbance_model,
+            defense_model=scenario.defense_model,
+        )
+        wolf2 = WolfpackAdversary(aggressiveness=scenario.adversarial_intensity, correlation_threshold=0.7)
+        attack_registry = AgentRegistry(
+            forecasters=(ForecastingAgent(name="f1"), ForecastingAgent(name="f2"), ForecastingAgent(name="f3")),
+            adversaries=(wolf2,),
+            defenders=(DefenderAgent(),),
+            refactorer=RefactoringAgent(),
+            aggregator=EnsembleAggregatorAgent(mode="equal"),
+        )
+        attack_game = ForecastGame(attack_cfg, seed=scenario.seed, registry=attack_registry)
+        attack_out = attack_game.run(init, disturbed=True)
+        attack_mae_val = mae(attack_out.targets, attack_out.forecasts)
+
+        details["clean_mae"] = round(clean_mae, 6)
+        details["attack_mae"] = round(attack_mae_val, 6)
+        ratio = attack_mae_val / max(1e-9, clean_mae) if clean_mae > 0 else 1.0
+        details["ratio"] = round(ratio, 4)
+        if ratio > 3.0:
+            errors.append(f"Robustness ratio {ratio:.2f} exceeds 3.0x threshold")
+    except Exception as exc:
+        errors.append(f"exception: {exc}")
+
+    return ScenarioResult(name=scenario.name, passed=len(errors) == 0,
+                          duration_s=round(time.perf_counter() - start, 4), details=details, errors=errors)
+
+
 # ---------------------------------------------------------------------------
 # Dispatcher
 # ---------------------------------------------------------------------------
@@ -783,6 +898,8 @@ _DISPATCH: dict[str, Any] = {
     "llm_refiner_stability": _run_llm_refiner_stability,
     "fred_training_backtest": _run_fred_training_backtest,
     "parallel_determinism": _run_parallel_determinism,
+    "rarl_bounded_rationality_convergence": _run_rarl_bounded_rationality,
+    "wolfpack_ensemble_stress_test": _run_wolfpack_stress_test,
 }
 
 

@@ -501,6 +501,136 @@ def test_metrics_server_returns_false_without_prometheus():
     assert start_metrics_server(port=0) is False
 
 
+_ADAPTER_SOURCES = [
+    "bis", "gpr", "oecd_cli", "worldbank", "bea", "kalshi", "predictit", "eurostat",
+]
+
+_REQUIRED_FIELDS = {"timestamp", "series_id", "target", "promo", "macro_index", "source", "fetched_at"}
+
+
+def test_bis_adapter_synthetic_fallback():
+    from framework.data_sources.bis_policy_rate import BISPolicyRateAdapter
+    adapter = BISPolicyRateAdapter()
+    rows = adapter._synthetic(10)
+    assert len(rows) == 10
+    assert all(r.source == "bis" for r in rows)
+
+
+def test_oecd_adapter_synthetic_fallback():
+    from framework.data_sources.oecd_cli import OECDCLIAdapter
+    adapter = OECDCLIAdapter()
+    rows = adapter._synthetic(10)
+    assert len(rows) == 10
+    assert all(r.source == "oecd_cli" for r in rows)
+
+
+def test_gpr_adapter_synthetic_fallback():
+    from framework.data_sources.geopolitical_risk import GeopoliticalRiskAdapter
+    adapter = GeopoliticalRiskAdapter(local_path="nonexistent.csv")
+    rows = adapter._synthetic(10)
+    assert len(rows) == 10
+    assert all(r.source == "gpr" for r in rows)
+
+
+def test_worldbank_adapter_synthetic_fallback():
+    from framework.data_sources.world_bank import WorldBankAdapter
+    adapter = WorldBankAdapter()
+    rows = adapter._synthetic(10)
+    assert len(rows) == 10
+    assert all(r.source == "worldbank" for r in rows)
+
+
+def test_bea_adapter_synthetic_fallback():
+    from framework.data_sources.bea import BEAAdapter
+    adapter = BEAAdapter()
+    rows = adapter._synthetic(10)
+    assert len(rows) == 10
+    assert all(r.source == "bea" for r in rows)
+
+
+def test_kalshi_adapter_synthetic_fallback():
+    from framework.data_sources.kalshi import KalshiAdapter
+    adapter = KalshiAdapter()
+    rows = adapter._synthetic(10)
+    assert len(rows) == 10
+    assert all(r.source == "kalshi" for r in rows)
+
+
+def test_predictit_adapter_synthetic_fallback():
+    from framework.data_sources.predictit import PredictItAdapter
+    adapter = PredictItAdapter()
+    rows = adapter._synthetic(10)
+    assert len(rows) == 10
+    assert all(r.source == "predictit" for r in rows)
+
+
+def test_eurostat_adapter_synthetic_fallback():
+    from framework.data_sources.eurostat import EurostatAdapter
+    adapter = EurostatAdapter()
+    rows = adapter._synthetic(10)
+    assert len(rows) == 10
+    assert all(r.source == "eurostat" for r in rows)
+
+
+@pytest.mark.parametrize("source", _ADAPTER_SOURCES)
+def test_adapter_schema_compliance(source):
+    """Verify every row from each adapter has all required NormalizedRecord fields."""
+    from framework.data_utils import fetch_source_rows
+    rows = fetch_source_rows(source, 10)
+    assert len(rows) >= 5
+    for row in rows:
+        assert _REQUIRED_FIELDS.issubset(set(row.keys())), f"Missing fields in {source}: {_REQUIRED_FIELDS - set(row.keys())}"
+        assert isinstance(row["target"], (int, float))
+        assert row["target"] is not None
+
+
+@pytest.mark.parametrize("source", _ADAPTER_SOURCES)
+def test_adapter_pipeline_integration(source):
+    """Call load_source_rows for each adapter and verify row count + chronological order per series."""
+    rows = load_source_rows(source, periods=10)
+    assert len(rows) >= 5
+    from collections import defaultdict
+    per_series: dict[str, list] = defaultdict(list)
+    for r in rows:
+        per_series[r["series_id"]].append(r["timestamp"])
+    for sid, ts_list in per_series.items():
+        for i in range(1, len(ts_list)):
+            assert ts_list[i] >= ts_list[i - 1], f"{source}/{sid}: out-of-order at index {i}"
+
+
+@pytest.mark.parametrize("source", _ADAPTER_SOURCES)
+def test_adapter_cache_round_trip(source, tmp_path):
+    """ensure_source_data writes cache, second call reads from cache."""
+    rows_a, meta_a = ensure_source_data(source, periods=5, cache_dir=tmp_path, force_redownload=True)
+    assert len(rows_a) >= 3
+    assert meta_a["cache_hit"] is False
+    cache_file = tmp_path / f"{source}.json"
+    assert cache_file.exists()
+
+    rows_b, meta_b = ensure_source_data(source, periods=len(rows_a), cache_dir=tmp_path, force_redownload=False)
+    assert len(rows_b) == len(rows_a)
+    assert meta_b["cache_hit"] is True
+
+
+def test_all_twelve_adapters_registered_in_pipeline():
+    """Verify that all 12 adapters are accessible via fetch_source_rows."""
+    from framework.data_utils import fetch_source_rows
+    all_sources = [
+        "fred", "imf", "polymarket", "bis", "gpr", "oecd_cli",
+        "kaggle", "worldbank", "bea", "kalshi", "predictit", "eurostat",
+    ]
+    for source in all_sources:
+        rows = fetch_source_rows(source, 5)
+        assert len(rows) >= 3, f"Adapter '{source}' returned too few rows"
+
+
+def test_load_dataset_accepts_new_sources():
+    """Verify load_dataset routes new sources through the pipeline."""
+    for source in ["bis", "worldbank", "eurostat"]:
+        bundle = load_dataset(DataProfile(source=source, periods=30, normalize=True))
+        assert len(bundle.train) > 0
+
+
 def test_haskell_python_equivalence():
     """K.5: Verify Haskell evolveState matches Python evolve_state within FP tolerance."""
     import os
@@ -546,3 +676,195 @@ def test_haskell_python_equivalence():
             assert abs(hs_delta - py_delta) < 1e-9, f"Mismatch: Haskell={hs_delta}, Python={py_delta}"
         except (subprocess.TimeoutExpired, ValueError) as e:
             pytest.skip(f"Haskell subprocess failed: {e}")
+
+
+# ---------------------------------------------------------------------------
+# Kelly-Criterion BMA tests
+# ---------------------------------------------------------------------------
+
+
+def test_kelly_bma_weights_sum_to_one():
+    from framework.aggregation import BayesianAggregator
+
+    agg = BayesianAggregator()
+    names = ["a", "b", "c"]
+    agg._ensure_init(names)
+    rng = random.Random(42)
+    for _ in range(20):
+        errors = {n: rng.gauss(0, 1) for n in names}
+        agg.update(errors)
+        assert sum(agg.weights) == pytest.approx(1.0, abs=1e-9)
+
+
+def test_kelly_bma_bankruptcy_disables_agent():
+    from framework.aggregation import BayesianAggregator
+
+    agg = BayesianAggregator()
+    names = ["good", "bad"]
+    agg._ensure_init(names)
+    for _ in range(50):
+        agg.update(
+            {"good": 0.01, "bad": 5.0},
+            bankruptcy_threshold=0.5,
+        )
+    assert agg._active[0] is True
+    assert agg._active[1] is False
+    w = agg.weights
+    assert w[1] == 0.0
+    assert w[0] == pytest.approx(1.0, abs=1e-9)
+
+
+def test_kelly_bma_all_bankrupt_fallback():
+    from framework.aggregation import BayesianAggregator
+
+    agg = BayesianAggregator()
+    names = ["a", "b"]
+    agg._ensure_init(names)
+    for _ in range(100):
+        agg.update({"a": 10.0, "b": 10.0}, bankruptcy_threshold=0.5)
+    assert all(not a for a in agg._active)
+    w = agg.weights
+    assert sum(w) == pytest.approx(1.0, abs=1e-9)
+    assert w[0] == pytest.approx(0.5, abs=1e-9)
+
+
+def test_neg_crps_sign():
+    from framework.metrics import crps, neg_crps
+
+    cases = [(0.0, 0.0, 1.0), (1.0, 0.5, 0.3), (-2.0, 0.0, 2.0), (0.0, 0.0, 0.01)]
+    for actual, mean, std in cases:
+        assert neg_crps(actual, mean, std) == pytest.approx(-crps(actual, mean, std))
+
+
+# ---------------------------------------------------------------------------
+# Bounded Rationality Curriculum tests
+# ---------------------------------------------------------------------------
+
+
+def test_boltzmann_act_high_tau_is_uniform():
+    import math
+    from collections import Counter
+    from framework.training import QTableAgent, DiscreteActionSpace
+
+    space = DiscreteActionSpace(n_bins=5)
+    agent = QTableAgent(action_space=space, epsilon=0.0)
+    state = ForecastState(t=0, value=1.0, exogenous=0.0, hidden_shift=0.0)
+    counts = Counter(agent.boltzmann_act(state, tau=100.0) for _ in range(2000))
+    for a in range(5):
+        assert counts[a] > 100, f"Action {a} sampled too rarely for uniform distribution"
+
+
+def test_boltzmann_act_low_tau_is_greedy():
+    import numpy as np
+    from framework.training import QTableAgent, DiscreteActionSpace, _state_hash
+
+    space = DiscreteActionSpace(n_bins=5)
+    agent = QTableAgent(action_space=space, epsilon=0.0)
+    state = ForecastState(t=0, value=1.0, exogenous=0.0, hidden_shift=0.0)
+    key = _state_hash(state)
+    agent._q_table[key] = np.array([0.1, 0.5, 0.2, 0.9, 0.3])
+    for _ in range(50):
+        assert agent.boltzmann_act(state, tau=0.001) == 3
+
+
+def test_rarl_tau_schedule_decay():
+    import math
+    from framework.training import RADversarialTrainer
+
+    cfg = SimulationConfig()
+    trainer = RADversarialTrainer(config=cfg, total_epochs=100)
+    tau_0 = trainer._compute_tau(0)
+    tau_100 = trainer._compute_tau(100)
+    assert abs(tau_0 - cfg.adversary_tau_init) < 0.5
+    assert abs(tau_100 - cfg.adversary_tau_final) < 0.5
+    assert tau_0 > tau_100
+
+
+def test_rarl_bounded_rationality_trains():
+    from framework.training import QTableAgent, RADversarialTrainer
+
+    cfg = SimulationConfig(horizon=20, max_rounds=20)
+    trainer = RADversarialTrainer(config=cfg, total_epochs=20, alternation_schedule=5)
+    forecaster = QTableAgent()
+    adversary = QTableAgent()
+    result = trainer.train(forecaster, adversary)
+    assert result["total_epochs"] == 20
+    assert len(result["epoch_results"]) == 20
+    assert "tau" in result["epoch_results"][0]
+
+
+# ---------------------------------------------------------------------------
+# Wolfpack Adversary tests
+# ---------------------------------------------------------------------------
+
+
+def test_wolfpack_correlation_matrix():
+    from framework.agents import WolfpackAdversary
+
+    wolf = WolfpackAdversary(correlation_threshold=0.7)
+    rng = random.Random(99)
+    for _ in range(50):
+        base = rng.gauss(0, 1)
+        wolf.record_residual("agent_a", base + rng.gauss(0, 0.05))
+        wolf.record_residual("agent_b", base + rng.gauss(0, 0.05))
+        wolf.record_residual("agent_c", rng.gauss(0, 1))
+
+    corr = wolf.compute_correlation_matrix()
+    assert corr[("agent_a", "agent_b")] > 0.7
+    assert abs(corr.get(("agent_a", "agent_c"), 0.0)) < 0.7
+
+
+def test_wolfpack_target_selection():
+    from framework.agents import WolfpackAdversary
+
+    wolf = WolfpackAdversary(correlation_threshold=0.7)
+    rng = random.Random(99)
+    for _ in range(50):
+        base = rng.gauss(0, 1)
+        wolf.record_residual("agent_a", base + rng.gauss(0, 0.05))
+        wolf.record_residual("agent_b", base + rng.gauss(0, 0.05))
+        wolf.record_residual("agent_c", rng.gauss(0, 1))
+
+    primary, coalition = wolf.select_targets("agent_a")
+    assert primary == "agent_a"
+    assert "agent_b" in coalition
+    assert "agent_c" not in coalition
+
+
+def test_wolfpack_coalition_size_bounded():
+    from framework.agents import WolfpackAdversary
+
+    wolf = WolfpackAdversary(correlation_threshold=0.5)
+    rng = random.Random(42)
+    agents = [f"agent_{i}" for i in range(5)]
+    for _ in range(30):
+        for name in agents:
+            wolf.record_residual(name, rng.gauss(0, 1))
+    _, coalition = wolf.select_targets("agent_0")
+    assert len(coalition) < len(agents)
+
+
+def test_wolfpack_game_integration():
+    from framework.agents import (
+        AgentRegistry, DefenderAgent, EnsembleAggregatorAgent,
+        ForecastingAgent, RefactoringAgent, WolfpackAdversary,
+    )
+
+    cfg = SimulationConfig(
+        horizon=30, max_rounds=30,
+        disturbance_model="wolfpack",
+        adversarial_intensity=1.0,
+    )
+    wolf = WolfpackAdversary(aggressiveness=1.0, correlation_threshold=0.7)
+    registry = AgentRegistry(
+        forecasters=(ForecastingAgent(name="f1"), ForecastingAgent(name="f2"), ForecastingAgent(name="f3")),
+        adversaries=(wolf,),
+        defenders=(DefenderAgent(),),
+        refactorer=RefactoringAgent(),
+        aggregator=EnsembleAggregatorAgent(),
+    )
+    game = ForecastGame(cfg, seed=42, registry=registry)
+    init = ForecastState(t=0, value=10.0, exogenous=0.0, hidden_shift=0.0)
+    out = game.run(init, disturbed=True)
+    assert len(out.forecasts) > 0
+    assert len(out.targets) == len(out.forecasts)

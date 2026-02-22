@@ -137,6 +137,25 @@ class EscalatingDisturbance:
         return rng.gauss(0, effective_scale * config.adversarial_intensity)
 
 
+@dataclass(frozen=True)
+class WolfpackDisturbance:
+    """Multi-target disturbance: primary (full scale) for the target agent, secondary (reduced) for coalition."""
+
+    primary_scale: float = 1.0
+    secondary_scale: float = 0.5
+
+    def sample(self, state: ForecastState, rng: Random, config: SimulationConfig) -> float:
+        if rng.random() > config.disturbance_prob:
+            return 0.0
+        return rng.gauss(0, config.disturbance_scale * config.adversarial_intensity * self.primary_scale)
+
+    def sample_secondary(self, state: ForecastState, rng: Random, config: SimulationConfig) -> float:
+        """Correlated disturbance applied to coalition members."""
+        if rng.random() > config.disturbance_prob:
+            return 0.0
+        return rng.gauss(0, config.disturbance_scale * config.adversarial_intensity * self.secondary_scale)
+
+
 def disturbance_from_name(name: str) -> DisturbanceModel:
     normalized = name.strip().lower()
     if normalized in {"gaussian", "default"}:
@@ -157,5 +176,7 @@ def disturbance_from_name(name: str) -> DisturbanceModel:
         return HistoricalDisturbance()
     if normalized in {"escalating", "escalate"}:
         return EscalatingDisturbance()
+    if normalized in {"wolfpack", "wolf_pack"}:
+        return WolfpackDisturbance()
     logging.warning("Unknown disturbance model '%s', defaulting to GaussianDisturbance", name)
     return GaussianDisturbance()

@@ -8,6 +8,8 @@ import pytest
 from hypothesis import given, settings, assume
 from hypothesis import strategies as st
 
+from framework.agents import WolfpackAdversary
+from framework.aggregation import BayesianAggregator
 from framework.data import chronological_split, detect_poisoning_rows, normalize_features
 from framework.defenses import (
     BiasGuardDefense,
@@ -362,3 +364,41 @@ def test_convergence_threshold_early_stop(init_value):
     out = ForecastGame(cfg, seed=42).run(init, disturbed=True)
     if out.convergence.get("reason") == "divergence_threshold_exceeded":
         assert out.convergence["rounds_executed"] < 200
+
+
+# ---------------------------------------------------------------------------
+# Property: Kelly-Criterion BMA weights always sum to 1
+# ---------------------------------------------------------------------------
+
+@given(
+    errors=st.lists(small_floats, min_size=2, max_size=6),
+)
+@settings(max_examples=50)
+def test_kelly_bma_weights_sum_invariant(errors):
+    agg = BayesianAggregator()
+    names = [f"agent_{i}" for i in range(len(errors))]
+    agg._ensure_init(names)
+    agg.update({n: e for n, e in zip(names, errors)})
+    assert sum(agg.weights) == pytest.approx(1.0, abs=1e-9)
+
+
+# ---------------------------------------------------------------------------
+# Property: Wolfpack coalition never exceeds total number of forecasters
+# ---------------------------------------------------------------------------
+
+@given(
+    n_agents=st.integers(min_value=2, max_value=10),
+    threshold=st.floats(min_value=0.01, max_value=1.0, allow_nan=False, allow_infinity=False),
+)
+@settings(max_examples=50)
+def test_wolfpack_target_set_bounded(n_agents, threshold):
+    import random as stdlib_random
+    wolf = WolfpackAdversary(correlation_threshold=threshold)
+    rng = stdlib_random.Random(42)
+    names = [f"agent_{i}" for i in range(n_agents)]
+    for _ in range(30):
+        for name in names:
+            wolf.record_residual(name, rng.gauss(0, 1))
+    primary = names[0]
+    _, coalition = wolf.select_targets(primary)
+    assert len(coalition) + 1 <= n_agents

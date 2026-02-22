@@ -15,8 +15,10 @@ from .agents import (
     RefactoringAgent,
     SafeAgentExecutor,
     TopDownAgent,
+    WolfpackAdversary,
 )
-from .disturbances import disturbance_from_name
+from .aggregation import BayesianAggregator
+from .disturbances import WolfpackDisturbance, disturbance_from_name
 from .observability import ROUND_COUNTER, ROUND_LATENCY, GameObserver
 from .strategy_runtime import runtime_from_name
 from .types import (
@@ -106,6 +108,7 @@ class ForecastGame:
 
         self.safe_exec = SafeAgentExecutor()
         self.logger = GameObserver().logger()
+        self.bayesian_agg = BayesianAggregator()
 
     def run(self, initial: ForecastState, rounds: int | None = None, *, disturbed: bool = True) -> GameOutputs:
         requested_rounds = rounds if rounds is not None else self.config.horizon
@@ -133,15 +136,38 @@ class ForecastGame:
                     action = self.safe_exec.execute(f_agent.act, state, self.runtime)
                 all_forecast_actions.append(action)
 
-            f_action = all_forecast_actions[0] if len(all_forecast_actions) == 1 else \
-                self._registry.aggregator.aggregate(all_forecast_actions, cumulative_rewards)
-
-            if disturbed:
+            wolfpack_adversaries = [
+                a for a in self._registry.adversaries if isinstance(a, WolfpackAdversary)
+            ]
+            if disturbed and wolfpack_adversaries and len(all_forecast_actions) > 1:
+                wolf = wolfpack_adversaries[0]
+                bma_w = self.bayesian_agg.weights
+                if bma_w:
+                    primary_idx = max(range(len(bma_w)), key=lambda i: bma_w[i])
+                    primary_name = self.bayesian_agg.agent_names[primary_idx]
+                else:
+                    primary_name = all_forecast_actions[0].actor
+                _, coalition = wolf.select_targets(primary_name)
+                targeted = {primary_name} | set(coalition)
+                perturbed_actions: list[AgentAction] = []
+                for fa in all_forecast_actions:
+                    if fa.actor in targeted:
+                        is_primary = fa.actor == primary_name
+                        wp_action = wolf.act(state, is_primary=is_primary)
+                        perturbed_actions.append(AgentAction(actor=fa.actor, delta=fa.delta + wp_action.delta))
+                    else:
+                        perturbed_actions.append(fa)
+                all_forecast_actions = perturbed_actions
+                a_action = AgentAction(actor=wolf.name, delta=0.0)
+            elif disturbed:
                 adv_actions = [self.safe_exec.execute(a.act, state) for a in self._registry.adversaries]
                 a_action = adv_actions[0] if len(adv_actions) == 1 else \
                     AgentAction(actor="adversary", delta=sum(a.delta for a in adv_actions) / max(1, len(adv_actions)))
             else:
                 a_action = AgentAction(actor=self._registry.adversaries[0].name if self._registry.adversaries else "adversary", delta=0.0)
+
+            f_action = all_forecast_actions[0] if len(all_forecast_actions) == 1 else \
+                self._registry.aggregator.aggregate(all_forecast_actions, cumulative_rewards)
 
             def_actions = [self.safe_exec.execute(d.act, f_action, a_action, self.config.defense_model) for d in self._registry.defenders]
             d_action = def_actions[0] if len(def_actions) == 1 else \
@@ -154,6 +180,25 @@ class ForecastGame:
             target = next_state.value
             error = target - forecast
             reward = -abs(error)
+
+            if len(all_forecast_actions) > 1:
+                agent_errors: dict[str, float] = {}
+                agent_means: dict[str, float] = {}
+                agent_stds: dict[str, float] = {}
+                for fa in all_forecast_actions:
+                    fa_forecast = state.value + fa.delta
+                    agent_means[fa.actor] = fa_forecast
+                    agent_stds[fa.actor] = self.config.base_noise_std
+                    agent_errors[fa.actor] = target - fa_forecast
+                self.bayesian_agg.update(
+                    agent_errors,
+                    means=agent_means,
+                    stds=agent_stds,
+                    bankruptcy_threshold=self.config.bankruptcy_threshold,
+                )
+                for wolf in wolfpack_adversaries:
+                    for fa in all_forecast_actions:
+                        wolf.record_residual(fa.actor, agent_errors[fa.actor])
 
             if self.config.enable_refactor and self.refactor is not None:
                 refactor_bias += self.refactor.revise(error, use_llm=self.config.enable_llm_refactor)

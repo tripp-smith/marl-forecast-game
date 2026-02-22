@@ -113,7 +113,11 @@ def load_source_rows(
     cache_dir: str | Path = "data/cache",
 ) -> list[dict]:
     normalized = source.strip().lower()
-    if normalized not in {"fred", "imf", "polymarket"}:
+    _ALL_SOURCES = {
+        "fred", "imf", "polymarket", "bis", "gpr", "oecd_cli",
+        "kaggle", "worldbank", "bea", "kalshi", "predictit", "eurostat",
+    }
+    if normalized not in _ALL_SOURCES:
         raise ValueError(f"unknown source adapter: {source}")
 
     rows, _meta = ensure_source_data(
@@ -210,7 +214,10 @@ def load_dataset(profile: DataProfile, path: str | Path = "data/sample_demand.cs
             logging.warning("FRED_API_KEY not set; fred_training will use synthetic proxy")
         fred_rows, _meta = build_fred_training_set(periods=profile.periods)
         rows = fred_rows
-    elif profile.source in {"fred", "imf", "polymarket"}:
+    elif profile.source in {
+        "fred", "imf", "polymarket", "bis", "gpr", "oecd_cli",
+        "kaggle", "worldbank", "bea", "kalshi", "predictit", "eurostat",
+    }:
         rows = load_source_rows(profile.source, periods=profile.periods, realtime_refresh=profile.realtime_refresh)
     elif profile.source == "hybrid":
         build_sample_dataset(path, periods=profile.periods)

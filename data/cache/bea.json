@@ -1,0 +1,97 @@
+{
+  "checksum": "710fbe597c9f05be0d08dcba31a5f80a92ed4dc2aae2b50e05680a1248db97eb",
+  "fetched_at": "2026-02-22T10:30:06.925133",
+  "rows": [
+    {
+      "fetched_at": "2026-02-22 10:30:06.924907",
+      "macro_index": 180.0,
+      "promo": 0.0,
+      "series_id": "bea_gdp",
+      "source": "bea",
+      "target": 18000.0,
+      "timestamp": "2015-01-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 10:30:06.924907",
+      "macro_index": 182.5,
+      "promo": 0.0,
+      "series_id": "bea_gdp",
+      "source": "bea",
+      "target": 18250.0,
+      "timestamp": "2015-04-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 10:30:06.924907",
+      "macro_index": 185.0,
+      "promo": 0.0,
+      "series_id": "bea_gdp",
+      "source": "bea",
+      "target": 18500.0,
+      "timestamp": "2015-07-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 10:30:06.924907",
+      "macro_index": 186.0,
+      "promo": 0.0,
+      "series_id": "bea_gdp",
+      "source": "bea",
+      "target": 18600.0,
+      "timestamp": "2015-10-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 10:30:06.924907",
+      "macro_index": 188.5,
+      "promo": 0.0,
+      "series_id": "bea_gdp",
+      "source": "bea",
+      "target": 18850.0,
+      "timestamp": "2016-01-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 10:30:06.924907",
+      "macro_index": 191.0,
+      "promo": 0.0,
+      "series_id": "bea_gdp",
+      "source": "bea",
+      "target": 19100.0,
+      "timestamp": "2016-04-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 10:30:06.924907",
+      "macro_index": 192.0,
+      "promo": 0.0,
+      "series_id": "bea_gdp",
+      "source": "bea",
+      "target": 19200.0,
+      "timestamp": "2016-07-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 10:30:06.924907",
+      "macro_index": 194.5,
+      "promo": 0.0,
+      "series_id": "bea_gdp",
+      "source": "bea",
+      "target": 19450.0,
+      "timestamp": "2016-10-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 10:30:06.924907",
+      "macro_index": 197.0,
+      "promo": 0.0,
+      "series_id": "bea_gdp",
+      "source": "bea",
+      "target": 19700.0,
+      "timestamp": "2017-01-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 10:30:06.924907",
+      "macro_index": 198.0,
+      "promo": 0.0,
+      "series_id": "bea_gdp",
+      "source": "bea",
+      "target": 19800.0,
+      "timestamp": "2017-04-01 00:00:00"
+    }
+  ],
+  "source": "bea"
+}

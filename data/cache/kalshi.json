@@ -1,0 +1,97 @@
+{
+  "checksum": "0c0c68ffef5d237554cbfc97bcfa8943bb9801ebb05afa6b1eb0e55850da85a6",
+  "fetched_at": "2026-02-22T10:30:08.058166",
+  "rows": [
+    {
+      "fetched_at": "2026-02-22 10:30:08.057655",
+      "macro_index": 0.0,
+      "promo": 0.0,
+      "series_id": "kalshi_KXMVESPORTSMULTIGAMEEXTENDED-S2026DF727B8F26A-A22085A8866",
+      "source": "kalshi",
+      "target": 0.0,
+      "timestamp": "2026-03-08 07:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 10:30:08.057655",
+      "macro_index": 0.0,
+      "promo": 0.0,
+      "series_id": "kalshi_KXMVESPORTSMULTIGAMEEXTENDED-S2026E7B9636164A-3F392336FC2",
+      "source": "kalshi",
+      "target": 0.0,
+      "timestamp": "2026-03-08 07:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 10:30:08.057655",
+      "macro_index": 0.0,
+      "promo": 0.0,
+      "series_id": "kalshi_KXMVESPORTSMULTIGAMEEXTENDED-S2026A6D2AF4D7E3-0ADA90957FD",
+      "source": "kalshi",
+      "target": 0.0,
+      "timestamp": "2026-03-08 14:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 10:30:08.057655",
+      "macro_index": 0.0,
+      "promo": 0.0,
+      "series_id": "kalshi_KXMVESPORTSMULTIGAMEEXTENDED-S20265AA60B411EA-C0595B0F803",
+      "source": "kalshi",
+      "target": 0.0,
+      "timestamp": "2026-03-08 18:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 10:30:08.057655",
+      "macro_index": 0.0,
+      "promo": 0.0,
+      "series_id": "kalshi_KXMVESPORTSMULTIGAMEEXTENDED-S202694B39646FFB-611C79D1B49",
+      "source": "kalshi",
+      "target": 0.0,
+      "timestamp": "2026-03-08 18:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 10:30:08.057655",
+      "macro_index": 0.0,
+      "promo": 0.0,
+      "series_id": "kalshi_KXMVESPORTSMULTIGAMEEXTENDED-S2026938A4A67CF2-F84AE25D320",
+      "source": "kalshi",
+      "target": 0.0,
+      "timestamp": "2026-03-08 19:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 10:30:08.057655",
+      "macro_index": 0.0,
+      "promo": 0.0,
+      "series_id": "kalshi_KXMVESPORTSMULTIGAMEEXTENDED-S2026504F9632D75-DC0172AC938",
+      "source": "kalshi",
+      "target": 0.0,
+      "timestamp": "2026-03-08 20:30:00"
+    },
+    {
+      "fetched_at": "2026-02-22 10:30:08.057655",
+      "macro_index": 0.0,
+      "promo": 0.0,
+      "series_id": "kalshi_KXMVESPORTSMULTIGAMEEXTENDED-S202602AC680146E-3049594901F",
+      "source": "kalshi",
+      "target": 0.0,
+      "timestamp": "2026-03-08 20:30:00"
+    },
+    {
+      "fetched_at": "2026-02-22 10:30:08.057655",
+      "macro_index": 0.0,
+      "promo": 0.0,
+      "series_id": "kalshi_KXMVESPORTSMULTIGAMEEXTENDED-S2026727E48F74C6-423659620FD",
+      "source": "kalshi",
+      "target": 0.0,
+      "timestamp": "2026-03-08 23:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 10:30:08.057655",
+      "macro_index": 0.0,
+      "promo": 0.0,
+      "series_id": "kalshi_KXMVESPORTSMULTIGAMEEXTENDED-S2026FD75BD16B95-CAD2DB41F37",
+      "source": "kalshi",
+      "target": 0.0,
+      "timestamp": "2026-03-08 23:30:00"
+    }
+  ],
+  "source": "kalshi"
+}

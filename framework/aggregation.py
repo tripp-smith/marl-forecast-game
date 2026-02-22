@@ -1,19 +1,21 @@
-"""Bayesian Model Averaging aggregation for multi-agent forecasts."""
+"""Bayesian Model Averaging aggregation with Kelly-Criterion bankroll weights."""
 from __future__ import annotations
 
 import math
 from dataclasses import dataclass, field
 from typing import Mapping
 
+from .metrics import neg_crps
 from .types import AgentAction, ForecastState, ProbabilisticForecast
 
 
 @dataclass
 class BayesianAggregator:
-    """Maintains per-agent posterior weights updated via Gaussian log-likelihood."""
+    """Maintains per-agent bankroll weights updated via Kelly-Criterion exponential growth."""
 
     agent_names: list[str] = field(default_factory=list)
-    _log_weights: list[float] = field(default_factory=list, repr=False)
+    _bankrolls: list[float] = field(default_factory=list, repr=False)
+    _active: list[bool] = field(default_factory=list, repr=False)
     _observation_variance: float = 1.0
     _initialized: bool = field(default=False, repr=False)
 
@@ -21,25 +23,43 @@ class BayesianAggregator:
         if self._initialized:
             return
         self.agent_names = list(names)
-        self._log_weights = [0.0] * len(names)
+        self._bankrolls = [1.0] * len(names)
+        self._active = [True] * len(names)
         self._initialized = True
 
     @property
     def weights(self) -> list[float]:
-        if not self._log_weights:
+        if not self._bankrolls:
             return []
-        max_lw = max(self._log_weights)
-        exp_weights = [math.exp(lw - max_lw) for lw in self._log_weights]
-        total = sum(exp_weights) or 1.0
-        return [w / total for w in exp_weights]
+        active_total = sum(b for b, a in zip(self._bankrolls, self._active) if a)
+        if active_total <= 0:
+            n = len(self._bankrolls)
+            return [1.0 / n] * n
+        return [
+            (b / active_total if a else 0.0)
+            for b, a in zip(self._bankrolls, self._active)
+        ]
 
-    def update(self, agent_errors: dict[str, float]) -> None:
-        """Update posterior weights given per-agent forecast errors."""
+    def update(
+        self,
+        agent_errors: dict[str, float],
+        means: dict[str, float] | None = None,
+        stds: dict[str, float] | None = None,
+        bankruptcy_threshold: float = 0.01,
+    ) -> None:
+        """Update bankrolls via exponential growth scored by negative CRPS."""
         for i, name in enumerate(self.agent_names):
-            if name in agent_errors:
-                err = agent_errors[name]
-                ll = -0.5 * (err ** 2) / self._observation_variance
-                self._log_weights[i] += ll
+            if name not in agent_errors or not self._active[i]:
+                continue
+            err = agent_errors[name]
+            if means is not None and stds is not None and name in means and name in stds:
+                actual = means[name] + err
+                score = neg_crps(actual, means[name], stds[name])
+            else:
+                score = -abs(err)
+            self._bankrolls[i] *= math.exp(score)
+            if self._bankrolls[i] < bankruptcy_threshold:
+                self._active[i] = False
 
     def aggregate(
         self,

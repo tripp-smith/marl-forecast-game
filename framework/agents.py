@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import logging
+import math
+from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import List
 
@@ -130,6 +132,67 @@ class EnsembleAggregatorAgent:
 
 
 # ---------------------------------------------------------------------------
+# Wolfpack adversary (mutable: tracks residual history)
+# ---------------------------------------------------------------------------
+
+
+@dataclass
+class WolfpackAdversary:
+    """Coordinated adversary targeting correlated forecaster clusters."""
+
+    name: str = "wolfpack"
+    aggressiveness: float = 1.0
+    attack_cost: float = 0.0
+    correlation_threshold: float = 0.7
+    _residuals: dict[str, list[float]] = field(default_factory=lambda: defaultdict(list), repr=False)
+
+    def record_residual(self, agent_name: str, residual: float) -> None:
+        self._residuals[agent_name].append(residual)
+
+    @staticmethod
+    def _pearson(xs: list[float], ys: list[float]) -> float:
+        n = min(len(xs), len(ys))
+        if n < 3:
+            return 0.0
+        mx = sum(xs[:n]) / n
+        my = sum(ys[:n]) / n
+        cov = sum((xs[i] - mx) * (ys[i] - my) for i in range(n)) / n
+        sx = math.sqrt(sum((xs[i] - mx) ** 2 for i in range(n)) / n)
+        sy = math.sqrt(sum((ys[i] - my) ** 2 for i in range(n)) / n)
+        if sx < 1e-12 or sy < 1e-12:
+            return 0.0
+        return cov / (sx * sy)
+
+    def compute_correlation_matrix(self) -> dict[tuple[str, str], float]:
+        names = list(self._residuals.keys())
+        matrix: dict[tuple[str, str], float] = {}
+        for i, a in enumerate(names):
+            for j, b in enumerate(names):
+                if i < j:
+                    rho = self._pearson(self._residuals[a], self._residuals[b])
+                    matrix[(a, b)] = rho
+                    matrix[(b, a)] = rho
+        return matrix
+
+    def select_targets(self, primary_target: str) -> tuple[str, list[str]]:
+        corr = self.compute_correlation_matrix()
+        coalition = [
+            name for name in self._residuals
+            if name != primary_target and abs(corr.get((primary_target, name), 0.0)) >= self.correlation_threshold
+        ]
+        return primary_target, coalition
+
+    def act(self, state: ForecastState, *, is_primary: bool = True) -> AgentAction:
+        expected_trend = 0.4 + 0.4 * state.exogenous
+        direction = -1.0 if expected_trend >= 0 else 1.0
+        scale = self.aggressiveness if is_primary else self.aggressiveness * 0.5
+        base = direction * 0.4 * scale
+        penalty = min(abs(base), self.attack_cost * 0.2)
+        delta = base - (penalty if base > 0 else -penalty)
+        return AgentAction(actor=self.name, delta=delta)
+
+
+# ---------------------------------------------------------------------------
 # Agent registry and executor
 # ---------------------------------------------------------------------------
 
@@ -139,7 +202,7 @@ class AgentRegistry:
     """Flexible container for variable numbers of agents."""
 
     forecasters: tuple[ForecastingAgent | BottomUpAgent, ...] = ()
-    adversaries: tuple[AdversaryAgent, ...] = ()
+    adversaries: tuple[AdversaryAgent | WolfpackAdversary, ...] = ()
     defenders: tuple[DefenderAgent, ...] = ()
     refactorer: RefactoringAgent | None = None
     aggregator: EnsembleAggregatorAgent = field(default_factory=EnsembleAggregatorAgent)

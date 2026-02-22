@@ -9,7 +9,20 @@ from typing import Any
 
 import json
 
-from .data_sources import FredMacroAdapter, ImfMacroAdapter, PolymarketAdapter
+from .data_sources import (
+    BEAAdapter,
+    BISPolicyRateAdapter,
+    EurostatAdapter,
+    FredMacroAdapter,
+    GeopoliticalRiskAdapter,
+    ImfMacroAdapter,
+    KaggleDemandAdapter,
+    KalshiAdapter,
+    OECDCLIAdapter,
+    PolymarketAdapter,
+    PredictItAdapter,
+    WorldBankAdapter,
+)
 
 REQUIRED_SCHEMA_FIELDS = {"timestamp", "series_id", "target", "promo", "macro_index"}
 
@@ -72,6 +85,15 @@ def fetch_source_rows(source: str, periods: int) -> list[dict[str, Any]]:
         "fred": FredMacroAdapter(),
         "imf": ImfMacroAdapter(),
         "polymarket": PolymarketAdapter(),
+        "bis": BISPolicyRateAdapter(),
+        "gpr": GeopoliticalRiskAdapter(),
+        "oecd_cli": OECDCLIAdapter(),
+        "kaggle": KaggleDemandAdapter(),
+        "worldbank": WorldBankAdapter(),
+        "bea": BEAAdapter(),
+        "kalshi": KalshiAdapter(),
+        "predictit": PredictItAdapter(),
+        "eurostat": EurostatAdapter(),
     }
     normalized = source.strip().lower()
     if normalized not in adapters:

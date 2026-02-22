@@ -61,6 +61,11 @@ def crps(actual: float, forecast_mean: float, forecast_std: float) -> float:
     return forecast_std * (z * (2.0 * cdf_z - 1.0) + 2.0 * pdf_z - 1.0 / math.sqrt(math.pi))
 
 
+def neg_crps(actual: float, forecast_mean: float, forecast_std: float) -> float:
+    """Negative CRPS: higher is better. Suitable for exponential bankroll scoring."""
+    return -crps(actual, forecast_mean, forecast_std)
+
+
 def mean_crps(actuals: Iterable[float], means: Iterable[float], stds: Iterable[float]) -> float:
     scores = [crps(a, m, s) for a, m, s in zip(actuals, means, stds)]
     return sum(scores) / max(1, len(scores))

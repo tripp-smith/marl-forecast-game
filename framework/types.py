@@ -101,6 +101,11 @@ class SimulationConfig:
     enable_llm_refactor: bool = False
     attack_cost: float = 0.0
     convergence_threshold: float = 0.0
+    adversary_tau_init: float = 5.0
+    adversary_tau_final: float = 0.1
+    tau_decay_rate: float = 0.05
+    bankruptcy_threshold: float = 0.01
+    wolfpack_correlation_threshold: float = 0.7
 
     def __post_init__(self) -> None:
         if self.horizon < 0:
@@ -121,6 +126,16 @@ class SimulationConfig:
             raise ValueError("attack_cost must be >= 0")
         if self.convergence_threshold < 0:
             raise ValueError("convergence_threshold must be >= 0")
+        if self.adversary_tau_init <= 0:
+            raise ValueError("adversary_tau_init must be > 0")
+        if self.adversary_tau_final <= 0:
+            raise ValueError("adversary_tau_final must be > 0")
+        if self.tau_decay_rate <= 0:
+            raise ValueError("tau_decay_rate must be > 0")
+        if not (0.0 < self.bankruptcy_threshold < 1.0):
+            raise ValueError("bankruptcy_threshold must be in (0, 1)")
+        if not (0.0 < self.wolfpack_correlation_threshold <= 1.0):
+            raise ValueError("wolfpack_correlation_threshold must be in (0, 1]")
 
 
 def evolve_state(

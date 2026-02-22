@@ -1,0 +1,97 @@
+{
+  "checksum": "10bb9d2eb2325a3d97f15cc14ca9a71bb7a75c4522307cc321920467502dfb23",
+  "fetched_at": "2026-02-22T10:30:33.231474",
+  "rows": [
+    {
+      "fetched_at": "2026-02-22 10:30:33.230850",
+      "macro_index": 0.0,
+      "promo": 0.0,
+      "series_id": "predictit_7589",
+      "source": "predictit",
+      "target": 0.3,
+      "timestamp": "2026-02-22 10:30:33.230850"
+    },
+    {
+      "fetched_at": "2026-02-22 10:30:33.230850",
+      "macro_index": 0.0,
+      "promo": 0.0,
+      "series_id": "predictit_8152",
+      "source": "predictit",
+      "target": 0.5,
+      "timestamp": "2026-02-22 10:30:33.230850"
+    },
+    {
+      "fetched_at": "2026-02-22 10:30:33.230850",
+      "macro_index": 0.0,
+      "promo": 0.0,
+      "series_id": "predictit_8153",
+      "source": "predictit",
+      "target": 0.32,
+      "timestamp": "2026-02-22 10:30:33.230850"
+    },
+    {
+      "fetched_at": "2026-02-22 10:30:33.230850",
+      "macro_index": 0.0,
+      "promo": 0.0,
+      "series_id": "predictit_8155",
+      "source": "predictit",
+      "target": 0.63,
+      "timestamp": "2026-02-22 10:30:33.230850"
+    },
+    {
+      "fetched_at": "2026-02-22 10:30:33.230850",
+      "macro_index": 0.0,
+      "promo": 0.0,
+      "series_id": "predictit_8156",
+      "source": "predictit",
+      "target": 0.81,
+      "timestamp": "2026-02-22 10:30:33.230850"
+    },
+    {
+      "fetched_at": "2026-02-22 10:30:33.230850",
+      "macro_index": 0.0,
+      "promo": 0.0,
+      "series_id": "predictit_8157",
+      "source": "predictit",
+      "target": 0.79,
+      "timestamp": "2026-02-22 10:30:33.230850"
+    },
+    {
+      "fetched_at": "2026-02-22 10:30:33.230850",
+      "macro_index": 0.0,
+      "promo": 0.0,
+      "series_id": "predictit_8158",
+      "source": "predictit",
+      "target": 0.76,
+      "timestamp": "2026-02-22 10:30:33.230850"
+    },
+    {
+      "fetched_at": "2026-02-22 10:30:33.230850",
+      "macro_index": 0.0,
+      "promo": 0.0,
+      "series_id": "predictit_8159",
+      "source": "predictit",
+      "target": 0.66,
+      "timestamp": "2026-02-22 10:30:33.230850"
+    },
+    {
+      "fetched_at": "2026-02-22 10:30:33.230850",
+      "macro_index": 0.0,
+      "promo": 0.0,
+      "series_id": "predictit_8160",
+      "source": "predictit",
+      "target": 0.78,
+      "timestamp": "2026-02-22 10:30:33.230850"
+    },
+    {
+      "fetched_at": "2026-02-22 10:30:33.230850",
+      "macro_index": 0.0,
+      "promo": 0.0,
+      "series_id": "predictit_8161",
+      "source": "predictit",
+      "target": 0.84,
+      "timestamp": "2026-02-22 10:30:33.230850"
+    }
+  ],
+  "source": "predictit"
+}

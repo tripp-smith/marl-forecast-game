@@ -1,0 +1,97 @@
+{
+  "checksum": "43ea6df8bb5b03e0c395b3238a025944458f6f25394650beb05532834c19cfa8",
+  "fetched_at": "2026-02-22T10:30:06.585307",
+  "rows": [
+    {
+      "fetched_at": "2026-02-22 10:30:06.584849",
+      "macro_index": 100.0,
+      "promo": 0.0,
+      "series_id": "gpr_index",
+      "source": "gpr",
+      "target": 100.0,
+      "timestamp": "2023-01-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 10:30:06.584849",
+      "macro_index": 103.0,
+      "promo": 0.0,
+      "series_id": "gpr_index",
+      "source": "gpr",
+      "target": 103.0,
+      "timestamp": "2023-01-31 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 10:30:06.584849",
+      "macro_index": 106.0,
+      "promo": 0.0,
+      "series_id": "gpr_index",
+      "source": "gpr",
+      "target": 106.0,
+      "timestamp": "2023-03-02 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 10:30:06.584849",
+      "macro_index": 109.0,
+      "promo": 0.0,
+      "series_id": "gpr_index",
+      "source": "gpr",
+      "target": 109.0,
+      "timestamp": "2023-04-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 10:30:06.584849",
+      "macro_index": 112.0,
+      "promo": 0.0,
+      "series_id": "gpr_index",
+      "source": "gpr",
+      "target": 112.0,
+      "timestamp": "2023-05-01 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 10:30:06.584849",
+      "macro_index": 115.0,
+      "promo": 0.0,
+      "series_id": "gpr_index",
+      "source": "gpr",
+      "target": 115.0,
+      "timestamp": "2023-05-31 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 10:30:06.584849",
+      "macro_index": 118.0,
+      "promo": 0.0,
+      "series_id": "gpr_index",
+      "source": "gpr",
+      "target": 118.0,
+      "timestamp": "2023-06-30 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 10:30:06.584849",
+      "macro_index": 135.0,
+      "promo": 0.0,
+      "series_id": "gpr_index",
+      "source": "gpr",
+      "target": 135.0,
+      "timestamp": "2023-07-30 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 10:30:06.584849",
+      "macro_index": 138.0,
+      "promo": 0.0,
+      "series_id": "gpr_index",
+      "source": "gpr",
+      "target": 138.0,
+      "timestamp": "2023-08-29 00:00:00"
+    },
+    {
+      "fetched_at": "2026-02-22 10:30:06.584849",
+      "macro_index": 141.0,
+      "promo": 0.0,
+      "series_id": "gpr_index",
+      "source": "gpr",
+      "target": 141.0,
+      "timestamp": "2023-09-28 00:00:00"
+    }
+  ],
+  "source": "gpr"
+}
