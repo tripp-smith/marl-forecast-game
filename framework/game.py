@@ -1,9 +1,10 @@
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
+import logging
+from dataclasses import asdict, dataclass, replace
 from random import Random
 import time
-from typing import Callable, List
+from typing import Any, Callable, List
 
 from .agents import (
     AdversaryAgent,
@@ -55,6 +56,10 @@ def _state_to_dict(state: ForecastState) -> dict:
         "segment_id": state.segment_id,
         "segment_values": dict(state.segment_values),
         "macro_context": dict(state.macro_context),
+        "qualitative_state": list(state.qualitative_state),
+        "raw_qual_text": state.raw_qual_text,
+        "economic_regime": state.economic_regime,
+        "last_qual_update_step": state.last_qual_update_step,
     }
 
 
@@ -122,6 +127,26 @@ class ForecastGame:
         except (AttributeError, TypeError):
             self.logger = _logger
         self.bayesian_agg = BayesianAggregator()
+
+        self._qual_extractor = None
+        self._regime_classifier = None
+        self._qual_dataset: dict[int, dict] = {}
+        if config.enable_qual:
+            try:
+                from .qualitative import QualitativeExtractor, RegimeClassifier
+
+                self._qual_extractor = QualitativeExtractor(
+                    feature_dim=config.feature_dim,
+                )
+                self._regime_classifier = RegimeClassifier(
+                    n_regimes=config.regime_classes,
+                )
+            except Exception:
+                logging.debug("Qualitative components unavailable; running without")
+
+    def set_qual_dataset(self, dataset: dict[int, dict]) -> None:
+        """Inject a pre-built qualitative dataset (timestep -> record mapping)."""
+        self._qual_dataset = dict(dataset)
 
     def run(self, initial: ForecastState, rounds: int | None = None, *, disturbed: bool = True) -> GameOutputs:
         requested_rounds = rounds if rounds is not None else self.config.horizon
@@ -195,7 +220,40 @@ class ForecastGame:
             disturbance_val = self.disturbance.sample(state, self._rng, self.config) if disturbed else 0.0
             forecast = state.value + f_action.delta + a_action.delta + d_action.delta + refactor_bias
             noise = self._rng.gauss(0, self.config.base_noise_std)
-            next_state = evolve_state(state, base_trend=0.4, noise=noise, disturbance=disturbance_val)
+
+            qual_override: dict[str, Any] | None = None
+            if self.config.enable_qual and self._qual_dataset and state.t in self._qual_dataset:
+                qual_rec = self._qual_dataset[state.t]
+                qual_text = qual_rec.get("text", "")
+                if self._qual_extractor is not None:
+                    raw_tensor = self._qual_extractor.extract(
+                        qual_text, self.config.qualitative_extractor_prompt,
+                    )
+                else:
+                    raw_tensor = (0,) * self.config.feature_dim
+                regime = 0
+                if self._regime_classifier is not None:
+                    regime = self._regime_classifier.classify(
+                        dict(state.macro_context),
+                        raw_tensor,
+                        self.config.regime_prompt,
+                    )
+                qual_override = {
+                    "qualitative_state": raw_tensor,
+                    "raw_qual_state": tuple(float(v) for v in raw_tensor),
+                    "raw_qual_text": qual_text[:self.config.max_context_tokens] if qual_text else None,
+                    "economic_regime": regime,
+                    "last_qual_update_step": state.t,
+                }
+
+            next_state = evolve_state(
+                state,
+                base_trend=0.4,
+                noise=noise,
+                disturbance=disturbance_val,
+                qual_override=qual_override,
+                decay_rate=self.config.decay_rate,
+            )
             target = next_state.value
             error = target - forecast
             reward = -abs(error)

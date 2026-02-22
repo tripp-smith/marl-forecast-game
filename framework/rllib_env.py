@@ -19,13 +19,13 @@ from .strategy_runtime import runtime_from_name
 from .types import ForecastState, SimulationConfig, evolve_state
 
 
+_DEFAULT_QUAL = [0, 0, 0]
+
+
 def _state_to_obs(state: ForecastState) -> np.ndarray:
-    return np.array([
-        state.t,
-        state.value,
-        state.exogenous,
-        state.hidden_shift,
-    ], dtype=np.float32)
+    base = [state.t, state.value, state.exogenous, state.hidden_shift]
+    qual = list(state.qualitative_state) if state.qualitative_state else _DEFAULT_QUAL
+    return np.array(base + qual + [state.economic_regime], dtype=np.float32)
 
 
 class ForecastGameEnv:
@@ -47,9 +47,10 @@ class ForecastGameEnv:
         self.runtime = runtime_from_name(self.config.runtime_backend)
         self.disturbance_model = disturbance_from_name(self.config.disturbance_model)
 
+        _obs_dim = 8  # t, value, exogenous, hidden_shift, sentiment, uncertainty, guidance, regime
         self.observation_space = spaces.Box(
-            low=np.array([-np.inf, -np.inf, -np.inf, -np.inf], dtype=np.float32),
-            high=np.array([np.inf, np.inf, np.inf, np.inf], dtype=np.float32),
+            low=-np.inf * np.ones(_obs_dim, dtype=np.float32),
+            high=np.inf * np.ones(_obs_dim, dtype=np.float32),
             dtype=np.float32,
         )
         self.action_space = spaces.Box(
@@ -119,9 +120,10 @@ class ForecastGameMultiAgentEnv:
         self._rng = Random(seed)
         self.disturbance_model = disturbance_from_name(self.config.disturbance_model)
 
+        _obs_dim = 8
         self.observation_space = spaces.Box(
-            low=np.array([-np.inf, -np.inf, -np.inf, -np.inf], dtype=np.float32),
-            high=np.array([np.inf, np.inf, np.inf, np.inf], dtype=np.float32),
+            low=-np.inf * np.ones(_obs_dim, dtype=np.float32),
+            high=np.inf * np.ones(_obs_dim, dtype=np.float32),
             dtype=np.float32,
         )
         self.action_space = spaces.Box(

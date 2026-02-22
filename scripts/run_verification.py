@@ -19,9 +19,15 @@ if __name__ == "__main__":
         default="auto",
         help="Parallel execution backend (default: auto)",
     )
+    parser.add_argument(
+        "--enable-qual",
+        action="store_true",
+        default=False,
+        help="Include qualitative determinism verification checks",
+    )
     args = parser.parse_args()
 
-    result = run_verification(backend=args.backend)
+    result = run_verification(backend=args.backend, enable_qual=args.enable_qual)
     report_path = ROOT / "planning" / "verification_report.json"
     report_path.write_text(json.dumps(result, indent=2, sort_keys=True), encoding="utf-8")
     print(json.dumps(result, indent=2, sort_keys=True))

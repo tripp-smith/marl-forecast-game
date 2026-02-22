@@ -15,7 +15,7 @@ from .data_utils import (
 )
 from .game import ForecastGame
 from .metrics import mae, rmse, worst_case_abs_error
-from .types import ForecastState, SimulationConfig
+from .types import ForecastState, SimulationConfig, decay_qualitative_state
 
 
 @dataclass(frozen=True)
@@ -872,6 +872,290 @@ def _run_wolfpack_stress_test(scenario: ValidationScenario) -> ScenarioResult:
 
 
 # ---------------------------------------------------------------------------
+# Qualitative validation scenarios
+# ---------------------------------------------------------------------------
+
+
+def _run_qual_ingestion(scenario: ValidationScenario) -> ScenarioResult:
+    """Validate qualitative ingestion with deterministic extraction across multiple runs."""
+    start = time.perf_counter()
+    errors: list[str] = []
+    details: dict[str, Any] = {}
+
+    try:
+        from hashlib import sha256
+
+        game_seed = scenario.seed if hasattr(scenario, "seed") else 42
+        cfg = SimulationConfig(
+            horizon=100,
+            max_rounds=200,
+            enable_qual=True,
+        )
+        init = ForecastState(t=0, value=10.0, exogenous=0.0, hidden_shift=0.0)
+
+        qual_dataset: dict[int, dict] = {}
+        for step in [5, 15, 30, 50, 70]:
+            qual_dataset[step] = {
+                "timestamp": f"2023-01-{step:02d}",
+                "source_id": "beige_book",
+                "text": f"Economic activity was moderate at step {step}. "
+                        f"Labor markets remained tight with modest wage pressures.",
+                "metadata": {"synthetic": True},
+            }
+
+        all_hashes: list[str] = []
+        n_runs = min(scenario.expected_properties.get("n_runs", 10), 50)
+        for _ in range(n_runs):
+            game = ForecastGame(cfg, seed=game_seed)
+            game.set_qual_dataset(qual_dataset)
+            output = game.run(init, rounds=cfg.horizon, disturbed=False)
+
+            state_hash = sha256()
+            for traj in output.trajectories:
+                st = traj.state
+                state_hash.update(str(st.qualitative_state).encode())
+                state_hash.update(str(st.economic_regime).encode())
+            all_hashes.append(state_hash.hexdigest())
+
+        unique_hashes = set(all_hashes)
+        details["n_runs"] = n_runs
+        details["unique_hashes"] = len(unique_hashes)
+        if len(unique_hashes) != 1:
+            errors.append(f"non-deterministic: {len(unique_hashes)} distinct hash sets across {n_runs} runs")
+
+    except Exception as exc:
+        errors.append(f"qual_ingestion failed: {exc}")
+
+    return ScenarioResult(
+        name=scenario.name,
+        passed=len(errors) == 0,
+        duration_s=time.perf_counter() - start,
+        details=details,
+        errors=errors,
+    )
+
+
+def _run_decay_verification(scenario: ValidationScenario) -> ScenarioResult:
+    """Verify decay_qualitative_state produces monotonically non-increasing magnitude."""
+    start = time.perf_counter()
+    errors: list[str] = []
+    details: dict[str, Any] = {}
+
+    try:
+        import math
+
+        test_cases = [
+            (1.0, 1.0, -1.0),
+            (1.0, -1.0, 1.0),
+            (0.5, 0.5, 0.5),
+            (-1.0, -1.0, -1.0),
+        ]
+        decay_rate = 0.01
+
+        for raw_vals in test_cases:
+            raw = tuple(float(v) for v in raw_vals)
+            prev_mag = sum(abs(v) for v in raw)
+            for step in range(1, 200):
+                decayed = decay_qualitative_state(raw, step, 0, decay_rate)
+                mag = sum(abs(v) for v in decayed)
+                if mag > prev_mag + 1e-6:
+                    errors.append(
+                        f"non-monotonic at step {step}: {mag} > {prev_mag} for raw={raw}"
+                    )
+                    break
+                prev_mag = mag
+
+        expected = decay_qualitative_state((1.0, -1.0, 1.0), 100, 0, 0.01)
+        factor = math.exp(-0.01 * 100)
+        for i, v in enumerate(expected):
+            raw_decayed = (1.0, -1.0, 1.0)[i] * factor
+            if abs(v - round(raw_decayed)) > 1e-6:
+                errors.append(f"numerical mismatch at dim {i}: got {v}, expected {round(raw_decayed)}")
+
+        empty_result = decay_qualitative_state((), 10, 0, 0.01)
+        if empty_result != ():
+            errors.append(f"empty raw should give empty result, got {empty_result}")
+
+        no_release = decay_qualitative_state((1.0,), 10, -1, 0.01)
+        if no_release != ():
+            errors.append(f"release_step=-1 should give empty result, got {no_release}")
+
+        details["test_cases"] = len(test_cases)
+        details["checks_passed"] = len(errors) == 0
+
+    except Exception as exc:
+        errors.append(f"decay_verification failed: {exc}")
+
+    return ScenarioResult(
+        name=scenario.name,
+        passed=len(errors) == 0,
+        duration_s=time.perf_counter() - start,
+        details=details,
+        errors=errors,
+    )
+
+
+def _run_regime_consistency(scenario: ValidationScenario) -> ScenarioResult:
+    """Verify economic_regime and qualitative_state are identical across N runs with same seed."""
+    start = time.perf_counter()
+    errors: list[str] = []
+    details: dict[str, Any] = {}
+
+    try:
+        cfg = SimulationConfig(
+            horizon=50,
+            max_rounds=100,
+            enable_qual=True,
+        )
+        init = ForecastState(t=0, value=10.0, exogenous=0.0, hidden_shift=0.0)
+
+        qual_dataset: dict[int, dict] = {
+            10: {
+                "timestamp": "2023-01-10",
+                "source_id": "pmi",
+                "text": "Manufacturing expanded modestly. Prices were rising.",
+                "metadata": {"synthetic": True},
+            },
+        }
+
+        n_runs = scenario.expected_properties.get("n_runs", 100)
+        reference_regimes: list[int] | None = None
+        reference_quals: list[tuple[int, ...]] | None = None
+
+        for run_idx in range(n_runs):
+            game = ForecastGame(cfg, seed=42)
+            game.set_qual_dataset(qual_dataset)
+            output = game.run(init, rounds=cfg.horizon, disturbed=False)
+
+            regimes = [t.state.economic_regime for t in output.trajectories]
+            quals = [t.state.qualitative_state for t in output.trajectories]
+
+            if reference_regimes is None:
+                reference_regimes = regimes
+                reference_quals = quals
+            else:
+                if regimes != reference_regimes:
+                    errors.append(f"regime mismatch at run {run_idx}")
+                    break
+                if quals != reference_quals:
+                    errors.append(f"qualitative_state mismatch at run {run_idx}")
+                    break
+
+        details["n_runs"] = n_runs
+        details["deterministic"] = len(errors) == 0
+
+    except Exception as exc:
+        errors.append(f"regime_consistency failed: {exc}")
+
+    return ScenarioResult(
+        name=scenario.name,
+        passed=len(errors) == 0,
+        duration_s=time.perf_counter() - start,
+        details=details,
+        errors=errors,
+    )
+
+
+def _run_bias_prevention(scenario: ValidationScenario) -> ScenarioResult:
+    """Assert no future qualitative text appears in past states (look-ahead prevention)."""
+    start = time.perf_counter()
+    errors: list[str] = []
+    details: dict[str, Any] = {}
+
+    try:
+        cfg = SimulationConfig(
+            horizon=80,
+            max_rounds=100,
+            enable_qual=True,
+        )
+        init = ForecastState(t=0, value=10.0, exogenous=0.0, hidden_shift=0.0)
+
+        qual_dataset: dict[int, dict] = {
+            20: {
+                "timestamp": "2023-02-20",
+                "source_id": "beige_book",
+                "text": "RELEASE_AT_20",
+                "metadata": {},
+            },
+            50: {
+                "timestamp": "2023-05-50",
+                "source_id": "pmi",
+                "text": "RELEASE_AT_50",
+                "metadata": {},
+            },
+        }
+
+        game = ForecastGame(cfg, seed=42)
+        game.set_qual_dataset(qual_dataset)
+        output = game.run(init, rounds=cfg.horizon, disturbed=False)
+
+        for traj in output.trajectories:
+            st = traj.state
+            if st.last_qual_update_step > st.t:
+                errors.append(
+                    f"look-ahead at t={st.t}: last_qual_update_step={st.last_qual_update_step}"
+                )
+            if st.raw_qual_text and st.last_qual_update_step < 0:
+                errors.append(f"raw_qual_text present at t={st.t} but last_qual_update_step=-1")
+
+        for traj in output.trajectories:
+            st = traj.state
+            if st.t < 20 and st.raw_qual_text is not None:
+                errors.append(f"future text leaked at t={st.t}: '{st.raw_qual_text}'")
+                break
+
+        details["trajectories_checked"] = len(output.trajectories)
+
+    except Exception as exc:
+        errors.append(f"bias_prevention failed: {exc}")
+
+    return ScenarioResult(
+        name=scenario.name,
+        passed=len(errors) == 0,
+        duration_s=time.perf_counter() - start,
+        details=details,
+        errors=errors,
+    )
+
+
+_register(ValidationScenario(
+    name="qual_ingestion",
+    description="Qualitative ingestion determinism across N runs",
+    data_source="sample_csv",
+    n_rounds=100,
+    seed=42,
+    expected_properties={"n_runs": 10},
+))
+
+_register(ValidationScenario(
+    name="decay_verification",
+    description="Exponential decay monotonicity and numerical accuracy",
+    data_source="sample_csv",
+    n_rounds=200,
+    seed=42,
+    expected_properties={},
+))
+
+_register(ValidationScenario(
+    name="regime_consistency",
+    description="Economic regime determinism across 100 identical runs",
+    data_source="sample_csv",
+    n_rounds=50,
+    seed=42,
+    expected_properties={"n_runs": 100},
+))
+
+_register(ValidationScenario(
+    name="bias_prevention",
+    description="No-look-ahead invariant for qualitative text injection",
+    data_source="sample_csv",
+    n_rounds=80,
+    seed=42,
+    expected_properties={},
+))
+
+
+# ---------------------------------------------------------------------------
 # Dispatcher
 # ---------------------------------------------------------------------------
 
@@ -900,6 +1184,10 @@ _DISPATCH: dict[str, Any] = {
     "parallel_determinism": _run_parallel_determinism,
     "rarl_bounded_rationality_convergence": _run_rarl_bounded_rationality,
     "wolfpack_ensemble_stress_test": _run_wolfpack_stress_test,
+    "qual_ingestion": _run_qual_ingestion,
+    "decay_verification": _run_decay_verification,
+    "regime_consistency": _run_regime_consistency,
+    "bias_prevention": _run_bias_prevention,
 }
 
 

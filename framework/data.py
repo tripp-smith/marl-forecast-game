@@ -7,7 +7,7 @@ import csv
 import json
 import math
 
-from .data_utils import build_fred_training_set, ensure_source_data
+from .data_utils import build_fred_training_set, ensure_source_data, fetch_qual_source_rows
 
 
 REQUIRED_COLUMNS = ["timestamp", "series_id", "target", "promo", "macro_index"]
@@ -237,6 +237,73 @@ def load_dataset(profile: DataProfile, path: str | Path = "data/sample_demand.cs
         rows = normalize_features(rows)
 
     return chronological_split(rows, train=profile.train_ratio, valid=profile.valid_ratio)
+
+
+def build_qual_dataset(
+    qual_adapters: tuple[str, ...],
+    start_dt: datetime,
+    end_dt: datetime,
+    *,
+    step_size_days: int = 1,
+    epoch: datetime | None = None,
+    z_threshold: float = 3.0,
+    cache_path: str | Path = "data/cache/qual_manifest.json",
+) -> dict[int, dict]:
+    """Build a timestep-indexed qualitative dataset from multiple adapters.
+
+    Returns a mapping from game timestep ``t`` to a dict with keys
+    ``timestamp``, ``source_id``, ``text``, and ``metadata``.
+    """
+    from hashlib import sha256
+
+    if epoch is None:
+        epoch = start_dt
+
+    all_records: list[dict] = []
+    for adapter_name in qual_adapters:
+        rows = fetch_qual_source_rows(adapter_name, start_dt, end_dt)
+        all_records.extend(rows)
+
+    all_records.sort(key=lambda r: r["timestamp"])
+
+    if len(all_records) >= 3:
+        lengths = [len(r.get("text", "")) for r in all_records]
+        mean_len = sum(lengths) / len(lengths)
+        var_len = sum((x - mean_len) ** 2 for x in lengths) / max(1, len(lengths) - 1)
+        std_len = var_len ** 0.5 if var_len > 0 else 1.0
+        filtered: list[dict] = []
+        for rec, length in zip(all_records, lengths):
+            z = abs((length - mean_len) / std_len)
+            if z <= z_threshold:
+                filtered.append(rec)
+        all_records = filtered
+
+    dataset: dict[int, dict] = {}
+    for rec in all_records:
+        ts = rec["timestamp"]
+        if isinstance(ts, str):
+            ts = datetime.fromisoformat(ts)
+        delta_days = (ts - epoch).days
+        step = max(0, delta_days // max(1, step_size_days))
+        if step not in dataset:
+            dataset[step] = rec
+
+    text_blob = "".join(r.get("text", "") for r in all_records)
+    checksum = sha256(text_blob.encode("utf-8")).hexdigest()
+    manifest = {
+        "checksum": checksum,
+        "record_count": len(all_records),
+        "adapters": list(qual_adapters),
+        "start_dt": start_dt.isoformat(),
+        "end_dt": end_dt.isoformat(),
+    }
+    manifest_path = Path(cache_path)
+    manifest_path.parent.mkdir(parents=True, exist_ok=True)
+    manifest_path.write_text(
+        json.dumps(manifest, indent=2, sort_keys=True, default=str), encoding="utf-8",
+    )
+
+    return dataset
 
 
 def build_sample_dataset(path: str | Path, periods: int = 365) -> None:

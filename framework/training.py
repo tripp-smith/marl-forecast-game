@@ -46,7 +46,10 @@ class DiscreteActionSpace:
 def _state_hash(state: ForecastState, n_buckets: int = 50) -> int:
     v_bucket = int((state.value % 100) / 2) % n_buckets
     e_bucket = int((state.exogenous + 5) * 5) % n_buckets
-    return v_bucket * n_buckets + e_bucket
+    base = v_bucket * n_buckets + e_bucket
+    if state.qualitative_state:
+        base = hash((base, state.qualitative_state, state.economic_regime))
+    return base
 
 
 @dataclass

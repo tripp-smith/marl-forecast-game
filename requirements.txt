@@ -15,3 +15,5 @@ opentelemetry-exporter-otlp>=1.22
 streamlit>=1.30
 plotly>=5.18
 gymnasium>=0.29
+pypdf>=4.0
+requests>=2.31

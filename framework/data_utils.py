@@ -11,7 +11,9 @@ import json
 
 from .data_sources import (
     BEAAdapter,
+    BeigeBookAdapter,
     BISPolicyRateAdapter,
+    EarningsAdapter,
     EurostatAdapter,
     FredMacroAdapter,
     GeopoliticalRiskAdapter,
@@ -19,6 +21,7 @@ from .data_sources import (
     KaggleDemandAdapter,
     KalshiAdapter,
     OECDCLIAdapter,
+    PMIAdapter,
     PolymarketAdapter,
     PredictItAdapter,
     WorldBankAdapter,
@@ -99,6 +102,21 @@ def fetch_source_rows(source: str, periods: int) -> list[dict[str, Any]]:
     if normalized not in adapters:
         raise ValueError(f"unknown source adapter: {source}")
     return [r.as_row() for r in adapters[normalized].fetch(periods)]
+
+
+def fetch_qual_source_rows(
+    source: str, start_dt: datetime, end_dt: datetime,
+) -> list[dict[str, Any]]:
+    """Dispatch to a qualitative adapter and return rows as dicts."""
+    adapters = {
+        "beige_book": BeigeBookAdapter(),
+        "pmi": PMIAdapter(),
+        "earnings": EarningsAdapter(),
+    }
+    normalized = source.strip().lower()
+    if normalized not in adapters:
+        raise ValueError(f"unknown qualitative adapter: {source}")
+    return [r._asdict() for r in adapters[normalized].fetch_releases(start_dt, end_dt)]
 
 
 def ensure_source_data(

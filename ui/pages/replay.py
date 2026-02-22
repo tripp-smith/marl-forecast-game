@@ -4,20 +4,16 @@ from __future__ import annotations
 import streamlit as st
 import plotly.graph_objects as go
 
-from ui.utils import discover_result_files, load_trajectory_logs
+from ui.utils import load_trajectory_logs, render_scenario_cards
 
 st.header("Simulation Replay")
 
-result_files = discover_result_files()
-selected_result = None
-if result_files:
-    options = ["-- select --"] + [p.name for p in result_files]
-    choice = st.selectbox("Load from results directory", options, key="replay_results")
-    if choice != "-- select --":
-        selected_result = next(p for p in result_files if p.name == choice)
+st.subheader("Select a Scenario")
+selected_result = render_scenario_cards("replay")
 
-uploaded = st.file_uploader("Upload simulation output JSON", type=["json"])
-file_path = st.text_input("Or enter path to trajectory JSON file")
+with st.expander("Manual upload"):
+    uploaded = st.file_uploader("Upload simulation output JSON", type=["json"])
+    file_path = st.text_input("Or enter path to trajectory JSON file")
 
 logs: list[dict] = []
 if selected_result is not None:
@@ -31,7 +27,7 @@ elif file_path:
     logs = load_trajectory_logs(file_path)
 
 if not logs:
-    st.info("Load a simulation output file to begin replay.")
+    st.info("Select a scenario card above or upload a file to begin replay.")
     st.stop()
 
 n_rounds = len(logs)

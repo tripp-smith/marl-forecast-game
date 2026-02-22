@@ -18,8 +18,29 @@ class OllamaClient:
     model: str = "llama3.2"
     keep_alive: str = "5m"
 
-    def generate(self, prompt: str) -> str:
-        payload = {"model": self.model, "prompt": prompt, "stream": False, "keep_alive": self.keep_alive}
+    def generate(
+        self,
+        prompt: str,
+        *,
+        seed: int | None = None,
+        temperature: float | None = None,
+        format_schema: str | None = None,
+    ) -> str:
+        payload: dict[str, Any] = {
+            "model": self.model,
+            "prompt": prompt,
+            "stream": False,
+            "keep_alive": self.keep_alive,
+        }
+        if seed is not None or temperature is not None:
+            options: dict[str, Any] = {}
+            if seed is not None:
+                options["seed"] = seed
+            if temperature is not None:
+                options["temperature"] = temperature
+            payload["options"] = options
+        if format_schema is not None:
+            payload["format"] = format_schema
         data = json.dumps(payload).encode("utf-8")
         req_url = f"{self.base_url}/api/generate"
         with urlopen(req_url, data=data, timeout=10) as resp:

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import replace
+from hashlib import sha256
 
 from .data import DataProfile, load_dataset, load_source_rows
 from .distributed import RayParallelGameRunner, parallel_runner
@@ -41,7 +42,57 @@ def _scenario_metrics(cfg: SimulationConfig, init: ForecastState) -> dict:
     }
 
 
-def run_verification(backend: str = "auto") -> dict:
+def _verify_qualitative_determinism(
+    base_cfg: SimulationConfig,
+    init: ForecastState,
+    *,
+    verification_runs: int = 100,
+) -> dict:
+    """Run N identical qual-enabled simulations and assert identical outputs."""
+    qual_cfg = replace(base_cfg, enable_qual=True)
+    qual_dataset: dict[int, dict] = {
+        5: {
+            "timestamp": "2023-01-05",
+            "source_id": "beige_book",
+            "text": "Overall economic activity was moderate.",
+            "metadata": {"synthetic": True},
+        },
+        25: {
+            "timestamp": "2023-01-25",
+            "source_id": "pmi",
+            "text": "Manufacturing expanded with rising prices.",
+            "metadata": {"synthetic": True},
+        },
+    }
+
+    reference_hash: str | None = None
+    all_match = True
+
+    for _ in range(verification_runs):
+        game = ForecastGame(qual_cfg, seed=42)
+        game.set_qual_dataset(qual_dataset)
+        output = game.run(init, rounds=qual_cfg.horizon, disturbed=False)
+
+        h = sha256()
+        for traj in output.trajectories:
+            h.update(str(traj.state.qualitative_state).encode())
+            h.update(str(traj.state.economic_regime).encode())
+        run_hash = h.hexdigest()
+
+        if reference_hash is None:
+            reference_hash = run_hash
+        elif run_hash != reference_hash:
+            all_match = False
+            break
+
+    return {
+        "deterministic": all_match,
+        "runs": verification_runs,
+        "reference_hash": reference_hash,
+    }
+
+
+def run_verification(backend: str = "auto", *, enable_qual: bool = False) -> dict:
     bundle = load_dataset(DataProfile(source="sample_csv", periods=240, normalize=True))
 
     cfg = SimulationConfig(
@@ -102,6 +153,12 @@ def run_verification(backend: str = "auto") -> dict:
         "stress_10k_rounds": stress_run.convergence["rounds_executed"] == 10_000,
         "parallel_runner_available": isinstance(runner, RayParallelGameRunner),
     }
+
+    if enable_qual:
+        qual_check = _verify_qualitative_determinism(
+            cfg, init, verification_runs=cfg.verification_runs,
+        )
+        checks["qualitative_determinism"] = qual_check["deterministic"]
 
     return {
         "checks": checks,

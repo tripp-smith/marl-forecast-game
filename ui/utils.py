@@ -1,9 +1,12 @@
 """Shared helpers for the Streamlit UI."""
 from __future__ import annotations
 
+import datetime
 import json
 from pathlib import Path
 from typing import Any
+
+import streamlit as st
 
 RESULTS_DIR = Path("/app/results")
 
@@ -18,6 +21,101 @@ def discover_result_files(
         return []
     files = sorted(d.glob(f"*{suffix}"), key=lambda p: p.stat().st_mtime, reverse=True)
     return files
+
+
+def get_result_metadata(path: Path) -> dict[str, Any]:
+    """Extract display metadata from a result JSON without loading full trajectory."""
+    try:
+        with open(path) as f:
+            data = json.load(f)
+    except Exception:
+        return {"path": path, "name": path.stem, "label": path.stem}
+
+    mtime = datetime.datetime.fromtimestamp(path.stat().st_mtime)
+    meta: dict[str, Any] = {
+        "path": path,
+        "name": path.stem,
+        "label": data.get("label", path.stem),
+        "seed": data.get("seed", "?"),
+        "disturbed": data.get("disturbed", "?"),
+        "rounds": data.get("convergence", {}).get("rounds_executed", "?"),
+        "mae": data.get("metrics", {}).get("mae"),
+        "rmse": data.get("metrics", {}).get("rmse"),
+        "timestamp": mtime.strftime("%H:%M:%S"),
+    }
+    return meta
+
+
+def _format_metric(val: Any) -> str:
+    if val is None or val == "?":
+        return "--"
+    try:
+        return f"{float(val):.4f}"
+    except (TypeError, ValueError):
+        return str(val)
+
+
+def render_scenario_cards(
+    key_prefix: str,
+    filter_fn: Any = None,
+) -> Path | None:
+    """Render visual cards for available result files. Returns selected path or None."""
+    result_files = discover_result_files()
+    if not result_files:
+        return None
+
+    metas = [get_result_metadata(p) for p in result_files]
+    if filter_fn is not None:
+        metas = [m for m in metas if filter_fn(m)]
+    if not metas:
+        return None
+
+    state_key = f"_selected_{key_prefix}"
+
+    cols_per_row = min(len(metas), 3)
+    for row_start in range(0, len(metas), cols_per_row):
+        row_metas = metas[row_start : row_start + cols_per_row]
+        cols = st.columns(cols_per_row)
+        for col, meta in zip(cols, row_metas):
+            with col:
+                is_selected = st.session_state.get(state_key) == str(meta["path"])
+                with st.container(border=True):
+                    label = str(meta.get("label", meta["name"]))
+                    disturbed = meta.get("disturbed", "?")
+                    if disturbed is True:
+                        badge = " \u26a0\ufe0f"
+                    elif disturbed is False:
+                        badge = " \u2705"
+                    else:
+                        badge = ""
+                    st.markdown(f"**{label}**{badge}")
+
+                    c1, c2 = st.columns(2)
+                    c1.caption(f"Seed: {meta.get('seed', '?')}")
+                    c2.caption(f"Rounds: {meta.get('rounds', '?')}")
+
+                    mae_str = _format_metric(meta.get("mae"))
+                    rmse_str = _format_metric(meta.get("rmse"))
+                    if mae_str != "--" or rmse_str != "--":
+                        m1, m2 = st.columns(2)
+                        m1.metric("MAE", mae_str)
+                        m2.metric("RMSE", rmse_str)
+
+                    st.caption(f"\u23f0 {meta.get('timestamp', '')}")
+
+                    if st.button(
+                        "Selected" if is_selected else "Select",
+                        key=f"{key_prefix}_{meta['name']}",
+                        type="primary" if is_selected else "secondary",
+                        use_container_width=True,
+                    ):
+                        st.session_state[state_key] = str(meta["path"])
+                        st.rerun()
+
+    selected = st.session_state.get(state_key)
+    if selected:
+        return Path(selected)
+    return None
 
 
 def load_trajectory_logs(path: str | Path) -> list[dict[str, Any]]:

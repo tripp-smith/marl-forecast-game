@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass
 from datetime import datetime
-from typing import Protocol
+from typing import Any, NamedTuple, Protocol
 
 
 @dataclass(frozen=True)
@@ -26,3 +26,18 @@ class SourceAdapter(Protocol):
     name: str
 
     def fetch(self, periods: int = 30) -> list[NormalizedRecord]: ...
+
+
+class NormalizedQualRecord(NamedTuple):
+    timestamp: datetime
+    source_id: str
+    text: str
+    metadata: dict[str, Any]
+
+
+class QualitativeAdapter(Protocol):
+    name: str
+
+    def fetch_releases(
+        self, start_dt: datetime, end_dt: datetime
+    ) -> list[NormalizedQualRecord]: ...

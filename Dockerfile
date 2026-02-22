@@ -11,6 +11,7 @@ FROM python:3.10-slim AS base
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app \
     LOG_LEVEL=WARNING
 
 WORKDIR /app
@@ -50,12 +51,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     musl \
     && rm -rf /var/lib/apt/lists/*
 
-RUN wget -qO- https://github.com/prometheus/prometheus/releases/download/v2.51.0/prometheus-2.51.0.linux-amd64.tar.gz \
+ARG TARGETARCH
+RUN PROM_ARCH=$(case "$TARGETARCH" in arm64) echo "arm64" ;; *) echo "amd64" ;; esac) \
+    && wget -qO- "https://github.com/prometheus/prometheus/releases/download/v2.51.0/prometheus-2.51.0.linux-${PROM_ARCH}.tar.gz" \
     | tar xz --strip-components=1 -C /usr/local/bin/ \
-      prometheus-2.51.0.linux-amd64/prometheus \
-      prometheus-2.51.0.linux-amd64/promtool
+      "prometheus-2.51.0.linux-${PROM_ARCH}/prometheus" \
+      "prometheus-2.51.0.linux-${PROM_ARCH}/promtool"
 
-RUN wget -qO /tmp/grafana.deb https://dl.grafana.com/oss/release/grafana_10.4.1_amd64.deb \
+ARG TARGETARCH
+RUN GF_ARCH=$(case "$TARGETARCH" in arm64) echo "arm64" ;; *) echo "amd64" ;; esac) \
+    && wget -qO /tmp/grafana.deb "https://dl.grafana.com/oss/release/grafana_10.4.1_${GF_ARCH}.deb" \
     && dpkg -i /tmp/grafana.deb \
     && rm /tmp/grafana.deb
 

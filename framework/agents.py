@@ -23,6 +23,8 @@ class ForecastingAgent:
             return AgentAction(actor=self.name, delta=base_delta)
 
         prompt = f"Given value={state.value:.4f}, exogenous={state.exogenous:.4f}, suggest scalar delta"
+        if state.raw_qual_text:
+            prompt += f" | Qualitative: {state.raw_qual_text[:512]} | Regime: {state.economic_regime}"
         try:
             turn = self.llm_repl.run_turn(prompt)
             llm_delta = float(turn["completion"].strip().split()[0])
@@ -103,7 +105,8 @@ class TopDownAgent:
         macro_signal = 0.0
         if state.macro_context:
             macro_signal = sum(state.macro_context.values()) / max(1, len(state.macro_context))
-        delta = self.macro_sensitivity * macro_signal
+        regime_modifier = 1.0 + 0.1 * (state.economic_regime - 1)
+        delta = self.macro_sensitivity * macro_signal * regime_modifier
         return AgentAction(actor=self.name, delta=delta)
 
 
