@@ -130,6 +130,9 @@ class SimulationConfig:
     )
     qual_adapters: tuple[str, ...] = ("beige_book", "pmi", "earnings")
     verification_runs: int = 100
+    mnpo_eta: float = 1.0
+    mnpo_beta: float = 0.1
+    mnpo_population_size: int = 10
 
     def __post_init__(self) -> None:
         if self.horizon < 0:
@@ -168,6 +171,12 @@ class SimulationConfig:
             raise ValueError("regime_classes must be >= 1")
         if self.max_context_tokens < 1:
             raise ValueError("max_context_tokens must be >= 1")
+        if self.mnpo_eta <= 0:
+            raise ValueError("mnpo_eta must be > 0")
+        if self.mnpo_beta <= 0:
+            raise ValueError("mnpo_beta must be > 0")
+        if self.mnpo_population_size < 1:
+            raise ValueError("mnpo_population_size must be >= 1")
 
 
 def decay_qualitative_state(
