@@ -41,6 +41,7 @@ class LLMCallLog:
         latency_ms: float = 0.0,
         error: str | None = None,
     ) -> LLMCallRecord:
+        """Create and store an LLMCallRecord, returning it."""
         rec = LLMCallRecord(
             timestamp=time.time(),
             round_idx=round_idx,
@@ -57,14 +58,17 @@ class LLMCallLog:
         return rec
 
     def entries(self) -> list[LLMCallRecord]:
+        """Return a snapshot copy of all recorded entries."""
         with self._lock:
             return list(self._entries)
 
     def to_dicts(self) -> list[dict[str, Any]]:
+        """Return all entries serialised as plain dictionaries."""
         with self._lock:
             return [asdict(e) for e in self._entries]
 
     def clear(self) -> None:
+        """Remove all recorded entries."""
         with self._lock:
             self._entries.clear()
 

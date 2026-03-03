@@ -1,0 +1,16 @@
+[tool.pytest.ini_options]
+# addopts = "--cov=framework --cov-report=term-missing"
+# Uncomment the above line when pytest-cov is installed
+
+[tool.coverage.run]
+source = ["framework"]
+omit = ["framework/__pycache__/*"]
+
+[tool.coverage.report]
+fail_under = 90
+show_missing = true
+exclude_lines = [
+    "pragma: no cover",
+    "if __name__ == .__main__.",
+    "except ImportError",
+]

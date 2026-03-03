@@ -8,9 +8,9 @@ Ensure all components prioritize generality, allowing customization via domain-s
 ## 2. Architecture
 Adopt a multi-agent architecture where agents interact in a shared Markov environment to generate and refine forecasts.  
 Model the system as a Markov game comprising states (e.g., environmental variables), actions (e.g., forecast adjustments), rewards (e.g., accuracy metrics), and transitions influenced by agent decisions and disturbances.  
-Incorporate Haskell as the core modeling language for agent logic, leveraging its type safety and purity to ensure immutable states and verifiable computations.  
+Use Python as the core implementation language for agent logic, with immutable-state patterns and deterministic transition functions.  
 Integrate large language models (LLMs) for dynamic agent strategy generation and refactoring, using recursive language model (RLM) patterns for iterative refinement.  
-Support distributed execution via Haskell libraries (e.g., Cloud Haskell) for scalability across multiple agents or nodes.
+Support distributed execution via Python-native tooling (e.g., multiprocessing and optional Ray) for scalability across multiple agents or nodes.
 
 ## 3. Key Components
 ### 3.1 Agents
@@ -36,7 +36,7 @@ Embed AML defenses natively:
 
 ### 3.4 LLM-Driven Refactoring
 Utilize LLMs within agents for code generation and refinement:  
-- Generate Haskell code for agent behaviors (e.g., recursive forecasting functions).  
+- Generate or refine Python strategy code and structured prompts for agent behaviors.  
 - Execute code in a REPL-like environment for iterative testing and debugging.  
 - Refactor strategies based on trajectories (e.g., error logs, reward histories) to adapt to new disturbances.
 
@@ -75,6 +75,6 @@ Expose hooks for adding new agent types, disturbance models, and domain adapters
 Ensure compatibility with external tools (e.g., databases for shared contexts, ML libraries for hybrid models).
 
 ### 5.4 Implementation Guidelines
-Use Haskell as the primary language for core logic, with wrappers for integration (e.g., via DSPy-compatible RLMs).  
-Require runtime environments supporting Haskell REPLs (e.g., GHCI).  
+Use Python as the primary language for core logic, with wrappers for integration (e.g., via DSPy-compatible RLMs).  
+Require runtime environments supporting Python and optional LLM services (e.g., Ollama).  
 Document all components with examples for adaptation to specific forecasting applications.

@@ -1,12 +1,3 @@
-FROM haskell:9.6-slim AS haskell-build
-
-WORKDIR /hs
-COPY haskell/ .
-RUN cabal update \
- && cabal build all \
- && cabal test all \
- && cp "$(cabal list-bin marl-forecast-game)" /usr/local/bin/marl-forecast-game
-
 FROM python:3.10-slim AS base
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -15,8 +6,6 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     LOG_LEVEL=WARNING
 
 WORKDIR /app
-
-COPY --from=haskell-build /usr/local/bin/marl-forecast-game /usr/local/bin/marl-forecast-game
 
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt

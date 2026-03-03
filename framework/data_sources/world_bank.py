@@ -9,10 +9,15 @@ from typing import Any
 from urllib.request import Request, urlopen
 
 from .base import NormalizedRecord
+from .retry import RateLimiter, retry
+
+_worldbank_rate_limiter = RateLimiter(calls_per_second=5)
 
 
 @dataclass(frozen=True)
 class WorldBankAdapter:
+    """Fetches indicator data from the public World Bank API, with synthetic fallback."""
+
     name: str = "worldbank"
     indicator: str = "NY.GDP.MKTP.KD.ZG"
     country: str = "WLD"
@@ -37,51 +42,58 @@ class WorldBankAdapter:
             )
         return rows
 
-    def fetch(self, periods: int = 30) -> list[NormalizedRecord]:
+    @retry(max_attempts=3)
+    def _fetch_api(self, periods: int) -> list[NormalizedRecord]:
         url = (
             f"https://api.worldbank.org/v2/country/{self.country}/"
             f"indicator/{self.indicator}"
             f"?format=json&per_page={max(10, periods)}"
         )
-        try:
-            req = Request(url, headers={"Accept": "application/json"})
-            with urlopen(req, timeout=15) as resp:
-                payload: Any = json.loads(resp.read().decode("utf-8"))
+        req = Request(url, headers={"Accept": "application/json"})
+        _worldbank_rate_limiter.acquire()
+        with urlopen(req, timeout=15) as resp:
+            payload: Any = json.loads(resp.read().decode("utf-8"))
 
-            if not isinstance(payload, list) or len(payload) < 2:
-                return self._synthetic(periods)
+        if not isinstance(payload, list) or len(payload) < 2:
+            return []
 
-            data_array = payload[1]
-            if not data_array:
-                return self._synthetic(periods)
+        data_array = payload[1]
+        if not data_array:
+            return []
 
-            now = datetime.utcnow()
-            sid = f"worldbank_{self.indicator.lower().replace('.', '_')}"
-            rows: list[NormalizedRecord] = []
-            for entry in data_array:
-                value = entry.get("value")
-                date_str = entry.get("date")
-                if value is None or date_str is None:
-                    continue
-                try:
-                    ts = datetime(int(date_str), 7, 1)
-                    val = float(value)
-                except (ValueError, TypeError):
-                    continue
-                rows.append(
-                    NormalizedRecord(
-                        timestamp=ts,
-                        series_id=sid,
-                        target=val,
-                        promo=0.0,
-                        macro_index=val,
-                        source=self.name,
-                        fetched_at=now,
-                    )
+        now = datetime.utcnow()
+        sid = f"worldbank_{self.indicator.lower().replace('.', '_')}"
+        rows: list[NormalizedRecord] = []
+        for entry in data_array:
+            value = entry.get("value")
+            date_str = entry.get("date")
+            if value is None or date_str is None:
+                continue
+            try:
+                ts = datetime(int(date_str), 7, 1)
+                val = float(value)
+            except (ValueError, TypeError):
+                continue
+            rows.append(
+                NormalizedRecord(
+                    timestamp=ts,
+                    series_id=sid,
+                    target=val,
+                    promo=0.0,
+                    macro_index=val,
+                    source=self.name,
+                    fetched_at=now,
                 )
+            )
 
-            rows.sort(key=lambda r: r.timestamp)
-            return rows[-periods:] if rows else self._synthetic(periods)
+        rows.sort(key=lambda r: r.timestamp)
+        return rows[-periods:]
+
+    def fetch(self, periods: int = 30) -> list[NormalizedRecord]:
+        """Return up to *periods* indicator records from the World Bank API or synthetic data."""
+        try:
+            rows = self._fetch_api(periods)
+            return rows if rows else self._synthetic(periods)
         except Exception:
             logging.debug("World Bank API fetch failed; using synthetic fallback", exc_info=True)
             return self._synthetic(periods)

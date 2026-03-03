@@ -7,18 +7,18 @@ Ensure all components prioritize generality, allowing customization via domain-s
 
 ## 2. Project Objectives
 The framework shall enable robust, adversarial-resistant forecasting through multi-agent interactions in Markov game environments.  
-The system shall leverage Haskell's type safety and functional purity to model immutable states and verifiable agent behaviors.  
-The framework shall integrate dspy-repl's HaskellRLM for LLM-driven recursive code generation and iterative refinement in agent strategies.  
+The system shall leverage deterministic Python implementations and functional-style state transitions to model immutable states and verifiable agent behaviors.  
+The framework shall integrate LLM tooling for recursive code generation and iterative refinement in agent strategies.  
 The system shall support scalable simulations of economic trade-offs, including attacker-defender dynamics, to minimize forecasting errors under disturbances.  
 The framework shall provide extensibility for domain adaptation, ensuring applicability across diverse forecasting scenarios.
 
 ## 3. Architecture
 Adopt a multi-agent architecture where agents interact in a shared Markov environment to generate and refine forecasts.  
 Model the system as a Markov game comprising states (e.g., environmental variables), actions (e.g., forecast adjustments), rewards (e.g., accuracy metrics), and transitions influenced by agent decisions and disturbances.  
-Incorporate Haskell as the core modeling language for agent logic, leveraging its type safety and purity to ensure immutable states and verifiable computations.  
+Use Python as the core modeling language for agent logic, leveraging typed dataclasses and pure transitions to ensure immutable states and verifiable computations.  
 Integrate large language models (LLMs) for dynamic agent strategy generation and refactoring, using recursive language model (RLM) patterns for iterative refinement.  
-Support distributed execution via Haskell libraries (e.g., Cloud Haskell) for scalability across multiple agents or nodes.  
-Utilize dspy-repl's HaskellRLM engine to enable REPL-based execution loops for Haskell code, including trajectory logging for observability.
+Support distributed execution via Python libraries (e.g., multiprocessing and optional Ray) for scalability across multiple agents or nodes.  
+Utilize LLM-backed runtime interfaces to enable iterative strategy loops, including trajectory logging for observability.
 
 ## 4. Key Components
 ### 4.1 Agents
@@ -28,7 +28,7 @@ Implement multiple agent types, each with configurable roles:
 - Defender Agents: Apply AML techniques to mitigate adversarial effects.  
 - Refactoring Agents: Use LLMs to iteratively optimize strategies based on game outcomes.  
 Define agent interactions via message-passing protocols, ensuring pure functional representations to avoid side effects.  
-Configure agents to use HaskellRLM signatures (e.g., "state, disturbance -> forecast") for LLM-generated Haskell code execution.
+Configure agents to use runtime signatures (e.g., "state, disturbance -> forecast") for LLM-generated strategy execution.
 
 ### 4.2 Environment Modeling
 Represent the forecasting environment as a state space with:  
@@ -36,7 +36,7 @@ Represent the forecasting environment as a state space with:
 - Hidden states (e.g., latent adversarial intents).  
 - Transition functions that incorporate stochasticity and agent actions.  
 Include economic trade-off mechanisms, modeling attacks as games with attacker revenue versus defender costs (e.g., via Nash equilibrium computations).  
-Employ Haskell's monadic structures for handling state transitions and uncertainties in a pure manner.
+Employ pure transition functions and deterministic update rules for handling state transitions and uncertainties.
 
 ### 4.3 Adversarial Integration
 Embed AML defenses natively:  
@@ -46,10 +46,10 @@ Embed AML defenses natively:
 
 ### 4.4 LLM-Driven Refactoring
 Utilize LLMs within agents for code generation and refinement:  
-- Generate Haskell code for agent behaviors (e.g., recursive forecasting functions).  
+- Generate Python strategy code or structured prompt outputs for agent behaviors.  
 - Execute code in a REPL-like environment for iterative testing and debugging.  
 - Refactor strategies based on trajectories (e.g., error logs, reward histories) to adapt to new disturbances.  
-Leverage dspy-repl's core execution loop and Haskell-specific wrappers for shared tool plumbing and prompt templates.
+Leverage shared LLM execution loops and Python-specific wrappers for shared tool plumbing and prompt templates.
 
 ### 4.5 Data Handling
 Support ingestion of diverse data sources (e.g., time-series, sensor data, macroeconomic indicators).  
@@ -71,7 +71,7 @@ Incorporate Bayesian optimization for tuning trade-offs (e.g., buffer costs vs. 
 ### 5.3 Observability and Logging
 Capture full trajectories of agent interactions, including reasoning, code executions, and outputs.  
 Provide verbose logging for debugging, with metrics on iteration efficiency and convergence speed.  
-Expose dspy-repl's trajectory attributes (e.g., reasoning, code, output) for detailed RLM run analysis.
+Expose trajectory attributes (e.g., reasoning, code, output) for detailed RLM run analysis.
 
 ## 6. Non-Functional Requirements
 ### 6.1 Performance
@@ -85,10 +85,10 @@ Isolate adversarial simulations to sandboxed environments.
 ### 6.3 Extensibility
 Expose hooks for adding new agent types, disturbance models, and domain adapters.  
 Ensure compatibility with external tools (e.g., databases for shared contexts, ML libraries for hybrid models).  
-Provide extension points in dspy-repl for custom Haskell interpreters and compatibility shims.
+Provide extension points for custom runtime interpreters and compatibility shims.
 
 ### 6.4 Implementation Guidelines
-Use Haskell as the primary language for core logic, with wrappers for integration (e.g., via DSPy-compatible RLMs).  
-Require runtime environments supporting Haskell REPLs (e.g., GHCI).  
+Use Python as the primary language for core logic, with wrappers for integration (e.g., via DSPy-compatible RLMs).  
+Require runtime environments supporting Python and optional local LLM services (e.g., Ollama).  
 Document all components with examples for adaptation to specific forecasting applications.  
-Install dspy-repl via pip, configuring HaskellRLM with DSPy LM backends for seamless integration.
+Install integration packages via pip and configure compatible DSPy-style LM backends for seamless integration.

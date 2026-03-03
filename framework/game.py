@@ -1,6 +1,8 @@
+"""Multi-agent forecasting game engine with adversarial disturbances and defenses."""
 from __future__ import annotations
 
 import logging
+from datetime import datetime
 from dataclasses import asdict, dataclass, replace
 from random import Random
 import time
@@ -48,7 +50,7 @@ from .types import (
 AgentFactory = Callable[[SimulationConfig], tuple[ForecastingAgent, AdversaryAgent, DefenderAgent, RefactoringAgent]]
 
 
-def _state_to_dict(state: ForecastState) -> dict:
+def _state_to_dict(state: ForecastState) -> dict[str, Any]:
     return {
         "t": state.t,
         "value": state.value,
@@ -66,18 +68,21 @@ def _state_to_dict(state: ForecastState) -> dict:
 
 @dataclass(frozen=True)
 class GameOutputs:
+    """Immutable container for all simulation outputs: steps, trajectories, and convergence info."""
+
     steps: List[StepResult]
     trajectories: List[TrajectoryEntry]
-    trajectory_logs: List[dict]
+    trajectory_logs: List[dict[str, Any]]
     forecasts: List[float]
     targets: List[float]
     confidence: List[ConfidenceInterval]
-    convergence: dict
-    llm_calls: List[dict] = ()  # type: ignore[assignment]
+    convergence: dict[str, Any]
+    llm_calls: List[dict[str, Any]] = ()  # type: ignore[assignment]
     wall_clock_s: float = 0.0
 
 
 def default_agent_factory(config: SimulationConfig) -> tuple[ForecastingAgent, AdversaryAgent, DefenderAgent, RefactoringAgent]:
+    """Create the default set of agents from a simulation config."""
     return (
         ForecastingAgent(),
         AdversaryAgent(aggressiveness=config.adversarial_intensity, attack_cost=config.attack_cost),
@@ -99,6 +104,8 @@ def _build_registry(config: SimulationConfig, factory: AgentFactory) -> AgentReg
 
 
 class ForecastGame:
+    """Orchestrates multi-agent forecast rounds with adversarial disturbances and defenses."""
+
     def __init__(
         self,
         config: SimulationConfig,
@@ -131,9 +138,17 @@ class ForecastGame:
             self.logger = _logger
         self.bayesian_agg = BayesianAggregator()
 
+        self._start_date_offset: int = 0
+        self._start_date_parsed: datetime | None = None
+        if config.start_date:
+            try:
+                self._start_date_parsed = datetime.fromisoformat(config.start_date)
+            except (ValueError, TypeError):
+                self._start_date_parsed = None
+
         self._qual_extractor = None
         self._regime_classifier = None
-        self._qual_dataset: dict[int, dict] = {}
+        self._qual_dataset: dict[int, dict[str, Any]] = {}
         if config.enable_qual:
             try:
                 from .qualitative import QualitativeExtractor, RegimeClassifier
@@ -147,11 +162,29 @@ class ForecastGame:
             except Exception:
                 logging.debug("Qualitative components unavailable; running without")
 
-    def set_qual_dataset(self, dataset: dict[int, dict]) -> None:
+    def set_qual_dataset(self, dataset: dict[int, dict[str, Any]]) -> None:
         """Inject a pre-built qualitative dataset (timestep -> record mapping)."""
         self._qual_dataset = dict(dataset)
 
+    def set_dataset_bundle(self, rows: list[dict[str, Any]]) -> None:
+        """Set dataset rows and compute start_date offset if configured."""
+        if self._start_date_parsed is not None and rows:
+            for idx, row in enumerate(rows):
+                ts = row.get("timestamp")
+                if isinstance(ts, str):
+                    ts = datetime.fromisoformat(ts)
+                if ts is not None and ts >= self._start_date_parsed:
+                    self._start_date_offset = idx
+                    break
+
     def run(self, initial: ForecastState, rounds: int | None = None, *, disturbed: bool = True) -> GameOutputs:
+        """Execute the simulation from *initial* for up to *rounds* steps.
+
+        Args:
+            initial: Starting forecast state.
+            rounds: Number of rounds (defaults to ``config.horizon``).
+            disturbed: Whether adversarial disturbances are active.
+        """
         requested_rounds = rounds if rounds is not None else self.config.horizon
         n_rounds = max(0, min(requested_rounds, self.config.max_rounds))
 
@@ -166,7 +199,7 @@ class ForecastGame:
         state = initial
         steps: List[StepResult] = []
         trajectories: List[TrajectoryEntry] = []
-        trajectory_logs: List[dict] = []
+        trajectory_logs: List[dict[str, Any]] = []
         forecasts: List[float] = []
         targets: List[float] = []
         confidence: List[ConfidenceInterval] = []
@@ -175,6 +208,7 @@ class ForecastGame:
         rolling_errors: List[float] = []
         convergence_reason: str = "completed"
         prev_abs_error: float = 0.0
+        cap_hits: int = 0
 
         for idx in range(n_rounds):
             start = time.perf_counter()
@@ -336,6 +370,7 @@ class ForecastGame:
             )
             elapsed = time.perf_counter() - start
             if elapsed > self.config.max_round_timeout_s:
+                cap_hits += 1
                 try:
                     self.logger.warning("round_timeout", round_idx=idx, elapsed=elapsed)
                 except TypeError:
@@ -351,6 +386,17 @@ class ForecastGame:
             except TypeError:
                 self.logger.info(f"round_complete round_idx={idx} reward={reward:.6f} disturbance={disturbance_val:.6f}")
 
+            cost_this_round = abs(a_action.delta) * self.config.attack_cost
+            dist_magnitude = abs(disturbance_val)
+            error_delta_val = abs(abs(error) - prev_abs_error) if idx > 0 else abs(error)
+            cost_benefit = {
+                "round": idx,
+                "attack_cost": cost_this_round,
+                "disturbance_magnitude": dist_magnitude,
+                "error_delta": error_delta_val,
+                "cost_benefit_ratio": error_delta_val / max(1e-9, cost_this_round) if cost_this_round > 0 else 0.0,
+            }
+
             bma_snapshot = list(self.bayesian_agg.weights) if len(all_forecast_actions) > 1 and self.bayesian_agg.weights else None
             trajectory_logs.append(
                 {
@@ -365,6 +411,7 @@ class ForecastGame:
                     "elapsed_s": elapsed,
                     "bma_weights": bma_snapshot,
                     "confidence": {"lower": ci.lower, "upper": ci.upper},
+                    "cost_benefit": cost_benefit,
                 }
             )
             steps.append(step)
@@ -385,6 +432,14 @@ class ForecastGame:
         mean_error = sum(clean_errors) / max(1, len(clean_errors))
         defense_efficacy = 1.0 - (mean_error / max(1e-9, mean_error + total_attack_cost))
 
+        if rolling_errors and len(rolling_errors) >= 20:
+            window = rolling_errors[-20:]
+            epsilon_convergence = sum(window) / len(window)
+        elif rolling_errors:
+            epsilon_convergence = sum(rolling_errors) / len(rolling_errors)
+        else:
+            epsilon_convergence = 0.0
+
         convergence = {
             "rounds_executed": len(steps),
             "max_rounds": self.config.max_rounds,
@@ -393,6 +448,8 @@ class ForecastGame:
             "attack_cost_total": total_attack_cost,
             "defense_efficacy_ratio": defense_efficacy,
             "accuracy_vs_cost": mean_error / max(1e-9, total_attack_cost) if total_attack_cost > 0 else 0.0,
+            "epsilon_convergence": epsilon_convergence,
+            "cap_hits": cap_hits,
         }
         wall_clock_s = time.perf_counter() - wall_start
         return GameOutputs(

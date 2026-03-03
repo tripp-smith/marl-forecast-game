@@ -1,3 +1,4 @@
+"""Observability: structured logging, Prometheus metrics, OpenTelemetry tracing, and alerting."""
 from __future__ import annotations
 
 from contextlib import contextmanager
@@ -25,7 +26,7 @@ try:
         cache_logger_on_first_use=True,
     )
 except Exception:  # pragma: no cover
-    _structlog = None  # type: ignore[assignment]
+    _structlog = None  # type: ignore[assignment,unused-ignore]
 
 # ---------------------------------------------------------------------------
 # Prometheus metrics
@@ -37,10 +38,10 @@ _Gauge: Any = None
 _generate_latest: Callable[..., bytes] | None = None
 
 try:
-    from prometheus_client import Counter as _Counter  # type: ignore[assignment]
-    from prometheus_client import Gauge as _Gauge  # type: ignore[assignment]
-    from prometheus_client import Histogram as _Histogram  # type: ignore[assignment]
-    from prometheus_client import generate_latest as _generate_latest  # type: ignore[assignment]
+    from prometheus_client import Counter as _Counter
+    from prometheus_client import Gauge as _Gauge
+    from prometheus_client import Histogram as _Histogram
+    from prometheus_client import generate_latest as _generate_latest
 except Exception:  # pragma: no cover
     pass
 
@@ -49,10 +50,10 @@ ROUND_LATENCY = (
     _Histogram("marl_game_round_latency_seconds", "Round execution latency in seconds") if _Histogram is not None else None
 )
 
-SIM_MAE = _Gauge("marl_sim_mae", "Simulation MAE", ["seed", "disturbed"]) if _Gauge is not None else None
-SIM_RMSE = _Gauge("marl_sim_rmse", "Simulation RMSE", ["seed", "disturbed"]) if _Gauge is not None else None
-SIM_MAPE = _Gauge("marl_sim_mape", "Simulation MAPE", ["seed", "disturbed"]) if _Gauge is not None else None
-SIM_WORST = _Gauge("marl_sim_worst_case", "Worst-case error", ["seed", "disturbed"]) if _Gauge is not None else None
+SIM_MAE = _Gauge("marl_sim_mae", "Simulation MAE", ["seed", "disturbed", "scenario"]) if _Gauge is not None else None
+SIM_RMSE = _Gauge("marl_sim_rmse", "Simulation RMSE", ["seed", "disturbed", "scenario"]) if _Gauge is not None else None
+SIM_MAPE = _Gauge("marl_sim_mape", "Simulation MAPE", ["seed", "disturbed", "scenario"]) if _Gauge is not None else None
+SIM_WORST = _Gauge("marl_sim_worst_case", "Worst-case error", ["seed", "disturbed", "scenario"]) if _Gauge is not None else None
 SIM_DURATION = _Histogram("marl_sim_duration_seconds", "Simulation wall-clock time") if _Histogram is not None else None
 SIM_ROUNDS = _Gauge("marl_sim_rounds", "Rounds executed", ["seed"]) if _Gauge is not None else None
 
@@ -101,8 +102,10 @@ def record_simulation_metrics(
     worst: float,
     duration: float,
     rounds: int,
+    scenario: str = "default",
 ) -> None:
-    labels = {"seed": str(seed), "disturbed": str(disturbed).lower()}
+    """Record end-of-simulation metrics to Prometheus gauges and Ray mirrors."""
+    labels = {"seed": str(seed), "disturbed": str(disturbed).lower(), "scenario": scenario}
     if SIM_MAE is not None:
         SIM_MAE.labels(**labels).set(mae_val)
     if SIM_RMSE is not None:
@@ -128,6 +131,7 @@ def record_simulation_metrics(
 
 
 def record_agent_metrics(actor: str, role: str, delta: float, reward: float) -> None:
+    """Record per-agent delta and cumulative reward to Prometheus."""
     if AGENT_DELTA is not None:
         AGENT_DELTA.labels(actor=actor, role=role).observe(delta)
     if AGENT_REWARD is not None and reward > 0:
@@ -135,6 +139,7 @@ def record_agent_metrics(actor: str, role: str, delta: float, reward: float) -> 
 
 
 def record_disturbance(injected: bool, increased_error: bool) -> None:
+    """Increment disturbance injection and success counters."""
     if injected and DISTURBANCE_COUNT is not None:
         DISTURBANCE_COUNT.inc()
         c = _ray_counters.get("disturbance_total")
@@ -145,6 +150,7 @@ def record_disturbance(injected: bool, increased_error: bool) -> None:
 
 
 def record_alert(alert_type: str) -> None:
+    """Increment the anomaly alert counter for the given *alert_type*."""
     if ALERT_ANOMALY is not None:
         ALERT_ANOMALY.labels(alert_type=alert_type).inc()
 
@@ -179,6 +185,7 @@ except ImportError:
 
 
 def get_tracer() -> Any | None:
+    """Return the OpenTelemetry tracer, or None if tracing is unavailable."""
     return _tracer
 
 
@@ -198,6 +205,8 @@ def create_span(name: str, attributes: dict[str, Any] | None = None) -> Generato
 
 @dataclass(frozen=True)
 class CorrelationContext:
+    """Carries trace/span IDs and simulation seed for structured-log correlation."""
+
     trace_id: str = ""
     span_id: str = ""
     simulation_seed: int = 0
@@ -209,6 +218,8 @@ class CorrelationContext:
 
 @dataclass(frozen=True)
 class GameObserver:
+    """Factory for structured or stdlib loggers used by ForecastGame."""
+
     logger_name: str = "forecast_game"
 
     def __post_init__(self) -> None:
@@ -225,6 +236,7 @@ class GameObserver:
 # ---------------------------------------------------------------------------
 
 def export_prometheus_metrics() -> str:
+    """Return all Prometheus metrics in text exposition format."""
     if _generate_latest is None:
         return ""
     return _generate_latest().decode("utf-8")

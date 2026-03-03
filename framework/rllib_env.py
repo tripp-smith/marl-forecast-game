@@ -11,8 +11,8 @@ try:
     import gymnasium as gym
     from gymnasium import spaces
 except ImportError:
-    gym = None  # type: ignore[assignment]
-    spaces = None  # type: ignore[assignment]
+    gym = None  # type: ignore[assignment,unused-ignore]
+    spaces = None  # type: ignore[assignment,unused-ignore]
 
 from .disturbances import disturbance_from_name
 from .strategy_runtime import runtime_from_name
@@ -142,7 +142,7 @@ class ForecastGameMultiAgentEnv:
         *,
         seed: int | None = None,
         options: dict[str, Any] | None = None,
-    ) -> tuple[dict[str, np.ndarray], dict[str, dict]]:
+    ) -> tuple[dict[str, np.ndarray], dict[str, dict[str, Any]]]:
         if seed is not None:
             self._rng = Random(seed)
         self._state = ForecastState(t=0, value=10.0, exogenous=0.0, hidden_shift=0.0)
@@ -158,7 +158,7 @@ class ForecastGameMultiAgentEnv:
         dict[str, float],
         dict[str, bool],
         dict[str, bool],
-        dict[str, dict],
+        dict[str, dict[str, Any]],
     ]:
         assert self._state is not None, "Call reset() before step()"
 

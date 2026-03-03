@@ -35,12 +35,15 @@ def _pmi_dates(start_dt: datetime, end_dt: datetime) -> list[datetime]:
 
 @dataclass(frozen=True)
 class PMIAdapter:
+    """Fetches ISM Manufacturing PMI commentary, with local cache and synthetic fallback."""
+
     name: str = "pmi"
     cache_dir: str = "data/test_qualitative/pmi"
 
     def fetch_releases(
         self, start_dt: datetime, end_dt: datetime
     ) -> list[NormalizedQualRecord]:
+        """Return PMI commentary records for monthly releases within the date range."""
         dates = _pmi_dates(start_dt, end_dt)
         records: list[NormalizedQualRecord] = []
         for dt in dates:
@@ -70,7 +73,7 @@ class PMIAdapter:
 
     def _try_fetch(self, dt: datetime) -> NormalizedQualRecord | None:
         try:
-            import requests
+            import requests  # type: ignore[import-untyped]
 
             url = (
                 "https://www.ismworld.org/supply-management-news-and-reports/"

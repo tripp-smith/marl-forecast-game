@@ -1,3 +1,4 @@
+"""Validation scenario definitions and runners for data, simulation, and robustness checks."""
 from __future__ import annotations
 
 import logging
@@ -20,6 +21,8 @@ from .types import ForecastState, SimulationConfig, decay_qualitative_state
 
 @dataclass(frozen=True)
 class ValidationScenario:
+    """Specification for a single validation scenario including data source and expectations."""
+
     name: str
     description: str
     data_source: str
@@ -28,7 +31,7 @@ class ValidationScenario:
     defense_model: str = "dampening"
     n_rounds: int = 80
     seed: int = 42
-    expected_properties: dict = None  # type: ignore[assignment]
+    expected_properties: dict[str, Any] = None  # type: ignore[assignment]
 
     def __post_init__(self) -> None:
         if self.expected_properties is None:
@@ -37,11 +40,13 @@ class ValidationScenario:
 
 @dataclass(frozen=True)
 class ScenarioResult:
+    """Outcome of a validation scenario run: pass/fail, timing, and error details."""
+
     name: str
     passed: bool
     duration_s: float
-    details: dict
-    errors: list
+    details: dict[str, Any]
+    errors: list[str]
 
 
 def _run_data_validation(scenario: ValidationScenario) -> ScenarioResult:
@@ -893,7 +898,7 @@ def _run_qual_ingestion(scenario: ValidationScenario) -> ScenarioResult:
         )
         init = ForecastState(t=0, value=10.0, exogenous=0.0, hidden_shift=0.0)
 
-        qual_dataset: dict[int, dict] = {}
+        qual_dataset: dict[int, dict[str, Any]] = {}
         for step in [5, 15, 30, 50, 70]:
             qual_dataset[step] = {
                 "timestamp": f"2023-01-{step:02d}",
@@ -1009,7 +1014,7 @@ def _run_regime_consistency(scenario: ValidationScenario) -> ScenarioResult:
         )
         init = ForecastState(t=0, value=10.0, exogenous=0.0, hidden_shift=0.0)
 
-        qual_dataset: dict[int, dict] = {
+        qual_dataset: dict[int, dict[str, Any]] = {
             10: {
                 "timestamp": "2023-01-10",
                 "source_id": "pmi",
@@ -1070,7 +1075,7 @@ def _run_bias_prevention(scenario: ValidationScenario) -> ScenarioResult:
         )
         init = ForecastState(t=0, value=10.0, exogenous=0.0, hidden_shift=0.0)
 
-        qual_dataset: dict[int, dict] = {
+        qual_dataset: dict[int, dict[str, Any]] = {
             20: {
                 "timestamp": "2023-02-20",
                 "source_id": "beige_book",
@@ -1192,6 +1197,7 @@ _DISPATCH: dict[str, Any] = {
 
 
 def run_scenario(scenario: ValidationScenario) -> ScenarioResult:
+    """Execute a single validation scenario by dispatching to its registered handler."""
     handler = _DISPATCH.get(scenario.name)
     if handler is None:
         return ScenarioResult(
@@ -1201,10 +1207,12 @@ def run_scenario(scenario: ValidationScenario) -> ScenarioResult:
             details={},
             errors=[f"no handler registered for scenario '{scenario.name}'"],
         )
-    return handler(scenario)
+    result: ScenarioResult = handler(scenario)
+    return result
 
 
 def run_all_scenarios(names: list[str] | None = None) -> list[ScenarioResult]:
+    """Run all (or a subset of) registered validation scenarios and return results."""
     targets = names or list(SCENARIO_REGISTRY.keys())
     results: list[ScenarioResult] = []
     for name in targets:

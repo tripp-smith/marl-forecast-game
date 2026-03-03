@@ -1,3 +1,4 @@
+"""Defense models that correct forecasts against adversarial perturbations."""
 from __future__ import annotations
 
 import logging
@@ -6,11 +7,15 @@ from typing import Protocol
 
 
 class DefenseModel(Protocol):
+    """Protocol for defense strategies that produce correction deltas."""
+
     def defend(self, forecast_delta: float, adversary_delta: float) -> float: ...
 
 
 @dataclass(frozen=True)
 class DampeningDefense:
+    """Proportional dampening of the adversary delta with forecast bias correction."""
+
     dampening: float = 0.6
 
     def defend(self, forecast_delta: float, adversary_delta: float) -> float:
@@ -21,6 +26,8 @@ class DampeningDefense:
 
 @dataclass(frozen=True)
 class ClippingDefense:
+    """Hard-clips the adversary correction to a bounded range."""
+
     clip: float = 0.2
 
     def defend(self, forecast_delta: float, adversary_delta: float) -> float:
@@ -30,6 +37,8 @@ class ClippingDefense:
 
 @dataclass(frozen=True)
 class BiasGuardDefense:
+    """Caps the correction magnitude at a configurable maximum bias threshold."""
+
     max_bias: float = 0.12
 
     def defend(self, forecast_delta: float, adversary_delta: float) -> float:
@@ -40,6 +49,8 @@ class BiasGuardDefense:
 
 @dataclass(frozen=True)
 class EnsembleDefense:
+    """Averages dampening, clipping, and bias-guard corrections."""
+
     dampening: DampeningDefense = DampeningDefense()
     clipping: ClippingDefense = ClippingDefense(clip=0.25)
     bias_guard: BiasGuardDefense = BiasGuardDefense()
@@ -53,6 +64,8 @@ class EnsembleDefense:
 
 @dataclass(frozen=True)
 class StackedDefense:
+    """Chains two defense models sequentially."""
+
     first: DefenseModel
     second: DefenseModel
 
@@ -79,6 +92,7 @@ class DANNDefenseStub:
 
 
 def defense_from_name(name: str) -> DefenseModel:
+    """Instantiate a defense model by name, defaulting to dampening."""
     normalized = name.strip().lower()
     if normalized.startswith("stack:"):
         _, models = normalized.split(":", 1)

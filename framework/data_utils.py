@@ -1,3 +1,4 @@
+"""Data utility functions: caching, adapter dispatch, schema validation, and integrity checks."""
 from __future__ import annotations
 
 import logging
@@ -8,6 +9,8 @@ from pathlib import Path
 from typing import Any
 
 import json
+
+from .exceptions import AdapterFetchError, DataIngestionError
 
 from .data_sources import (
     BEAAdapter,
@@ -32,6 +35,8 @@ REQUIRED_SCHEMA_FIELDS = {"timestamp", "series_id", "target", "promo", "macro_in
 
 @dataclass(frozen=True)
 class CacheStatus:
+    """Describes the existence, age, and freshness of a cached data file."""
+
     path: Path
     exists: bool
     is_fresh: bool
@@ -48,6 +53,7 @@ def _checksum_rows(rows: list[dict[str, Any]]) -> str:
 
 
 def cache_status(path: str | Path, *, max_age_hours: int = 24) -> CacheStatus:
+    """Check whether a cache file at *path* exists and is fresh within *max_age_hours*."""
     p = Path(path)
     if not p.exists():
         return CacheStatus(path=p, exists=False, is_fresh=False, age_seconds=None)
@@ -58,7 +64,8 @@ def cache_status(path: str | Path, *, max_age_hours: int = 24) -> CacheStatus:
 
 def _load_cached_rows(path: Path) -> list[dict[str, Any]]:
     payload = json.loads(path.read_text(encoding="utf-8"))
-    return payload.get("rows", [])
+    rows: list[dict[str, Any]] = payload.get("rows", [])
+    return rows
 
 
 def _write_cache(path: Path, rows: list[dict[str, Any]], *, source: str) -> None:
@@ -73,6 +80,7 @@ def _write_cache(path: Path, rows: list[dict[str, Any]], *, source: str) -> None
 
 
 def load_rows_from_cache(path: str | Path) -> list[dict[str, Any]]:
+    """Load and deserialize cached rows, parsing timestamp and fetched_at strings."""
     p = Path(path)
     rows = _load_cached_rows(p)
     for row in rows:
@@ -84,7 +92,8 @@ def load_rows_from_cache(path: str | Path) -> list[dict[str, Any]]:
 
 
 def fetch_source_rows(source: str, periods: int) -> list[dict[str, Any]]:
-    adapters = {
+    """Fetch raw rows from a named adapter, returning list of dicts."""
+    adapters: dict[str, Any] = {
         "fred": FredMacroAdapter(),
         "imf": ImfMacroAdapter(),
         "polymarket": PolymarketAdapter(),
@@ -100,7 +109,7 @@ def fetch_source_rows(source: str, periods: int) -> list[dict[str, Any]]:
     }
     normalized = source.strip().lower()
     if normalized not in adapters:
-        raise ValueError(f"unknown source adapter: {source}")
+        raise AdapterFetchError(f"unknown source adapter: {source}")
     return [r.as_row() for r in adapters[normalized].fetch(periods)]
 
 
@@ -108,15 +117,34 @@ def fetch_qual_source_rows(
     source: str, start_dt: datetime, end_dt: datetime,
 ) -> list[dict[str, Any]]:
     """Dispatch to a qualitative adapter and return rows as dicts."""
-    adapters = {
+    qual_adapters: dict[str, Any] = {
         "beige_book": BeigeBookAdapter(),
         "pmi": PMIAdapter(),
         "earnings": EarningsAdapter(),
     }
     normalized = source.strip().lower()
-    if normalized not in adapters:
-        raise ValueError(f"unknown qualitative adapter: {source}")
-    return [r._asdict() for r in adapters[normalized].fetch_releases(start_dt, end_dt)]
+    if normalized not in qual_adapters:
+        raise AdapterFetchError(f"unknown qualitative adapter: {source}")
+    return [r._asdict() for r in qual_adapters[normalized].fetch_releases(start_dt, end_dt)]
+
+
+def _audit_log(source: str, periods: int, cache_hit: bool, row_count: int) -> None:
+    """Emit a structured audit log entry for data access compliance."""
+    try:
+        import structlog
+        logger = structlog.get_logger("data_audit")
+        logger.info(
+            "data_access",
+            source=source,
+            periods_requested=periods,
+            cache_hit=cache_hit,
+            row_count=row_count,
+        )
+    except ImportError:
+        logging.getLogger("data_audit").info(
+            "data_access source=%s periods=%d cache_hit=%s rows=%d",
+            source, periods, cache_hit, row_count,
+        )
 
 
 def ensure_source_data(
@@ -127,18 +155,29 @@ def ensure_source_data(
     max_age_hours: int = 24,
     force_redownload: bool = False,
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    """Return cached rows if fresh, otherwise fetch from the adapter and cache.
+
+    Args:
+        source: Adapter name.
+        periods: Desired row count.
+        cache_dir: Directory for cache JSON files.
+        max_age_hours: Maximum cache age before refetch.
+        force_redownload: Bypass cache freshness check.
+    """
     cache_path = Path(cache_dir) / f"{source}.json"
     status = cache_status(cache_path, max_age_hours=max_age_hours)
     if status.exists and status.is_fresh and not force_redownload:
         rows = load_rows_from_cache(cache_path)
         if len(rows) >= periods:
+            _audit_log(source, periods, cache_hit=True, row_count=len(rows[:periods]))
             return rows[:periods], {"cache_hit": True, "cache_path": str(cache_path), "fresh": True}
 
     rows = fetch_source_rows(source, periods)
     if len(rows) < max(1, periods // 2):
-        raise ValueError(f"integrity check failed for {source}: insufficient rows")
+        raise DataIngestionError(f"integrity check failed for {source}: insufficient rows")
 
     _write_cache(cache_path, rows, source=source)
+    _audit_log(source, periods, cache_hit=False, row_count=len(rows[:periods]))
     return rows[:periods], {
         "cache_hit": False,
         "cache_path": str(cache_path),

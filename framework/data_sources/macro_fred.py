@@ -1,3 +1,4 @@
+"""FRED macro adapter — fetches economic time-series from the St. Louis Fed API."""
 from __future__ import annotations
 
 import logging
@@ -11,12 +12,17 @@ from urllib.parse import urlencode
 from urllib.request import urlopen
 
 from .base import NormalizedRecord
+from .retry import RateLimiter, retry
 
 MULTI_SERIES_IDS = ["CPIAUCSL", "GDP", "UNRATE", "FEDFUNDS", "T10YIE"]
+
+_fred_rate_limiter = RateLimiter(calls_per_second=5)
 
 
 @dataclass(frozen=True)
 class FredMacroAdapter:
+    """Fetches FRED economic series (requires FRED_API_KEY env var), with synthetic fallback."""
+
     name: str = "fred"
     series_id: str = "CPIAUCSL"
 
@@ -41,6 +47,7 @@ class FredMacroAdapter:
             )
         return rows
 
+    @retry(max_attempts=3)
     def _fetch_series(self, sid: str, key: str, periods: int) -> list[dict[str, Any]]:
         params = {
             "series_id": sid,
@@ -50,6 +57,7 @@ class FredMacroAdapter:
             "limit": max(5, periods),
         }
         query = urlencode(params)
+        _fred_rate_limiter.acquire()
         with urlopen(f"https://api.stlouisfed.org/fred/series/observations?{query}", timeout=10) as response:
             payload: dict[str, Any] = json.loads(response.read().decode("utf-8"))
         observations = payload.get("observations", [])
@@ -57,6 +65,7 @@ class FredMacroAdapter:
         return list(reversed(parsed[-periods:]))
 
     def fetch(self, periods: int = 30) -> list[NormalizedRecord]:
+        """Return up to *periods* observations for the configured FRED series."""
         key = os.getenv("FRED_API_KEY")
         if not key:
             return self._synthetic(periods)

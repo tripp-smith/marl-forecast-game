@@ -9,10 +9,15 @@ from typing import Any
 from urllib.request import Request, urlopen
 
 from .base import NormalizedRecord
+from .retry import RateLimiter, retry
+
+_oecd_rate_limiter = RateLimiter(calls_per_second=5)
 
 
 @dataclass(frozen=True)
 class OECDCLIAdapter:
+    """Fetches OECD Composite Leading Indicators via the SDMX API, with synthetic fallback."""
+
     name: str = "oecd_cli"
     country: str = "USA"
 
@@ -36,61 +41,68 @@ class OECDCLIAdapter:
             )
         return rows
 
-    def fetch(self, periods: int = 30) -> list[NormalizedRecord]:
+    @retry(max_attempts=3)
+    def _fetch_api(self, periods: int) -> list[NormalizedRecord]:
         url = (
             f"https://sdmx.oecd.org/public/rest/data/"
             f"OECD.SDD.STES,DSD_STES@DF_CLI/.M.LI.GYSA.{self.country}"
             f"?format=jsondata&lastNObservations={max(5, periods)}"
         )
-        try:
-            req = Request(url, headers={"Accept": "application/json"})
-            with urlopen(req, timeout=15) as resp:
-                payload: dict[str, Any] = json.loads(resp.read().decode("utf-8"))
+        req = Request(url, headers={"Accept": "application/json"})
+        _oecd_rate_limiter.acquire()
+        with urlopen(req, timeout=15) as resp:
+            payload: dict[str, Any] = json.loads(resp.read().decode("utf-8"))
 
-            datasets = payload.get("dataSets", [{}])
-            if not datasets:
-                return self._synthetic(periods)
+        datasets = payload.get("dataSets", [{}])
+        if not datasets:
+            return []
 
-            series_map = datasets[0].get("series", {})
-            if not series_map:
-                return self._synthetic(periods)
+        series_map = datasets[0].get("series", {})
+        if not series_map:
+            return []
 
-            dims = payload.get("structure", {}).get("dimensions", {}).get("observation", [])
-            time_dim = next((d for d in dims if d.get("id") == "TIME_PERIOD"), None)
-            time_values = [v["id"] for v in time_dim["values"]] if time_dim else []
+        dims = payload.get("structure", {}).get("dimensions", {}).get("observation", [])
+        time_dim = next((d for d in dims if d.get("id") == "TIME_PERIOD"), None)
+        time_values = [v["id"] for v in time_dim["values"]] if time_dim else []
 
-            first_key = next(iter(series_map))
-            observations = series_map[first_key].get("observations", {})
+        first_key = next(iter(series_map))
+        observations = series_map[first_key].get("observations", {})
 
-            now = datetime.utcnow()
-            rows: list[NormalizedRecord] = []
-            for obs_idx, obs_val in sorted(observations.items(), key=lambda kv: int(kv[0])):
-                idx = int(obs_idx)
-                value = float(obs_val[0])
-                ts_str = time_values[idx] if idx < len(time_values) else None
-                if ts_str is None:
-                    continue
+        now = datetime.utcnow()
+        rows: list[NormalizedRecord] = []
+        for obs_idx, obs_val in sorted(observations.items(), key=lambda kv: int(kv[0])):
+            idx = int(obs_idx)
+            value = float(obs_val[0])
+            ts_str = time_values[idx] if idx < len(time_values) else None
+            if ts_str is None:
+                continue
+            try:
+                ts = datetime.strptime(ts_str, "%Y-%m")
+            except ValueError:
                 try:
-                    ts = datetime.strptime(ts_str, "%Y-%m")
+                    ts = datetime.fromisoformat(ts_str)
                 except ValueError:
-                    try:
-                        ts = datetime.fromisoformat(ts_str)
-                    except ValueError:
-                        continue
+                    continue
 
-                rows.append(
-                    NormalizedRecord(
-                        timestamp=ts,
-                        series_id=f"oecd_cli_{self.country.lower()}",
-                        target=value,
-                        promo=0.0,
-                        macro_index=value,
-                        source=self.name,
-                        fetched_at=now,
-                    )
+            rows.append(
+                NormalizedRecord(
+                    timestamp=ts,
+                    series_id=f"oecd_cli_{self.country.lower()}",
+                    target=value,
+                    promo=0.0,
+                    macro_index=value,
+                    source=self.name,
+                    fetched_at=now,
                 )
+            )
 
-            return rows[-periods:] if rows else self._synthetic(periods)
+        return rows[-periods:]
+
+    def fetch(self, periods: int = 30) -> list[NormalizedRecord]:
+        """Return up to *periods* CLI records from OECD or synthetic data."""
+        try:
+            rows = self._fetch_api(periods)
+            return rows if rows else self._synthetic(periods)
         except Exception:
             logging.debug("OECD CLI API fetch failed; using synthetic fallback", exc_info=True)
             return self._synthetic(periods)

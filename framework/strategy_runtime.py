@@ -1,3 +1,4 @@
+"""Strategy runtime backends for computing forecast deltas (Python + LLM)."""
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -53,6 +54,8 @@ class ARIMABackend:
 
 
 class PromptRuntimeClient(Protocol):
+    """Protocol for prompt-based runtime clients."""
+
     def complete(self, prompt: str) -> str: ...
 
 
@@ -65,63 +68,9 @@ class PythonStrategyRuntime:
 
 
 @dataclass(frozen=True)
-class HaskellRLMRuntime:
-    """Haskell subprocess bridge with Python fallback.
-
-    Tries the pre-built binary first (/usr/local/bin/marl-forecast-game),
-    then falls back to cabal run, then to PythonStrategyRuntime.
-    """
-
-    fallback: PythonStrategyRuntime = PythonStrategyRuntime()
-    haskell_dir: str = "haskell"
-    binary_path: str = "/usr/local/bin/marl-forecast-game"
-    timeout_s: float = 2.0
-
-    def forecast_delta(self, state: ForecastState) -> float:
-        import json
-        import os
-        import subprocess
-
-        input_data = json.dumps({
-            "t": state.t,
-            "value": state.value,
-            "exogenous": state.exogenous,
-            "hidden_shift": state.hidden_shift,
-        })
-
-        if os.path.isfile(self.binary_path):
-            try:
-                result = subprocess.run(
-                    [self.binary_path, "--delta"],
-                    input=input_data,
-                    capture_output=True,
-                    text=True,
-                    timeout=self.timeout_s,
-                )
-                if result.returncode == 0 and result.stdout.strip():
-                    return float(result.stdout.strip())
-            except Exception:
-                pass
-
-        try:
-            result = subprocess.run(
-                ["cabal", "run", "marl-forecast-game", "--", "--delta"],
-                input=input_data,
-                capture_output=True,
-                text=True,
-                timeout=self.timeout_s,
-                cwd=self.haskell_dir,
-            )
-            if result.returncode == 0 and result.stdout.strip():
-                return float(result.stdout.strip())
-        except Exception:
-            pass
-
-        return self.fallback.forecast_delta(state)
-
-
-@dataclass(frozen=True)
 class DeterministicPromptClient:
+    """Always returns a fixed response; useful for testing."""
+
     response: str = "0.0"
 
     def complete(self, prompt: str) -> str:
@@ -190,11 +139,10 @@ class ChatStrategyRuntime:
 
 
 def runtime_from_name(name: str) -> StrategyRuntime:
+    """Instantiate a strategy runtime by name, defaulting to Python."""
     normalized = name.strip().lower()
     if normalized in {"python", "default"}:
         return PythonStrategyRuntime()
-    if normalized in {"haskell", "haskellrlm"}:
-        return HaskellRLMRuntime()
     if normalized in {"prompt", "mock_llm", "llm"}:
         return PromptStrategyRuntime()
     if normalized in {"chat", "ollama_chat"}:

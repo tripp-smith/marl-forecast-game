@@ -167,7 +167,7 @@ graph LR
 | `verify.py` | `data`, `game`, `metrics`, `observability`, `types` | `run_verification()` |
 | `validation_scenarios.py` | `data`, `game`, `metrics`, `types`, `data_utils` | 24 scenarios, `run_all_scenarios()` |
 | `observability.py` | (none) | `GameObserver`, Prometheus counters/gauges/histograms, OpenTelemetry tracing, Ray metrics bridge |
-| `strategy_runtime.py` | `types` | `PythonStrategyRuntime`, `HaskellRLMRuntime`, `PromptStrategyRuntime` |
+| `strategy_runtime.py` | `types` | `PythonStrategyRuntime`, `PromptStrategyRuntime`, `ChatStrategyRuntime` |
 
 ## Distributed Execution
 
@@ -273,6 +273,6 @@ An interactive Streamlit application (`ui/app.py`) provides six pages:
 | Metric Decomposition | Clean vs attacked comparison, error attribution waterfall |
 | What-If | Interactive parameter tweaking with on-demand re-simulation |
 | Data Lineage | Data pipeline visualization, split boundaries, cache status |
-| LLM Inspection | Placeholder for DSPy-REPL / HaskellRLM prompt history and rationale logs |
+| LLM Inspection | Placeholder for prompt history and rationale logs |
 
 All UI pages read immutable JSON artifacts without mutating system state.

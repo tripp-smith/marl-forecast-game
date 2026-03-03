@@ -1,9 +1,9 @@
 {
-  "checksum": "710fbe597c9f05be0d08dcba31a5f80a92ed4dc2aae2b50e05680a1248db97eb",
-  "fetched_at": "2026-02-22T10:30:06.925133",
+  "checksum": "ed34615093a88d1e9f96675aa5342ae9bf0de43d4054f59250a56395801762f0",
+  "fetched_at": "2026-03-03T15:15:14.748209",
   "rows": [
     {
-      "fetched_at": "2026-02-22 10:30:06.924907",
+      "fetched_at": "2026-03-03 15:15:14.748000",
       "macro_index": 180.0,
       "promo": 0.0,
       "series_id": "bea_gdp",
@@ -12,7 +12,7 @@
       "timestamp": "2015-01-01 00:00:00"
     },
     {
-      "fetched_at": "2026-02-22 10:30:06.924907",
+      "fetched_at": "2026-03-03 15:15:14.748000",
       "macro_index": 182.5,
       "promo": 0.0,
       "series_id": "bea_gdp",
@@ -21,7 +21,7 @@
       "timestamp": "2015-04-01 00:00:00"
     },
     {
-      "fetched_at": "2026-02-22 10:30:06.924907",
+      "fetched_at": "2026-03-03 15:15:14.748000",
       "macro_index": 185.0,
       "promo": 0.0,
       "series_id": "bea_gdp",
@@ -30,7 +30,7 @@
       "timestamp": "2015-07-01 00:00:00"
     },
     {
-      "fetched_at": "2026-02-22 10:30:06.924907",
+      "fetched_at": "2026-03-03 15:15:14.748000",
       "macro_index": 186.0,
       "promo": 0.0,
       "series_id": "bea_gdp",
@@ -39,7 +39,7 @@
       "timestamp": "2015-10-01 00:00:00"
     },
     {
-      "fetched_at": "2026-02-22 10:30:06.924907",
+      "fetched_at": "2026-03-03 15:15:14.748000",
       "macro_index": 188.5,
       "promo": 0.0,
       "series_id": "bea_gdp",
@@ -48,7 +48,7 @@
       "timestamp": "2016-01-01 00:00:00"
     },
     {
-      "fetched_at": "2026-02-22 10:30:06.924907",
+      "fetched_at": "2026-03-03 15:15:14.748000",
       "macro_index": 191.0,
       "promo": 0.0,
       "series_id": "bea_gdp",
@@ -57,7 +57,7 @@
       "timestamp": "2016-04-01 00:00:00"
     },
     {
-      "fetched_at": "2026-02-22 10:30:06.924907",
+      "fetched_at": "2026-03-03 15:15:14.748000",
       "macro_index": 192.0,
       "promo": 0.0,
       "series_id": "bea_gdp",
@@ -66,7 +66,7 @@
       "timestamp": "2016-07-01 00:00:00"
     },
     {
-      "fetched_at": "2026-02-22 10:30:06.924907",
+      "fetched_at": "2026-03-03 15:15:14.748000",
       "macro_index": 194.5,
       "promo": 0.0,
       "series_id": "bea_gdp",
@@ -75,7 +75,7 @@
       "timestamp": "2016-10-01 00:00:00"
     },
     {
-      "fetched_at": "2026-02-22 10:30:06.924907",
+      "fetched_at": "2026-03-03 15:15:14.748000",
       "macro_index": 197.0,
       "promo": 0.0,
       "series_id": "bea_gdp",
@@ -84,7 +84,7 @@
       "timestamp": "2017-01-01 00:00:00"
     },
     {
-      "fetched_at": "2026-02-22 10:30:06.924907",
+      "fetched_at": "2026-03-03 15:15:14.748000",
       "macro_index": 198.0,
       "promo": 0.0,
       "series_id": "bea_gdp",

@@ -5,7 +5,7 @@ import random
 
 import pytest
 
-from framework.agents import AdversaryAgent
+from framework.agents import AdversaryAgent, DefenderAgent, ForecastingAgent
 from framework.data import (
     DataProfile,
     build_hybrid_rows,
@@ -29,7 +29,6 @@ from framework.llm import DSPyLikeRepl
 from framework.llm.ollama import OllamaClient
 from framework.strategy_runtime import (
     DeterministicPromptClient,
-    HaskellRLMRuntime,
     PromptStrategyRuntime,
     PythonStrategyRuntime,
     runtime_from_name,
@@ -98,7 +97,7 @@ def test_zero_rounds_and_negative_rounds_do_not_crash():
 
 def test_runtime_backend_selection_and_fallback():
     assert isinstance(runtime_from_name("python"), PythonStrategyRuntime)
-    assert isinstance(runtime_from_name("haskell"), HaskellRLMRuntime)
+    assert isinstance(runtime_from_name("prompt"), PromptStrategyRuntime)
     assert isinstance(runtime_from_name("unknown"), PythonStrategyRuntime)
 
 
@@ -631,53 +630,6 @@ def test_load_dataset_accepts_new_sources():
         assert len(bundle.train) > 0
 
 
-def test_haskell_python_equivalence():
-    """K.5: Verify Haskell evolveState matches Python evolve_state within FP tolerance."""
-    import os
-    import subprocess
-
-    binary = "/usr/local/bin/marl-forecast-game"
-    cabal_available = False
-    binary_available = os.path.isfile(binary)
-
-    if not binary_available:
-        try:
-            subprocess.run(["cabal", "--version"], capture_output=True, timeout=3)
-            cabal_available = True
-        except (FileNotFoundError, subprocess.TimeoutExpired):
-            pass
-
-    if not binary_available and not cabal_available:
-        pytest.skip("Neither Haskell binary nor cabal available")
-
-    test_cases = [
-        {"t": 0, "value": 10.0, "exogenous": 1.2, "hidden_shift": 0.0},
-        {"t": 5, "value": -3.5, "exogenous": 0.0, "hidden_shift": 0.5},
-        {"t": 0, "value": 0.0, "exogenous": 0.0, "hidden_shift": 0.0},
-    ]
-
-    for tc in test_cases:
-        input_data = json.dumps(tc)
-        py_state = ForecastState(t=tc["t"], value=tc["value"], exogenous=tc["exogenous"], hidden_shift=tc["hidden_shift"])
-        py_delta = PythonStrategyRuntime().forecast_delta(py_state)
-
-        if binary_available:
-            cmd = [binary, "--delta"]
-            cwd = None
-        else:
-            cmd = ["cabal", "run", "marl-forecast-game", "--", "--delta"]
-            cwd = "haskell"
-
-        try:
-            result = subprocess.run(cmd, input=input_data, capture_output=True, text=True, timeout=10, cwd=cwd)
-            if result.returncode != 0:
-                pytest.skip(f"Haskell binary returned non-zero: {result.stderr}")
-            hs_delta = float(result.stdout.strip())
-            assert abs(hs_delta - py_delta) < 1e-9, f"Mismatch: Haskell={hs_delta}, Python={py_delta}"
-        except (subprocess.TimeoutExpired, ValueError) as e:
-            pytest.skip(f"Haskell subprocess failed: {e}")
-
-
 # ---------------------------------------------------------------------------
 # Kelly-Criterion BMA tests
 # ---------------------------------------------------------------------------
@@ -868,3 +820,276 @@ def test_wolfpack_game_integration():
     out = game.run(init, disturbed=True)
     assert len(out.forecasts) > 0
     assert len(out.targets) == len(out.forecasts)
+
+
+# ---------------------------------------------------------------------------
+# T23: API adapter mock tests for FRED/IMF/Polymarket
+# ---------------------------------------------------------------------------
+
+
+def _make_fred_response(n: int = 20) -> bytes:
+    obs = [{"date": f"2024-01-{i+1:02d}", "value": str(100.0 + i)} for i in range(n)]
+    return json.dumps({"observations": obs}).encode("utf-8")
+
+
+def _make_imf_response() -> bytes:
+    data = {
+        "values": {
+            "NGDP_RPCH": {
+                "WEO_WLD": {str(2000 + i): 3.0 + 0.1 * i for i in range(25)}
+            }
+        }
+    }
+    return json.dumps(data).encode("utf-8")
+
+
+def _make_polymarket_response(n: int = 20) -> bytes:
+    markets = [
+        {"slug": f"market_{i}", "probability": 0.5, "volume": 50000}
+        for i in range(n)
+    ]
+    return json.dumps(markets).encode("utf-8")
+
+
+class _MockHTTPResponse:
+    def __init__(self, data: bytes):
+        self._data = data
+
+    def read(self) -> bytes:
+        return self._data
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        pass
+
+
+def test_fred_adapter_mock():
+    from unittest.mock import patch
+    from framework.data_sources.macro_fred import FredMacroAdapter
+
+    adapter = FredMacroAdapter()
+    with patch("framework.data_sources.macro_fred.urlopen", return_value=_MockHTTPResponse(_make_fred_response(20))):
+        with patch.dict("os.environ", {"FRED_API_KEY": "test_key"}):
+            rows = adapter.fetch(periods=15)
+    assert len(rows) >= 5
+    for row in rows:
+        assert row.source == "fred"
+
+
+def test_imf_adapter_mock():
+    from unittest.mock import patch
+    from framework.data_sources.macro_imf import ImfMacroAdapter
+
+    adapter = ImfMacroAdapter()
+    with patch("framework.data_sources.macro_imf.urlopen", return_value=_MockHTTPResponse(_make_imf_response())):
+        rows = adapter.fetch(periods=10)
+    assert len(rows) >= 5
+    for row in rows:
+        assert row.source == "imf"
+
+
+def test_polymarket_adapter_mock():
+    from unittest.mock import patch
+    from framework.data_sources.prediction_polymarket import PolymarketAdapter
+
+    adapter = PolymarketAdapter()
+    with patch("framework.data_sources.prediction_polymarket.urlopen", return_value=_MockHTTPResponse(_make_polymarket_response(20))):
+        rows = adapter.fetch(periods=15)
+    assert len(rows) >= 5
+    for row in rows:
+        assert row.source == "polymarket"
+
+
+def test_adapter_mock_http_error_fallback():
+    """Verify adapters fall back to synthetic on HTTP errors."""
+    from unittest.mock import patch
+    from urllib.error import HTTPError
+    from framework.data_sources.macro_fred import FredMacroAdapter
+
+    adapter = FredMacroAdapter()
+    with patch("framework.data_sources.macro_fred.urlopen", side_effect=HTTPError("url", 500, "err", {}, None)):
+        with patch.dict("os.environ", {"FRED_API_KEY": "test_key"}):
+            rows = adapter.fetch(periods=10)
+    assert len(rows) >= 5
+
+
+# ---------------------------------------------------------------------------
+# T25: Economic trade-off parameterized tests
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("attack_cost", [0.0, 0.5, 1.0])
+def test_economic_trade_off(attack_cost):
+    cfg = SimulationConfig(
+        horizon=30, max_rounds=30, attack_cost=attack_cost,
+        disturbance_prob=0.5, disturbance_scale=1.0,
+    )
+    init = ForecastState(t=0, value=10.0, exogenous=0.0, hidden_shift=0.0)
+    out = ForecastGame(cfg, seed=42).run(init, disturbed=True)
+    assert "cost_benefit" in out.trajectory_logs[0]
+    assert out.convergence["attack_cost_total"] >= 0
+
+
+def test_economic_trade_off_impact_reduction():
+    """Higher attack_cost should reduce mean disturbance impact."""
+    results = {}
+    for cost in [0.0, 1.0]:
+        cfg = SimulationConfig(
+            horizon=50, max_rounds=50, attack_cost=cost,
+            disturbance_prob=0.5, disturbance_scale=1.0,
+        )
+        init = ForecastState(t=0, value=10.0, exogenous=0.0, hidden_shift=0.0)
+        out = ForecastGame(cfg, seed=42).run(init, disturbed=True)
+        errors = [abs(t - f) for t, f in zip(out.targets, out.forecasts)]
+        results[cost] = sum(errors) / max(1, len(errors))
+    assert results[1.0] <= results[0.0] * 1.1
+
+
+# ---------------------------------------------------------------------------
+# T27: LLM delta range assertion test (mocked)
+# ---------------------------------------------------------------------------
+
+
+def test_llm_delta_range_assertion():
+    from unittest.mock import patch
+    from framework.agents import ForecastingAgent
+    from framework.llm.ollama import OllamaClient, DSPyLikeRepl
+
+    state = ForecastState(t=0, value=10.0, exogenous=0.5, hidden_shift=0.0)
+    runtime = runtime_from_name("python")
+    pure_delta = runtime.forecast_delta(state)
+
+    with patch.object(OllamaClient, "generate", return_value="0.05"):
+        with patch.object(OllamaClient, "embeddings", return_value=[0.0] * 10):
+            client = OllamaClient()
+            repl = DSPyLikeRepl(client=client)
+            agent = ForecastingAgent(llm_repl=repl)
+            action = agent.act(state, runtime)
+
+    expected_delta = (0.8 * pure_delta) + (0.2 * 0.05)
+    assert abs(action.delta - expected_delta) < 0.01
+
+
+# ---------------------------------------------------------------------------
+# T28: E2E LLM trajectory log test
+# ---------------------------------------------------------------------------
+
+
+def test_e2e_llm_trajectory_log():
+    from unittest.mock import patch
+    from framework.llm.ollama import OllamaClient, OllamaRefactorClient
+    from framework.llm.audit import get_llm_log
+    from framework.agents import RefactoringAgent
+
+    cfg = SimulationConfig(horizon=10, max_rounds=10, enable_refactor=True, enable_llm_refactor=True)
+
+    mock_response = json.dumps({"bias_adjustment": 0.01, "rationale": "test"})
+
+    def mock_generate(prompt: str, **kwargs: object) -> str:
+        get_llm_log().record(
+            round_idx=kwargs.get("round_idx"),
+            agent=str(kwargs.get("agent", "")),
+            call_type="generate",
+            model="mock",
+            prompt=prompt,
+            response=mock_response,
+            latency_ms=0.1,
+            error=None,
+        )
+        return mock_response
+
+    with patch.object(OllamaClient, "generate", side_effect=mock_generate):
+        llm_client = OllamaRefactorClient(client=OllamaClient())
+        refactorer = RefactoringAgent(llm_client=llm_client)
+        game = ForecastGame(cfg, seed=42, agent_factory=lambda c: (
+            ForecastingAgent(),
+            AdversaryAgent(aggressiveness=c.adversarial_intensity, attack_cost=c.attack_cost),
+            DefenderAgent(),
+            refactorer,
+        ))
+        init = ForecastState(t=0, value=10.0, exogenous=0.0, hidden_shift=0.0)
+        out = game.run(init, disturbed=True)
+
+    assert len(out.llm_calls) > 0
+    for call in out.llm_calls:
+        assert "prompt" in call
+        assert "response" in call
+        assert "latency_ms" in call
+
+
+# ---------------------------------------------------------------------------
+# T36: psutil memory monitoring stress test
+# ---------------------------------------------------------------------------
+
+
+def test_psutil_memory_stress():
+    """1000-round simulation should not grow memory by more than 50MB."""
+    try:
+        import psutil
+    except ImportError:
+        pytest.skip("psutil not installed")
+
+    import os
+
+    process = psutil.Process(os.getpid())
+    rss_before = process.memory_info().rss
+
+    cfg = SimulationConfig(horizon=1000, max_rounds=1000)
+    init = ForecastState(t=0, value=10.0, exogenous=0.0, hidden_shift=0.0)
+    out = ForecastGame(cfg, seed=42).run(init, disturbed=True)
+    assert out.convergence["rounds_executed"] == 1000
+
+    rss_after = process.memory_info().rss
+    growth_mb = (rss_after - rss_before) / (1024 * 1024)
+    assert growth_mb < 50, f"Memory grew by {growth_mb:.1f}MB, exceeds 50MB threshold"
+
+
+# ---------------------------------------------------------------------------
+# T39: Latency benchmark test
+# ---------------------------------------------------------------------------
+
+
+def test_latency_benchmark():
+    """100-round simulation with python backend should average < 2s per round."""
+    import time
+
+    cfg = SimulationConfig(horizon=100, max_rounds=100, runtime_backend="python")
+    init = ForecastState(t=0, value=10.0, exogenous=0.0, hidden_shift=0.0)
+
+    start = time.perf_counter()
+    out = ForecastGame(cfg, seed=42).run(init, disturbed=True)
+    elapsed = time.perf_counter() - start
+
+    avg_per_round = elapsed / max(1, out.convergence["rounds_executed"])
+    assert avg_per_round < 2.0, f"Average {avg_per_round:.3f}s per round exceeds 2.0s threshold"
+
+
+# ---------------------------------------------------------------------------
+# T40: Differential testing fixture
+# ---------------------------------------------------------------------------
+
+
+def test_differential_testing_vs_reference():
+    """Verify output MAE matches reference within 5% of 0.7557."""
+    from framework.data import DataProfile, load_dataset
+    from framework.metrics import mae as compute_mae
+
+    bundle = load_dataset(DataProfile(source="sample_csv", periods=240, normalize=True))
+    cfg = SimulationConfig(
+        horizon=80, max_rounds=200,
+        disturbance_prob=0.2, disturbance_scale=1.2,
+        adversarial_intensity=1.0, runtime_backend="python",
+        disturbance_model="gaussian", defense_model="ensemble",
+        enable_refactor=True,
+    )
+    init = ForecastState(t=0, value=float(bundle.train[-1]["target"]), exogenous=0.0, hidden_shift=0.0)
+    game = ForecastGame(cfg, seed=13)
+    out = game.run(init, disturbed=False)
+
+    result_mae = compute_mae(out.targets, out.forecasts)
+    reference_mae = 0.7557
+    assert abs(result_mae - reference_mae) / reference_mae < 0.05, (
+        f"MAE {result_mae:.4f} differs from reference {reference_mae} by more than 5%"
+    )

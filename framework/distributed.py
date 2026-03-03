@@ -12,7 +12,7 @@ from .types import ForecastState, SimulationConfig, frozen_mapping
 try:
     import ray
 except ImportError:
-    ray = None  # type: ignore[assignment]
+    ray = None  # type: ignore[assignment,unused-ignore]
 
 
 # ---------------------------------------------------------------------------
@@ -93,6 +93,7 @@ class ParallelGameRunner:
         seeds: list[int] | None = None,
         disturbed: bool = True,
     ) -> list[dict[str, Any]]:
+        """Run each config/seed pair in parallel and return result dicts."""
         if seeds is None:
             seeds = list(range(len(configs)))
 
@@ -111,6 +112,7 @@ class ParallelGameRunner:
         seeds: list[int],
         disturbed: bool = True,
     ) -> list[dict[str, Any]]:
+        """Run the same config across multiple seeds in parallel."""
         configs = [config] * len(seeds)
         return self.map_scenarios(configs, init_state, seeds, disturbed)
 
@@ -147,11 +149,13 @@ def _ray_run_single_fn(
 if ray is not None:
     _ray_run_single = ray.remote(num_cpus=1)(_ray_run_single_fn)
 else:
-    _ray_run_single = None  # type: ignore[assignment]
+    _ray_run_single = None  # type: ignore[assignment,unused-ignore]
 
 
 @dataclass(frozen=True)
 class FaultToleranceConfig:
+    """Retry and restart limits for Ray fault tolerance."""
+
     max_task_retries: int = 3
     retry_delay_s: float = 1.0
     actor_max_restarts: int = 3
@@ -166,7 +170,8 @@ class RayParallelGameRunner:
 
     def _ensure_init(self) -> None:
         if ray is None:
-            raise RuntimeError("ray is not installed")
+            from .exceptions import SimulationError
+            raise SimulationError("ray is not installed")
         if not ray.is_initialized():
             ray.init(address=self.address, ignore_reinit_error=True)
 
@@ -191,7 +196,7 @@ class RayParallelGameRunner:
         except ImportError:
             pass
 
-        task = _ray_run_single.options(  # type: ignore[union-attr]
+        task = _ray_run_single.options(  # type: ignore[union-attr,unused-ignore]
             max_retries=self.fault_tolerance.max_task_retries,
             retry_exceptions=True,
         )
@@ -199,7 +204,8 @@ class RayParallelGameRunner:
             task.remote(_config_to_dict(cfg), state_dict, seed, disturbed, trace_ctx)
             for cfg, seed in zip(configs, seeds)
         ]
-        return ray.get(futures)
+        results: list[dict[str, Any]] = ray.get(futures)
+        return results
 
     def run_seeds(
         self,
@@ -211,6 +217,7 @@ class RayParallelGameRunner:
         return self.map_scenarios([config] * len(seeds), init_state, seeds, disturbed)
 
     def shutdown(self) -> None:
+        """Shut down the Ray runtime if initialized."""
         if ray is not None and ray.is_initialized():
             ray.shutdown()
 

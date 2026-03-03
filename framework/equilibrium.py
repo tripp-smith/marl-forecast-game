@@ -10,6 +10,8 @@ from scipy.optimize import linprog
 
 @dataclass(frozen=True)
 class NashResult:
+    """Mixed-strategy Nash equilibrium: attacker/defender strategies and game value."""
+
     attacker_strategy: Tuple[float, ...]
     defender_strategy: Tuple[float, ...]
     game_value: float

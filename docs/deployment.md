@@ -4,21 +4,12 @@
 
 ### Multi-Stage Dockerfile
 
-The project uses a multi-stage Docker build with a Haskell compilation stage and a Python runtime stage:
+The project uses a multi-stage Docker build with a Python runtime base and optional service-specific stages.
 
-**Stage 1 -- `haskell-build`**: Uses `haskell:9.6-slim` to compile the Haskell library and executable. Runs `cabal build all` and `cabal test all`, then copies the compiled binary to `/usr/local/bin/marl-forecast-game`.
-
-**Stage 2 -- `base`**: Uses `python:3.10-slim` for the runtime. Copies the pre-built Haskell binary from stage 1, enabling `runtime_backend="haskell"` without requiring cabal at runtime.
+**Stage 1 -- `base`**: Uses `python:3.10-slim` for the core runtime and installs Python dependencies.
 
 ```dockerfile
-FROM haskell:9.6-slim AS haskell-build
-WORKDIR /hs
-COPY haskell/ .
-RUN cabal update && cabal build all && cabal test all \
- && cp "$(cabal list-bin marl-forecast-game)" /usr/local/bin/marl-forecast-game
-
 FROM python:3.10-slim AS base
-COPY --from=haskell-build /usr/local/bin/marl-forecast-game /usr/local/bin/marl-forecast-game
 # ... Python setup follows
 ```
 
@@ -37,12 +28,11 @@ COPY --from=haskell-build /usr/local/bin/marl-forecast-game /usr/local/bin/marl-
 
 - **Healthcheck**: Runs `run_verification()` every 30s. Failures are logged to `/app/logs/healthcheck.log`.
 - **Default command**: `scripts/validate.sh` (pytest + verification).
-- **Haskell binary**: Available at `/usr/local/bin/marl-forecast-game` for `HaskellRLMRuntime`.
 
 ### Building and Running
 
 ```bash
-# Build (includes Haskell compilation + tests)
+# Build
 docker build -t marl-forecast-game:test .
 
 # Run default validation
@@ -50,10 +40,6 @@ docker run --rm marl-forecast-game:test
 
 # Run with FRED data and metrics server
 docker run --rm -e FRED_API_KEY=your_key -e METRICS_PORT=9090 -p 9090:9090 marl-forecast-game:test
-
-# Run with Haskell runtime backend
-docker run --rm marl-forecast-game:test \
-  python -c "from framework.strategy_runtime import HaskellRLMRuntime; from framework.types import ForecastState; print(HaskellRLMRuntime().forecast_delta(ForecastState(0, 10.0, 1.0, 0.0)))"
 
 # Interactive shell
 docker run --rm -it marl-forecast-game:test bash
@@ -72,7 +58,7 @@ docker run --rm \
 
 The `scripts/run_container_test_harness.sh` script provides a comprehensive containerized test pipeline:
 
-1. Builds the Docker image (including Haskell stage).
+1. Builds the Docker image.
 2. Runs `pytest -q` inside the container.
 3. Runs `python scripts/run_verification.py` inside the container.
 4. Runs all validation scenarios inside the container.
@@ -249,7 +235,7 @@ The explainability UI is accessible at `http://localhost:8501`.
 | Metric Decomposition | Clean vs attacked comparison, error attribution waterfall |
 | What-If | Interactive parameter tweaking with on-demand simulation |
 | Data Lineage | Pipeline visualization, split boundaries, cache status |
-| LLM Inspection | Placeholder for DSPy-REPL / HaskellRLM integration |
+| LLM Inspection | Placeholder for prompt history and rationale logs |
 
 ### Standalone Launch
 
@@ -294,7 +280,6 @@ The CI pipeline is defined in `.github/workflows/ci.yml` with 8 jobs:
 | `typecheck` | Every push/PR | `mypy` on core framework modules including distributed/ray/rllib |
 | `property-tests` | Every push/PR | Hypothesis tests with `--hypothesis-seed=0` |
 | `streamlit-lint` | Every push/PR | Validates Streamlit app parses without errors |
-| `haskell-test` | `haskell/` changes only | `cabal build all && cabal test all` |
 
 ### Artifact Uploads
 

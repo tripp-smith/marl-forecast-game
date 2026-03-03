@@ -1,10 +1,11 @@
+"""Agent definitions for the forecasting game: forecasters, adversaries, defenders, and utilities."""
 from __future__ import annotations
 
 import logging
 import math
 from collections import defaultdict
 from dataclasses import dataclass, field
-from typing import List
+from typing import Any, Callable, List
 
 from .defenses import defense_from_name
 from .llm import DSPyLikeRepl, LLMRefactorClient, MockLLMRefactorClient, OllamaClient, RefactorRequest
@@ -14,10 +15,13 @@ from .types import AgentAction, ForecastState
 
 @dataclass(frozen=True)
 class ForecastingAgent:
+    """Primary forecasting agent that produces delta adjustments, optionally via LLM."""
+
     name: str = "forecaster"
     llm_repl: DSPyLikeRepl | None = None
 
     def act(self, state: ForecastState, runtime: StrategyRuntime, *, round_idx: int | None = None) -> AgentAction:
+        """Produce a forecast delta for *state* using *runtime* and optional LLM refinement."""
         base_delta = runtime.forecast_delta(state)
         if self.llm_repl is None:
             return AgentAction(actor=self.name, delta=base_delta)
@@ -35,11 +39,14 @@ class ForecastingAgent:
 
 @dataclass(frozen=True)
 class AdversaryAgent:
+    """Adversarial agent that injects directional noise to degrade forecasts."""
+
     name: str = "adversary"
     aggressiveness: float = 1.0
     attack_cost: float = 0.0
 
     def act(self, state: ForecastState) -> AgentAction:
+        """Compute an adversarial delta opposing the expected trend."""
         expected_trend = 0.4 + 0.4 * state.exogenous
         direction = -1.0 if expected_trend >= 0 else 1.0
         base = direction * 0.4 * self.aggressiveness
@@ -50,9 +57,32 @@ class AdversaryAgent:
 
 @dataclass(frozen=True)
 class DefenderAgent:
+    """Defensive agent that corrects forecasts against adversarial perturbations."""
+
     name: str = "defender"
+    llm_client: OllamaClient | None = None
 
     def act(self, forecast_action: AgentAction, adversary_action: AgentAction, defense_model: str) -> AgentAction:
+        """Compute a defensive correction using the named defense model or optional LLM."""
+        if self.llm_client is not None and abs(adversary_action.delta) > 0.3:
+            try:
+                import json as _json
+                state_json = _json.dumps({
+                    "forecast_delta": forecast_action.delta,
+                    "adversary_delta": adversary_action.delta,
+                    "defense_model": defense_model,
+                })
+                prompt = (
+                    f"Given adversarial state: {state_json}\n"
+                    "Suggest a single float correction delta to defend the forecast. "
+                    "Reply with ONLY a number."
+                )
+                raw = self.llm_client.generate(prompt, agent=self.name)
+                from .llm.audit import get_llm_log
+                llm_delta = float(raw.strip().split()[0])
+                return AgentAction(actor=self.name, delta=llm_delta)
+            except Exception:
+                pass
         defense = defense_from_name(defense_model)
         correction = defense.defend(forecast_action.delta, adversary_action.delta)
         return AgentAction(actor=self.name, delta=correction)
@@ -60,11 +90,14 @@ class DefenderAgent:
 
 @dataclass(frozen=True)
 class RefactoringAgent:
+    """Bias-correction agent that revises the forecast via error feedback or LLM suggestions."""
+
     name: str = "refactor"
     step_size: float = 0.02
     llm_client: LLMRefactorClient = field(default_factory=lambda: MockLLMRefactorClient(step_size=0.02))
 
     def revise(self, latest_error: float, *, use_llm: bool = False, round_idx: int | None = None) -> float:
+        """Return a bias adjustment based on *latest_error*, optionally using LLM."""
         if use_llm:
             suggestion = self.llm_client.suggest(
                 RefactorRequest(latest_error=latest_error, strategy_name=self.name),
@@ -206,7 +239,7 @@ class WolfpackAdversary:
 class AgentRegistry:
     """Flexible container for variable numbers of agents."""
 
-    forecasters: tuple[ForecastingAgent | BottomUpAgent, ...] = ()
+    forecasters: tuple[ForecastingAgent | BottomUpAgent | TopDownAgent, ...] = ()
     adversaries: tuple[AdversaryAgent | WolfpackAdversary, ...] = ()
     defenders: tuple[DefenderAgent, ...] = ()
     refactorer: RefactoringAgent | None = None
@@ -215,9 +248,11 @@ class AgentRegistry:
 
 @dataclass(frozen=True)
 class SafeAgentExecutor:
+    """Exception-safe wrapper that falls back to a zero-delta action on failure."""
+
     fallback_delta: float = 0.0
 
-    def execute(self, fn, *args, **kwargs) -> AgentAction:
+    def execute(self, fn: Callable[..., AgentAction], *args: Any, **kwargs: Any) -> AgentAction:
         try:
             return fn(*args, **kwargs)
         except Exception:
@@ -235,7 +270,7 @@ class LLMPolicyAgent:
     clamp_min: float = -0.1
     clamp_max: float = 0.1
 
-    def act(self, state: ForecastState, runtime: "StrategyRuntime", trajectories: list | None = None, round_idx: int = 0) -> AgentAction:
+    def act(self, state: ForecastState, runtime: "StrategyRuntime", trajectories: list[Any] | None = None, round_idx: int = 0) -> AgentAction:
         from .llm.refiner import RecursiveStrategyRefiner
         from .types import TrajectoryEntry
 
@@ -251,4 +286,5 @@ class LLMPolicyAgent:
 
 
 def default_ollama_repl() -> DSPyLikeRepl:
+    """Create a DSPyLikeRepl backed by the default OllamaClient."""
     return DSPyLikeRepl(client=OllamaClient())

@@ -94,8 +94,8 @@ Used in `SimulationConfig.runtime_backend`, resolved by `runtime_from_name()`:
 | Name | Class | Description |
 |---|---|---|
 | `python`, `default` | `PythonStrategyRuntime` | Deterministic local computation: `0.4 + 0.4 * exogenous` |
-| `haskell`, `haskellrlm` | `HaskellRLMRuntime` | Haskell subprocess via `cabal run` (2s timeout, Python fallback) |
 | `prompt`, `mock_llm`, `llm` | `PromptStrategyRuntime` | LLM-backed via `PromptRuntimeClient` (mock by default) |
+| `chat`, `ollama_chat` | `ChatStrategyRuntime` | Conversation-based strategy generation via Ollama chat API |
 
 ## Disturbance Model Names
 

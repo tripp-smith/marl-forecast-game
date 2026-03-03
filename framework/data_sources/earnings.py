@@ -37,6 +37,8 @@ def _earnings_dates(
 
 @dataclass(frozen=True)
 class EarningsAdapter:
+    """Generates deterministic synthetic earnings-call transcript stubs."""
+
     name: str = "earnings"
     cache_dir: str = "data/test_qualitative/earnings"
     max_records: int = 50
@@ -44,6 +46,7 @@ class EarningsAdapter:
     def fetch_releases(
         self, start_dt: datetime, end_dt: datetime
     ) -> list[NormalizedQualRecord]:
+        """Return earnings transcript records for releases within the date range."""
         entries = _earnings_dates(start_dt, end_dt)
         rng = Random(42)
         if len(entries) > self.max_records:

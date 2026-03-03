@@ -402,3 +402,142 @@ def test_wolfpack_target_set_bounded(n_agents, threshold):
     primary = names[0]
     _, coalition = wolf.select_targets(primary)
     assert len(coalition) + 1 <= n_agents
+
+
+# ---------------------------------------------------------------------------
+# T22: Data ingestion hypothesis tests (max_examples=200)
+# ---------------------------------------------------------------------------
+
+@given(
+    periods=st.integers(min_value=10, max_value=500),
+    train_ratio=st.floats(min_value=0.3, max_value=0.7),
+    valid_ratio=st.floats(min_value=0.05, max_value=0.2),
+    normalize=st.booleans(),
+)
+@settings(max_examples=200)
+def test_data_ingestion_hypothesis(periods, train_ratio, valid_ratio, normalize):
+    import tempfile
+    from pathlib import Path
+    from framework.data import DataProfile, load_dataset, build_sample_dataset
+    assume(train_ratio + valid_ratio < 0.95)
+    with tempfile.TemporaryDirectory() as tmpdir:
+        p = Path(tmpdir) / "sample.csv"
+        build_sample_dataset(p, periods=periods)
+        profile = DataProfile(
+            source="sample_csv",
+            periods=periods,
+            train_ratio=train_ratio,
+            valid_ratio=valid_ratio,
+            normalize=normalize,
+        )
+        bundle = load_dataset(profile, path=p)
+        total = len(bundle.train) + len(bundle.valid) + len(bundle.test)
+        assert total > 0
+        assert len(bundle.train) > 0
+
+
+# ---------------------------------------------------------------------------
+# T24: KS distribution tests for disturbances
+# ---------------------------------------------------------------------------
+
+def test_gaussian_disturbance_ks():
+    """KS test: GaussianDisturbance samples follow a normal distribution."""
+    from random import Random
+    from framework.disturbances import GaussianDisturbance
+    from framework.types import ForecastState, SimulationConfig
+    try:
+        from scipy.stats import kstest, norm
+    except ImportError:
+        pytest.skip("scipy not installed")
+
+    model = GaussianDisturbance()
+    rng = Random(42)
+    cfg = SimulationConfig(disturbance_prob=1.0, disturbance_scale=1.0, adversarial_intensity=1.0)
+    s = ForecastState(t=0, value=0.0, exogenous=0.0, hidden_shift=0.0)
+    samples = [model.sample(s, rng, cfg) for _ in range(1000)]
+    nonzero = [x for x in samples if x != 0.0]
+    if len(nonzero) >= 100:
+        stat, pval = kstest(nonzero, "norm", args=(0, cfg.disturbance_scale * cfg.adversarial_intensity))
+        assert pval > 0.01, f"KS test failed: stat={stat}, p={pval}"
+
+
+def test_hmm_disturbance_finite_samples():
+    """HMM disturbance produces finite, non-NaN samples."""
+    import math
+    from random import Random
+    from framework.disturbances import HMMRegimeShiftDisturbance
+    from framework.types import ForecastState, SimulationConfig
+
+    model = HMMRegimeShiftDisturbance()
+    rng = Random(42)
+    cfg = SimulationConfig(disturbance_prob=1.0)
+    s = ForecastState(t=0, value=0.0, exogenous=0.0, hidden_shift=0.0)
+    samples = [model.sample(s, rng, cfg) for _ in range(1000)]
+    assert all(math.isfinite(x) for x in samples)
+    mean_val = sum(samples) / len(samples)
+    std_val = (sum((x - mean_val) ** 2 for x in samples) / len(samples)) ** 0.5
+    assert abs(mean_val) < 2 * std_val + 1.0
+
+
+def test_garch_disturbance_finite_samples():
+    """GARCH disturbance produces finite, non-NaN samples."""
+    import math
+    from random import Random
+    from framework.disturbances import GARCHDisturbance
+    from framework.types import ForecastState, SimulationConfig
+
+    model = GARCHDisturbance()
+    rng = Random(42)
+    cfg = SimulationConfig(disturbance_prob=1.0)
+    s = ForecastState(t=0, value=0.0, exogenous=0.0, hidden_shift=0.0)
+    samples = [model.sample(s, rng, cfg) for _ in range(1000)]
+    assert all(math.isfinite(x) for x in samples)
+    mean_val = sum(samples) / len(samples)
+    std_val = (sum((x - mean_val) ** 2 for x in samples) / len(samples)) ** 0.5
+    assert abs(mean_val) < 2 * std_val + 1.0
+
+
+# ---------------------------------------------------------------------------
+# T26: CI invariance -- epsilon_convergence is finite
+# ---------------------------------------------------------------------------
+
+@given(
+    convergence_threshold=st.floats(min_value=0.001, max_value=10.0, allow_nan=False, allow_infinity=False),
+    seed=st.integers(min_value=1, max_value=5000),
+)
+@settings(max_examples=100)
+def test_epsilon_convergence_finite(convergence_threshold, seed):
+    import math
+    cfg = SimulationConfig(
+        horizon=30, max_rounds=30, convergence_threshold=convergence_threshold,
+    )
+    init = ForecastState(t=0, value=10.0, exogenous=0.0, hidden_shift=0.0)
+    out = ForecastGame(cfg, seed=seed).run(init, disturbed=True)
+    ec = out.convergence.get("epsilon_convergence")
+    assert ec is not None
+    assert math.isfinite(ec)
+    assert ec >= 0
+
+
+# ---------------------------------------------------------------------------
+# T42: Poisoning rejection under varied attack
+# ---------------------------------------------------------------------------
+
+@given(
+    n_outliers=st.integers(min_value=0, max_value=10),
+    base_value=st.floats(min_value=1.0, max_value=100.0, allow_nan=False, allow_infinity=False),
+    z_threshold=st.floats(min_value=2.0, max_value=6.0, allow_nan=False, allow_infinity=False),
+)
+@settings(max_examples=200)
+def test_poisoning_rejection_varied_attack(n_outliers, base_value, z_threshold):
+    base_dt = datetime(2024, 1, 1)
+    rows = [
+        {"timestamp": base_dt + timedelta(days=i), "series_id": "s",
+         "target": base_value + i * 0.01, "promo": 0.0, "macro_index": 100.0}
+        for i in range(50)
+    ]
+    for i in range(n_outliers):
+        rows[i] = {**rows[i], "target": base_value * 1000}
+    detected = detect_poisoning_rows(rows, z_threshold=z_threshold)
+    if n_outliers > 0 and base_value * 1000 > base_value + 50 * 0.01:
+        assert len(detected) >= min(n_outliers, 1)

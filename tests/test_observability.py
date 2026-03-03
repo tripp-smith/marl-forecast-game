@@ -113,3 +113,35 @@ class TestStructuredLogging:
         logger = structlog.get_logger("test")
         bound = logger.bind(simulation_seed=42, trace_id="abc123")
         assert bound is not None
+
+
+# ---------------------------------------------------------------------------
+# T29: Prometheus scrape verification tests
+# ---------------------------------------------------------------------------
+
+
+class TestPrometheusScrapeVerification:
+    @pytest.mark.skipif(SIM_MAE is None, reason="prometheus_client not installed")
+    def test_scenario_label_in_output(self) -> None:
+        record_simulation_metrics(
+            seed=1, disturbed=False,
+            mae_val=1.23, rmse_val=1.5, mape_val=5.0,
+            worst=3.0, duration=0.1, rounds=50,
+            scenario="test",
+        )
+        output = export_prometheus_metrics()
+        assert "marl_sim_mae" in output
+        assert 'scenario="test"' in output
+        assert 'seed="1"' in output
+        assert 'disturbed="false"' in output
+
+    @pytest.mark.skipif(SIM_MAE is None, reason="prometheus_client not installed")
+    def test_recorded_value_matches(self) -> None:
+        record_simulation_metrics(
+            seed=99, disturbed=True,
+            mae_val=2.75, rmse_val=3.0, mape_val=8.0,
+            worst=6.0, duration=0.2, rounds=100,
+            scenario="verify",
+        )
+        output = export_prometheus_metrics()
+        assert "2.75" in output

@@ -6,7 +6,7 @@ from pathlib import Path
 from random import Random
 from typing import Any, List, Tuple
 
-import yaml
+import yaml  # type: ignore[import-untyped]
 
 from .game import ForecastGame
 from .types import ForecastState, SimulationConfig
@@ -30,6 +30,7 @@ class ScenarioSpec:
     attack_cost: float = 0.0
 
     def to_config(self, base: SimulationConfig | None = None) -> SimulationConfig:
+        """Convert this spec to a SimulationConfig, optionally overlaying on *base*."""
         if base is not None:
             return replace(
                 base,
@@ -90,10 +91,13 @@ class ScenarioFan:
 
 @dataclass(frozen=True)
 class ScenarioGenerator:
+    """Runs Monte Carlo replications and produces percentile forecast fans."""
+
     config: SimulationConfig
     n_replications: int = 1000
 
     def generate(self, initial: ForecastState, base_seed: int = 0) -> ScenarioFan:
+        """Run *n_replications* games and compute percentile trajectories."""
         all_forecasts: list[list[float]] = []
         all_targets: list[list[float]] = []
 

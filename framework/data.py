@@ -1,13 +1,16 @@
+"""Dataset loading, validation, poisoning detection, and train/valid/test splitting."""
 from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
+from typing import Any
 import csv
 import json
 import math
 
 from .data_utils import build_fred_training_set, ensure_source_data, fetch_qual_source_rows
+from .exceptions import AdapterFetchError, DataIngestionError, PoisoningDetectedError
 
 
 REQUIRED_COLUMNS = ["timestamp", "series_id", "target", "promo", "macro_index"]
@@ -15,13 +18,17 @@ REQUIRED_COLUMNS = ["timestamp", "series_id", "target", "promo", "macro_index"]
 
 @dataclass(frozen=True)
 class DatasetBundle:
-    train: list[dict]
-    valid: list[dict]
-    test: list[dict]
+    """Train/valid/test split of dataset rows."""
+
+    train: list[dict[str, Any]]
+    valid: list[dict[str, Any]]
+    test: list[dict[str, Any]]
 
 
 @dataclass(frozen=True)
 class DataProfile:
+    """Configuration for dataset loading: source, split ratios, and poisoning detection."""
+
     source: str = "sample_csv"
     periods: int = 240
     train_ratio: float = 0.7
@@ -44,15 +51,15 @@ class DataProfile:
             raise ValueError("hybrid_weight must be in [0,1]")
 
 
-def _ensure_required(rows: list[dict]) -> None:
+def _ensure_required(rows: list[dict[str, Any]]) -> None:
     if not rows:
-        raise ValueError("dataset is empty")
+        raise DataIngestionError("dataset is empty")
     missing = [col for col in REQUIRED_COLUMNS if col not in rows[0].keys()]
     if missing:
-        raise ValueError(f"missing columns: {missing}")
+        raise DataIngestionError(f"missing columns: {missing}")
 
 
-def _validate_rows(rows: list[dict]) -> None:
+def _validate_rows(rows: list[dict[str, Any]]) -> None:
     _ensure_required(rows)
     per_series: dict[str, datetime] = {}
     for row in rows:
@@ -71,7 +78,8 @@ def _parse_timestamp(value: str | datetime) -> datetime:
     return datetime.fromisoformat(value)
 
 
-def load_csv(path: str | Path) -> list[dict]:
+def load_csv(path: str | Path) -> list[dict[str, Any]]:
+    """Load and validate a CSV dataset, returning chronologically-ordered rows."""
     with open(path, newline="", encoding="utf-8") as f:
         reader = csv.DictReader(f)
         rows = list(reader)
@@ -87,7 +95,8 @@ def load_csv(path: str | Path) -> list[dict]:
     return ordered
 
 
-def load_json(path: str | Path) -> list[dict]:
+def load_json(path: str | Path) -> list[dict[str, Any]]:
+    """Load and validate a JSON dataset, returning chronologically-ordered rows."""
     payload = json.loads(Path(path).read_text(encoding="utf-8"))
     if not isinstance(payload, list):
         raise ValueError("json dataset must be a list of objects")
@@ -111,14 +120,23 @@ def load_source_rows(
     realtime_refresh: bool = False,
     force_redownload: bool = False,
     cache_dir: str | Path = "data/cache",
-) -> list[dict]:
+) -> list[dict[str, Any]]:
+    """Fetch rows from a named external source adapter with optional caching.
+
+    Args:
+        source: Adapter name (e.g. ``"fred"``, ``"imf"``).
+        periods: Number of periods to retrieve.
+        realtime_refresh: Stamp the last row with the current UTC time.
+        force_redownload: Bypass cache and re-fetch from the remote source.
+        cache_dir: Directory for cached adapter data.
+    """
     normalized = source.strip().lower()
     _ALL_SOURCES = {
         "fred", "imf", "polymarket", "bis", "gpr", "oecd_cli",
         "kaggle", "worldbank", "bea", "kalshi", "predictit", "eurostat",
     }
     if normalized not in _ALL_SOURCES:
-        raise ValueError(f"unknown source adapter: {source}")
+        raise AdapterFetchError(f"unknown source adapter: {source}")
 
     rows, _meta = ensure_source_data(
         normalized,
@@ -134,7 +152,8 @@ def load_source_rows(
     return ordered
 
 
-def normalize_features(rows: list[dict]) -> list[dict]:
+def normalize_features(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Z-score normalize ``promo`` and ``macro_index`` columns in-place."""
     out = [dict(r) for r in rows]
     for col in ["promo", "macro_index"]:
         vals = [r[col] for r in out]
@@ -146,7 +165,8 @@ def normalize_features(rows: list[dict]) -> list[dict]:
     return out
 
 
-def detect_poisoning_rows(rows: list[dict], *, z_threshold: float = 6.0, mad_threshold: float = 8.0) -> list[dict]:
+def detect_poisoning_rows(rows: list[dict[str, Any]], *, z_threshold: float = 6.0, mad_threshold: float = 8.0) -> list[dict[str, Any]]:
+    """Detect potential data-poisoning rows via z-score and MAD thresholds."""
     targets = [r["target"] for r in rows]
     if len(targets) < 3:
         return []
@@ -166,7 +186,8 @@ def detect_poisoning_rows(rows: list[dict], *, z_threshold: float = 6.0, mad_thr
     return suspects
 
 
-def chronological_split(rows: list[dict], train=0.7, valid=0.15) -> DatasetBundle:
+def chronological_split(rows: list[dict[str, Any]], train: float = 0.7, valid: float = 0.15) -> DatasetBundle:
+    """Split *rows* chronologically into train/valid/test partitions."""
     if not (0 < train < 1):
         raise ValueError("train split must be in (0,1)")
     if not (0 <= valid < 1):
@@ -184,18 +205,85 @@ def chronological_split(rows: list[dict], train=0.7, valid=0.15) -> DatasetBundl
     )
 
 
-def build_hybrid_rows(real_rows: list[dict], synthetic_rows: list[dict], *, real_weight: float = 0.5) -> list[dict]:
+def build_hybrid_rows(real_rows: list[dict[str, Any]], synthetic_rows: list[dict[str, Any]], *, real_weight: float = 0.5) -> list[dict[str, Any]]:
+    """Blend real and synthetic rows by *real_weight*, interpolating gaps if scipy is available."""
     if not (0.0 <= real_weight <= 1.0):
         raise ValueError("real_weight must be in [0,1]")
     n = min(len(real_rows), len(synthetic_rows))
     take_real = int(n * real_weight)
     mixed = real_rows[:take_real] + synthetic_rows[take_real:n]
-    return sorted(mixed, key=lambda x: (x["timestamp"], x["series_id"]))
+    mixed = sorted(mixed, key=lambda x: (x["timestamp"], x["series_id"]))
+
+    try:
+        from scipy.interpolate import interp1d
+        import numpy as np
+
+        targets = [r.get("target") for r in mixed]
+        valid_idx = [i for i, t in enumerate(targets) if t is not None and not (isinstance(t, float) and math.isnan(t))]
+        if len(valid_idx) >= 2 and len(valid_idx) < len(targets):
+            xs = np.array(valid_idx, dtype=float)
+            ys = np.array([targets[i] for i in valid_idx], dtype=float)
+            f = interp1d(xs, ys, kind="linear", fill_value="extrapolate")
+            for i, row in enumerate(mixed):
+                t = row.get("target")
+                if t is None or (isinstance(t, float) and math.isnan(t)):
+                    mixed[i] = {**row, "target": float(f(i))}
+    except ImportError:
+        pass
+
+    return mixed
 
 
+
+
+def validate_with_schema(rows: list[dict[str, Any]]) -> list[str]:
+    """Validate rows against a pydantic RowSchema. Returns list of error messages.
+
+    If pydantic is not installed, returns an empty list (validation skipped).
+    """
+    try:
+        from pydantic import BaseModel, ValidationError as PydValidationError
+
+        class RowSchema(BaseModel):
+            timestamp: object
+            series_id: str
+            target: float
+            promo: float
+            macro_index: float
+            source: str = ""
+
+        errors: list[str] = []
+        for idx, row in enumerate(rows):
+            try:
+                RowSchema(**row)
+            except PydValidationError as exc:
+                errors.append(f"row {idx}: {exc}")
+        return errors
+    except ImportError:
+        return []
+
+
+def detect_poisoning_iqr(rows: list[dict[str, Any]], *, iqr_factor: float = 1.5) -> list[dict[str, Any]]:
+    """Detect potential data poisoning using the IQR method.
+
+    Flags rows whose ``target`` value falls outside
+    ``[Q1 - iqr_factor * IQR, Q3 + iqr_factor * IQR]``.
+    """
+    targets = [r["target"] for r in rows]
+    if len(targets) < 3:
+        return []
+    sorted_vals = sorted(targets)
+    n = len(sorted_vals)
+    q1 = sorted_vals[n // 4]
+    q3 = sorted_vals[(3 * n) // 4]
+    iqr = q3 - q1
+    lower = q1 - iqr_factor * iqr
+    upper = q3 + iqr_factor * iqr
+    return [row for row in rows if row["target"] < lower or row["target"] > upper]
 
 
 def should_reject_poisoning(total_rows: int, suspect_rows: int) -> bool:
+    """Return True if the fraction of suspect rows warrants dataset rejection."""
     if suspect_rows <= 0:
         return False
     # avoid hard-failing on a single suspicious point from external feeds
@@ -204,6 +292,7 @@ def should_reject_poisoning(total_rows: int, suspect_rows: int) -> bool:
 
 
 def load_dataset(profile: DataProfile, path: str | Path = "data/sample_demand.csv") -> DatasetBundle:
+    """Load, validate, normalize, and split a dataset according to *profile*."""
     if profile.source == "sample_csv":
         build_sample_dataset(path, periods=profile.periods)
         rows = load_csv(path)
@@ -229,9 +318,22 @@ def load_dataset(profile: DataProfile, path: str | Path = "data/sample_demand.cs
     else:
         rows = load_csv(path)
 
-    suspects = detect_poisoning_rows(rows)
+    schema_errors = validate_with_schema(rows)
+    if schema_errors:
+        import logging as _logging
+        _logging.getLogger(__name__).warning("Schema validation issues: %d rows", len(schema_errors))
+
+    suspects_zscore = detect_poisoning_rows(rows)
+    suspects_iqr = detect_poisoning_iqr(rows)
+    seen_ids = set()
+    suspects: list[dict[str, Any]] = []
+    for s in suspects_zscore + suspects_iqr:
+        row_id = id(s)
+        if row_id not in seen_ids:
+            seen_ids.add(row_id)
+            suspects.append(s)
     if profile.fail_on_poisoning and should_reject_poisoning(len(rows), len(suspects)):
-        raise ValueError("potential data poisoning detected")
+        raise PoisoningDetectedError("potential data poisoning detected")
 
     if profile.normalize:
         rows = normalize_features(rows)
@@ -248,7 +350,7 @@ def build_qual_dataset(
     epoch: datetime | None = None,
     z_threshold: float = 3.0,
     cache_path: str | Path = "data/cache/qual_manifest.json",
-) -> dict[int, dict]:
+) -> dict[int, dict[str, Any]]:
     """Build a timestep-indexed qualitative dataset from multiple adapters.
 
     Returns a mapping from game timestep ``t`` to a dict with keys
@@ -259,7 +361,7 @@ def build_qual_dataset(
     if epoch is None:
         epoch = start_dt
 
-    all_records: list[dict] = []
+    all_records: list[dict[str, Any]] = []
     for adapter_name in qual_adapters:
         rows = fetch_qual_source_rows(adapter_name, start_dt, end_dt)
         all_records.extend(rows)
@@ -271,14 +373,14 @@ def build_qual_dataset(
         mean_len = sum(lengths) / len(lengths)
         var_len = sum((x - mean_len) ** 2 for x in lengths) / max(1, len(lengths) - 1)
         std_len = var_len ** 0.5 if var_len > 0 else 1.0
-        filtered: list[dict] = []
+        filtered: list[dict[str, Any]] = []
         for rec, length in zip(all_records, lengths):
             z = abs((length - mean_len) / std_len)
             if z <= z_threshold:
                 filtered.append(rec)
         all_records = filtered
 
-    dataset: dict[int, dict] = {}
+    dataset: dict[int, dict[str, Any]] = {}
     for rec in all_records:
         ts = rec["timestamp"]
         if isinstance(ts, str):
@@ -307,6 +409,7 @@ def build_qual_dataset(
 
 
 def build_sample_dataset(path: str | Path, periods: int = 365) -> None:
+    """Generate a synthetic demand CSV with seasonal patterns and trends."""
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     start = datetime(2022, 1, 1)

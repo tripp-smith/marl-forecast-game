@@ -1,9 +1,9 @@
 {
-  "checksum": "95533fe9f23fe2e9fb7abccf77410d55cdb9a8a49078ce27e7424efa231d46a6",
-  "fetched_at": "2026-02-22T10:30:49.213616",
+  "checksum": "a70658d2cec1f67c3bca1f238f1c239edc0fcbace04664804b46c1b2121a2153",
+  "fetched_at": "2026-03-03T15:15:24.497070",
   "rows": [
     {
-      "fetched_at": "2026-02-22 10:30:49.212633",
+      "fetched_at": "2026-03-03 15:15:24.496509",
       "macro_index": 105.0,
       "promo": 0.0,
       "series_id": "bis_policy_rate",
@@ -12,7 +12,7 @@
       "timestamp": "2023-01-01 00:00:00"
     },
     {
-      "fetched_at": "2026-02-22 10:30:49.212633",
+      "fetched_at": "2026-03-03 15:15:24.496509",
       "macro_index": 104.0,
       "promo": 0.0,
       "series_id": "bis_policy_rate",
@@ -21,7 +21,7 @@
       "timestamp": "2023-01-31 00:00:00"
     },
     {
-      "fetched_at": "2026-02-22 10:30:49.212633",
+      "fetched_at": "2026-03-03 15:15:24.496509",
       "macro_index": 103.0,
       "promo": 0.0,
       "series_id": "bis_policy_rate",
@@ -30,7 +30,7 @@
       "timestamp": "2023-03-02 00:00:00"
     },
     {
-      "fetched_at": "2026-02-22 10:30:49.212633",
+      "fetched_at": "2026-03-03 15:15:24.496509",
       "macro_index": 102.0,
       "promo": 0.0,
       "series_id": "bis_policy_rate",
@@ -39,7 +39,7 @@
       "timestamp": "2023-04-01 00:00:00"
     },
     {
-      "fetched_at": "2026-02-22 10:30:49.212633",
+      "fetched_at": "2026-03-03 15:15:24.496509",
       "macro_index": 101.0,
       "promo": 0.0,
       "series_id": "bis_policy_rate",
@@ -48,7 +48,7 @@
       "timestamp": "2023-05-01 00:00:00"
     },
     {
-      "fetched_at": "2026-02-22 10:30:49.212633",
+      "fetched_at": "2026-03-03 15:15:24.496509",
       "macro_index": 100.0,
       "promo": 0.0,
       "series_id": "bis_policy_rate",
@@ -57,7 +57,7 @@
       "timestamp": "2023-05-31 00:00:00"
     },
     {
-      "fetched_at": "2026-02-22 10:30:49.212633",
+      "fetched_at": "2026-03-03 15:15:24.496509",
       "macro_index": 99.0,
       "promo": 0.0,
       "series_id": "bis_policy_rate",
@@ -66,7 +66,7 @@
       "timestamp": "2023-06-30 00:00:00"
     },
     {
-      "fetched_at": "2026-02-22 10:30:49.212633",
+      "fetched_at": "2026-03-03 15:15:24.496509",
       "macro_index": 98.0,
       "promo": 0.0,
       "series_id": "bis_policy_rate",
@@ -75,7 +75,7 @@
       "timestamp": "2023-07-30 00:00:00"
     },
     {
-      "fetched_at": "2026-02-22 10:30:49.212633",
+      "fetched_at": "2026-03-03 15:15:24.496509",
       "macro_index": 97.0,
       "promo": 0.0,
       "series_id": "bis_policy_rate",
@@ -84,7 +84,7 @@
       "timestamp": "2023-08-29 00:00:00"
     },
     {
-      "fetched_at": "2026-02-22 10:30:49.212633",
+      "fetched_at": "2026-03-03 15:15:24.496509",
       "macro_index": 96.0,
       "promo": 0.0,
       "series_id": "bis_policy_rate",
@@ -93,7 +93,7 @@
       "timestamp": "2023-09-28 00:00:00"
     },
     {
-      "fetched_at": "2026-02-22 10:30:49.212633",
+      "fetched_at": "2026-03-03 15:15:24.496509",
       "macro_index": 105.0,
       "promo": 0.0,
       "series_id": "bis_policy_rate",
@@ -102,7 +102,7 @@
       "timestamp": "2023-10-28 00:00:00"
     },
     {
-      "fetched_at": "2026-02-22 10:30:49.212633",
+      "fetched_at": "2026-03-03 15:15:24.496509",
       "macro_index": 104.0,
       "promo": 0.0,
       "series_id": "bis_policy_rate",
@@ -111,7 +111,7 @@
       "timestamp": "2023-11-27 00:00:00"
     },
     {
-      "fetched_at": "2026-02-22 10:30:49.212633",
+      "fetched_at": "2026-03-03 15:15:24.496509",
       "macro_index": 103.0,
       "promo": 0.0,
       "series_id": "bis_policy_rate",
@@ -120,7 +120,7 @@
       "timestamp": "2023-12-27 00:00:00"
     },
     {
-      "fetched_at": "2026-02-22 10:30:49.212633",
+      "fetched_at": "2026-03-03 15:15:24.496509",
       "macro_index": 102.0,
       "promo": 0.0,
       "series_id": "bis_policy_rate",
@@ -129,7 +129,7 @@
       "timestamp": "2024-01-26 00:00:00"
     },
     {
-      "fetched_at": "2026-02-22 10:30:49.212633",
+      "fetched_at": "2026-03-03 15:15:24.496509",
       "macro_index": 101.0,
       "promo": 0.0,
       "series_id": "bis_policy_rate",
@@ -138,7 +138,7 @@
       "timestamp": "2024-02-25 00:00:00"
     },
     {
-      "fetched_at": "2026-02-22 10:30:49.212633",
+      "fetched_at": "2026-03-03 15:15:24.496509",
       "macro_index": 100.0,
       "promo": 0.0,
       "series_id": "bis_policy_rate",
@@ -147,7 +147,7 @@
       "timestamp": "2024-03-26 00:00:00"
     },
     {
-      "fetched_at": "2026-02-22 10:30:49.212633",
+      "fetched_at": "2026-03-03 15:15:24.496509",
       "macro_index": 99.0,
       "promo": 0.0,
       "series_id": "bis_policy_rate",
@@ -156,7 +156,7 @@
       "timestamp": "2024-04-25 00:00:00"
     },
     {
-      "fetched_at": "2026-02-22 10:30:49.212633",
+      "fetched_at": "2026-03-03 15:15:24.496509",
       "macro_index": 98.0,
       "promo": 0.0,
       "series_id": "bis_policy_rate",
@@ -165,7 +165,7 @@
       "timestamp": "2024-05-25 00:00:00"
     },
     {
-      "fetched_at": "2026-02-22 10:30:49.212633",
+      "fetched_at": "2026-03-03 15:15:24.496509",
       "macro_index": 97.0,
       "promo": 0.0,
       "series_id": "bis_policy_rate",
@@ -174,7 +174,7 @@
       "timestamp": "2024-06-24 00:00:00"
     },
     {
-      "fetched_at": "2026-02-22 10:30:49.212633",
+      "fetched_at": "2026-03-03 15:15:24.496509",
       "macro_index": 96.0,
       "promo": 0.0,
       "series_id": "bis_policy_rate",
@@ -183,7 +183,7 @@
       "timestamp": "2024-07-24 00:00:00"
     },
     {
-      "fetched_at": "2026-02-22 10:30:49.212633",
+      "fetched_at": "2026-03-03 15:15:24.496509",
       "macro_index": 105.0,
       "promo": 0.0,
       "series_id": "bis_policy_rate",
@@ -192,7 +192,7 @@
       "timestamp": "2024-08-23 00:00:00"
     },
     {
-      "fetched_at": "2026-02-22 10:30:49.212633",
+      "fetched_at": "2026-03-03 15:15:24.496509",
       "macro_index": 104.0,
       "promo": 0.0,
       "series_id": "bis_policy_rate",
@@ -201,7 +201,7 @@
       "timestamp": "2024-09-22 00:00:00"
     },
     {
-      "fetched_at": "2026-02-22 10:30:49.212633",
+      "fetched_at": "2026-03-03 15:15:24.496509",
       "macro_index": 103.0,
       "promo": 0.0,
       "series_id": "bis_policy_rate",
@@ -210,7 +210,7 @@
       "timestamp": "2024-10-22 00:00:00"
     },
     {
-      "fetched_at": "2026-02-22 10:30:49.212633",
+      "fetched_at": "2026-03-03 15:15:24.496509",
       "macro_index": 102.0,
       "promo": 0.0,
       "series_id": "bis_policy_rate",
@@ -219,7 +219,7 @@
       "timestamp": "2024-11-21 00:00:00"
     },
     {
-      "fetched_at": "2026-02-22 10:30:49.212633",
+      "fetched_at": "2026-03-03 15:15:24.496509",
       "macro_index": 101.0,
       "promo": 0.0,
       "series_id": "bis_policy_rate",
@@ -228,7 +228,7 @@
       "timestamp": "2024-12-21 00:00:00"
     },
     {
-      "fetched_at": "2026-02-22 10:30:49.212633",
+      "fetched_at": "2026-03-03 15:15:24.496509",
       "macro_index": 100.0,
       "promo": 0.0,
       "series_id": "bis_policy_rate",
@@ -237,7 +237,7 @@
       "timestamp": "2025-01-20 00:00:00"
     },
     {
-      "fetched_at": "2026-02-22 10:30:49.212633",
+      "fetched_at": "2026-03-03 15:15:24.496509",
       "macro_index": 99.0,
       "promo": 0.0,
       "series_id": "bis_policy_rate",
@@ -246,7 +246,7 @@
       "timestamp": "2025-02-19 00:00:00"
     },
     {
-      "fetched_at": "2026-02-22 10:30:49.212633",
+      "fetched_at": "2026-03-03 15:15:24.496509",
       "macro_index": 98.0,
       "promo": 0.0,
       "series_id": "bis_policy_rate",
@@ -255,7 +255,7 @@
       "timestamp": "2025-03-21 00:00:00"
     },
     {
-      "fetched_at": "2026-02-22 10:30:49.212633",
+      "fetched_at": "2026-03-03 15:15:24.496509",
       "macro_index": 97.0,
       "promo": 0.0,
       "series_id": "bis_policy_rate",
@@ -264,7 +264,7 @@
       "timestamp": "2025-04-20 00:00:00"
     },
     {
-      "fetched_at": "2026-02-22 10:30:49.212633",
+      "fetched_at": "2026-03-03 15:15:24.496509",
       "macro_index": 96.0,
       "promo": 0.0,
       "series_id": "bis_policy_rate",

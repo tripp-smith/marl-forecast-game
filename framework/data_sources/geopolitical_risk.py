@@ -14,12 +14,17 @@ from pathlib import Path
 from urllib.request import urlopen
 
 from .base import NormalizedRecord
+from .retry import RateLimiter, retry
 
 GPR_CSV_URL = "https://www.matteoiacoviello.com/gpr_files/data_gpr_daily_recent.xls"
+
+_gpr_rate_limiter = RateLimiter(calls_per_second=5)
 
 
 @dataclass(frozen=True)
 class GeopoliticalRiskAdapter:
+    """Fetches Caldara-Iacoviello GPR index data from a local file or remote CSV."""
+
     name: str = "gpr"
     local_path: str = "data/gpr_daily.csv"
 
@@ -102,8 +107,19 @@ class GeopoliticalRiskAdapter:
         rows.sort(key=lambda r: r.timestamp)
         return rows[-periods:] if rows else []
 
+    @retry(max_attempts=3)
+    def _fetch_remote(self, periods: int) -> list[NormalizedRecord]:
+        _gpr_rate_limiter.acquire()
+        with urlopen(GPR_CSV_URL, timeout=15) as resp:
+            raw = resp.read()
+        try:
+            text = raw.decode("utf-8")
+        except UnicodeDecodeError:
+            text = raw.decode("latin-1")
+        return self._parse_tabular(text, periods)
+
     def fetch(self, periods: int = 30) -> list[NormalizedRecord]:
-        # Try local file first
+        """Return up to *periods* GPR index records from local file, remote, or synthetic data."""
         p = Path(self.local_path)
         if p.exists():
             try:
@@ -114,15 +130,8 @@ class GeopoliticalRiskAdapter:
             except Exception:
                 pass
 
-        # Try remote download
         try:
-            with urlopen(GPR_CSV_URL, timeout=15) as resp:
-                raw = resp.read()
-            try:
-                text = raw.decode("utf-8")
-            except UnicodeDecodeError:
-                text = raw.decode("latin-1")
-            parsed = self._parse_tabular(text, periods)
+            parsed = self._fetch_remote(periods)
             if parsed:
                 return parsed
         except Exception:

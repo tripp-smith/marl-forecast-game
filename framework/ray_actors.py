@@ -7,7 +7,7 @@ from typing import Any
 try:
     import ray
 except ImportError:
-    ray = None  # type: ignore[assignment]
+    ray = None  # type: ignore[assignment,unused-ignore]
 
 from .agents import AdversaryAgent, DefenderAgent, ForecastingAgent
 from .strategy_runtime import runtime_from_name
@@ -96,9 +96,9 @@ if ray is not None:
     RayAdversaryActor = ray.remote(_RayAdversaryActorImpl)
     RayDefenderActor = ray.remote(_RayDefenderActorImpl)
 else:
-    RayForecasterActor = _RayForecasterActorImpl  # type: ignore[assignment,misc]
-    RayAdversaryActor = _RayAdversaryActorImpl  # type: ignore[assignment,misc]
-    RayDefenderActor = _RayDefenderActorImpl  # type: ignore[assignment,misc]
+    RayForecasterActor = _RayForecasterActorImpl  # type: ignore[assignment,misc,unused-ignore]
+    RayAdversaryActor = _RayAdversaryActorImpl  # type: ignore[assignment,misc,unused-ignore]
+    RayDefenderActor = _RayDefenderActorImpl  # type: ignore[assignment,misc,unused-ignore]
 
 
 @dataclass

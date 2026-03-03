@@ -1,3 +1,4 @@
+"""Kaggle demand-forecasting adapter — loads locally-downloaded CSVs with auto-detected columns."""
 from __future__ import annotations
 
 import csv
@@ -8,6 +9,9 @@ from pathlib import Path
 from typing import Any
 
 from .base import NormalizedRecord
+from .retry import RateLimiter, retry
+
+_kaggle_rate_limiter = RateLimiter(calls_per_second=5)
 
 COLUMN_ALIASES = {
     "date": "timestamp",
@@ -65,6 +69,7 @@ class KaggleDemandAdapter:
         return rows
 
     def fetch(self, periods: int = 30) -> list[NormalizedRecord]:
+        """Return up to *periods* demand records from a local Kaggle CSV or synthetic data."""
         p = Path(self.path)
         if not p.exists():
             logging.info("Kaggle CSV not found at %s; using synthetic proxy", self.path)
@@ -73,7 +78,7 @@ class KaggleDemandAdapter:
         try:
             with open(p, newline="", encoding="utf-8") as f:
                 reader = csv.DictReader(f)
-                headers = reader.fieldnames or []
+                headers: list[str] = list(reader.fieldnames or [])
                 mapping = self._detect_mapping(headers)
 
                 if "timestamp" not in mapping or "target" not in mapping:

@@ -1,3 +1,4 @@
+"""Ollama-backed LLM clients for generation, embedding, and strategy refactoring."""
 from __future__ import annotations
 
 import logging
@@ -16,6 +17,7 @@ from .mock import MockLLMRefactorClient
 
 @dataclass(frozen=True)
 class OllamaClient:
+    """Low-level client for the Ollama generate and embeddings APIs."""
     base_url: str = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
     model: str = "llama3.2"
     keep_alive: str = "5m"
@@ -30,6 +32,16 @@ class OllamaClient:
         round_idx: int | None = None,
         agent: str = "",
     ) -> str:
+        """Send a prompt to Ollama and return the response text.
+
+        Args:
+            prompt: The input text.
+            seed: Optional RNG seed for reproducibility.
+            temperature: Sampling temperature override.
+            format_schema: Optional JSON-schema string for structured output.
+            round_idx: Game round index for audit logging.
+            agent: Agent identifier for audit logging.
+        """
         payload: dict[str, Any] = {
             "model": self.model,
             "prompt": prompt,
@@ -78,6 +90,7 @@ class OllamaClient:
         round_idx: int | None = None,
         agent: str = "",
     ) -> list[float]:
+        """Return an embedding vector for *text* via the Ollama embeddings API."""
         payload = {"model": self.model, "prompt": text, "keep_alive": self.keep_alive}
         data = json.dumps(payload).encode("utf-8")
         req_url = f"{self.base_url}/api/embeddings"
@@ -110,6 +123,8 @@ class OllamaClient:
 
 @dataclass(frozen=True)
 class DSPyLikeRepl:
+    """Convenience wrapper that pairs a generate call with an embedding call."""
+
     client: OllamaClient
 
     def run_turn(
@@ -119,6 +134,7 @@ class DSPyLikeRepl:
         round_idx: int | None = None,
         agent: str = "",
     ) -> dict[str, Any]:
+        """Generate a completion and its embedding, returning both in a dict."""
         completion = self.client.generate(
             prompt, round_idx=round_idx, agent=agent,
         )
@@ -151,6 +167,7 @@ class OllamaRefactorClient:
         request: RefactorRequest,
         **kwargs: object,
     ) -> RefactorSuggestion:
+        """Query Ollama for a bias adjustment; falls back to mock on failure."""
         prompt = (
             f"Given a forecasting strategy '{request.strategy_name}' with latest error "
             f"{request.latest_error:.6f}, suggest a numeric bias adjustment (single float) "

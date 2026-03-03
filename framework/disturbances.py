@@ -1,3 +1,4 @@
+"""Disturbance models for injecting adversarial noise into the forecast game."""
 from __future__ import annotations
 
 import logging
@@ -9,11 +10,14 @@ from .types import ForecastState, SimulationConfig
 
 
 class DisturbanceModel(Protocol):
+    """Protocol for disturbance models that sample perturbation values."""
+
     def sample(self, state: ForecastState, rng: Random, config: SimulationConfig) -> float: ...
 
 
 @dataclass(frozen=True)
 class GaussianDisturbance:
+    """Standard Gaussian disturbance scaled by adversarial intensity."""
     def sample(self, state: ForecastState, rng: Random, config: SimulationConfig) -> float:
         if rng.random() <= config.disturbance_prob:
             return rng.gauss(0, config.disturbance_scale * config.adversarial_intensity)
@@ -22,6 +26,8 @@ class GaussianDisturbance:
 
 @dataclass(frozen=True)
 class ShiftDisturbance:
+    """Fixed-magnitude level shift disturbance."""
+
     shift: float = 0.35
 
     def sample(self, state: ForecastState, rng: Random, config: SimulationConfig) -> float:
@@ -32,6 +38,8 @@ class ShiftDisturbance:
 
 @dataclass(frozen=True)
 class EvasionDisturbance:
+    """Directional disturbance that pushes in the same direction as the current value."""
+
     factor: float = 0.2
 
     def sample(self, state: ForecastState, rng: Random, config: SimulationConfig) -> float:
@@ -43,6 +51,8 @@ class EvasionDisturbance:
 
 @dataclass(frozen=True)
 class VolatilityScaledDisturbance:
+    """Gaussian disturbance with scale proportional to recent state volatility."""
+
     min_scale: float = 0.05
 
     def sample(self, state: ForecastState, rng: Random, config: SimulationConfig) -> float:
@@ -54,6 +64,8 @@ class VolatilityScaledDisturbance:
 
 @dataclass(frozen=True)
 class RegimeShiftDisturbance:
+    """Periodic level-shift disturbance occurring every N steps."""
+
     level_shift: float = 0.8
     every_n_steps: int = 12
 
@@ -68,6 +80,8 @@ class RegimeShiftDisturbance:
 
 @dataclass(frozen=True)
 class VolatilityBurstDisturbance:
+    """High-magnitude Gaussian burst disturbance."""
+
     burst_scale: float = 2.5
 
     def sample(self, state: ForecastState, rng: Random, config: SimulationConfig) -> float:
@@ -79,6 +93,8 @@ class VolatilityBurstDisturbance:
 
 @dataclass(frozen=True)
 class DriftDisturbance:
+    """Systematic drift disturbance that grows linearly with time step."""
+
     step_drift: float = 0.03
 
     def sample(self, state: ForecastState, rng: Random, config: SimulationConfig) -> float:
@@ -156,7 +172,68 @@ class WolfpackDisturbance:
         return rng.gauss(0, config.disturbance_scale * config.adversarial_intensity * self.secondary_scale)
 
 
+@dataclass(frozen=True)
+class HMMRegimeShiftDisturbance:
+    """Regime-shift disturbance using a Hidden Markov Model (hmmlearn).
+
+    Falls back to :class:`RegimeShiftDisturbance` behaviour when ``hmmlearn``
+    is not installed.  Sub-phase: H (Advanced Adversarial Models).
+    """
+
+    n_regimes: int = 3
+    transition_scale: float = 0.5
+
+    def sample(self, state: ForecastState, rng: Random, config: SimulationConfig) -> float:
+        if rng.random() > config.disturbance_prob:
+            return 0.0
+        try:
+            from hmmlearn.hmm import GaussianHMM
+
+            model = GaussianHMM(n_components=self.n_regimes, covariance_type="diag", n_iter=5)
+            import numpy as np
+
+            seed_val = int(abs(state.t * 17 + id(rng)) % (2**31))
+            rs = np.random.RandomState(seed_val)
+            model.startprob_ = np.ones(self.n_regimes) / self.n_regimes
+            model.transmat_ = np.ones((self.n_regimes, self.n_regimes)) / self.n_regimes
+            model.means_ = np.array([[i * self.transition_scale] for i in range(self.n_regimes)])
+            model.covars_ = np.ones((self.n_regimes, 1)) * (config.disturbance_scale ** 2)
+            samples, _ = model.sample(1, random_state=rs)
+            return float(samples[0, 0]) * config.adversarial_intensity
+        except ImportError:
+            fallback = RegimeShiftDisturbance(level_shift=self.transition_scale)
+            return fallback.sample(state, rng, config)
+
+
+@dataclass(frozen=True)
+class GARCHDisturbance:
+    """GARCH(1,1)-inspired volatility disturbance.
+
+    Maintains volatility state via a mutable wrapper since the dataclass is
+    frozen.  ``sigma_t^2 = omega + alpha * eps_{t-1}^2 + beta * sigma_{t-1}^2``.
+    Sub-phase: H (Advanced Adversarial Models).
+    """
+
+    alpha: float = 0.1
+    beta: float = 0.85
+    omega: float = 0.05
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "_vol_state", [self.omega / max(1e-9, 1.0 - self.alpha - self.beta)])
+
+    def sample(self, state: ForecastState, rng: Random, config: SimulationConfig) -> float:
+        if rng.random() > config.disturbance_prob:
+            return 0.0
+        vol_state = object.__getattribute__(self, "_vol_state")
+        sigma2 = vol_state[0]
+        sigma = max(1e-9, sigma2) ** 0.5
+        eps = rng.gauss(0, sigma * config.disturbance_scale * config.adversarial_intensity)
+        vol_state[0] = self.omega + self.alpha * eps * eps + self.beta * sigma2
+        return eps
+
+
 def disturbance_from_name(name: str) -> DisturbanceModel:
+    """Instantiate a disturbance model by name, defaulting to Gaussian."""
     normalized = name.strip().lower()
     if normalized in {"gaussian", "default"}:
         return GaussianDisturbance()
@@ -178,5 +255,9 @@ def disturbance_from_name(name: str) -> DisturbanceModel:
         return EscalatingDisturbance()
     if normalized in {"wolfpack", "wolf_pack"}:
         return WolfpackDisturbance()
+    if normalized in {"hmm", "hmm_regime"}:
+        return HMMRegimeShiftDisturbance()
+    if normalized in {"garch", "garch_vol"}:
+        return GARCHDisturbance()
     logging.warning("Unknown disturbance model '%s', defaulting to GaussianDisturbance", name)
     return GaussianDisturbance()

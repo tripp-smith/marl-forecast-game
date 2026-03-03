@@ -15,6 +15,8 @@ from ..types import TrajectoryEntry
 
 @dataclass(frozen=True)
 class RefinementResult:
+    """Output of a refinement pass: clamped bias, hint, and raw diagnostics."""
+
     bias_adjustment: float
     strategy_hint: str
     raw_response: str
@@ -29,6 +31,7 @@ class RecursiveStrategyRefiner:
     clamp_max: float = 0.1
 
     def refine(self, trajectories: list[TrajectoryEntry]) -> RefinementResult:
+        """Analyse *trajectories* and return a clamped bias adjustment suggestion."""
         if not trajectories:
             return RefinementResult(bias_adjustment=0.0, strategy_hint="no data", raw_response="")
 

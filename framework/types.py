@@ -1,3 +1,4 @@
+"""Core immutable data types for the forecasting game simulation."""
 from __future__ import annotations
 
 import dataclasses
@@ -6,11 +7,14 @@ from dataclasses import dataclass, field, fields, replace
 from types import MappingProxyType
 from typing import Any, Mapping, Tuple
 
+from .exceptions import ConfigValidationError
+
 
 _EMPTY_MAPPING: Mapping[str, float] = MappingProxyType({})
 
 
 def frozen_mapping(values: dict[str, float]) -> Mapping[str, float]:
+    """Wrap a dict as an immutable MappingProxyType."""
     return MappingProxyType(dict(values))
 
 
@@ -44,12 +48,16 @@ class ForecastState:
 
 @dataclass(frozen=True)
 class AgentAction:
+    """A single agent's proposed delta adjustment."""
+
     actor: str
     delta: float
 
 
 @dataclass(frozen=True)
 class AgentMessage:
+    """Inter-agent communication payload."""
+
     sender: str
     receiver: str
     payload: str
@@ -57,12 +65,16 @@ class AgentMessage:
 
 @dataclass(frozen=True)
 class ConfidenceInterval:
+    """Lower and upper bounds of a forecast confidence interval."""
+
     lower: float
     upper: float
 
 
 @dataclass(frozen=True)
 class ProbabilisticForecast:
+    """Gaussian predictive distribution with optional quantiles."""
+
     mean: float
     variance: float
     quantiles: Tuple[float, ...] = ()
@@ -70,6 +82,8 @@ class ProbabilisticForecast:
 
 @dataclass(frozen=True)
 class TrajectoryEntry:
+    """Single-round record of state, actions, messages, rewards, and forecast vs. target."""
+
     round_idx: int
     state: ForecastState
     actions: Tuple[AgentAction, ...]
@@ -81,6 +95,8 @@ class TrajectoryEntry:
 
 @dataclass(frozen=True)
 class StepResult:
+    """Result of a single simulation step including next state and metrics."""
+
     next_state: ForecastState
     actions: Tuple[AgentAction, ...]
     reward_breakdown: Mapping[str, float]
@@ -93,6 +109,8 @@ class StepResult:
 
 @dataclass(frozen=True)
 class SimulationConfig:
+    """Complete configuration for a forecast game simulation run."""
+
     horizon: int = 100
     max_rounds: int = 200
     max_round_timeout_s: float = 1.0
@@ -133,50 +151,51 @@ class SimulationConfig:
     mnpo_eta: float = 1.0
     mnpo_beta: float = 0.1
     mnpo_population_size: int = 10
+    start_date: str = ""
 
     def __post_init__(self) -> None:
         if self.horizon < 0:
-            raise ValueError("horizon must be >= 0")
+            raise ConfigValidationError("horizon must be >= 0")
         if self.max_rounds < 0:
-            raise ValueError("max_rounds must be >= 0")
+            raise ConfigValidationError("max_rounds must be >= 0")
         if self.max_round_timeout_s <= 0:
-            raise ValueError("max_round_timeout_s must be > 0")
+            raise ConfigValidationError("max_round_timeout_s must be > 0")
         if self.base_noise_std < 0:
-            raise ValueError("base_noise_std must be >= 0")
+            raise ConfigValidationError("base_noise_std must be >= 0")
         if not (0.0 <= self.disturbance_prob <= 1.0):
-            raise ValueError("disturbance_prob must be in [0, 1]")
+            raise ConfigValidationError("disturbance_prob must be in [0, 1]")
         if self.disturbance_scale < 0:
-            raise ValueError("disturbance_scale must be >= 0")
+            raise ConfigValidationError("disturbance_scale must be >= 0")
         if self.adversarial_intensity < 0:
-            raise ValueError("adversarial_intensity must be >= 0")
+            raise ConfigValidationError("adversarial_intensity must be >= 0")
         if self.attack_cost < 0:
-            raise ValueError("attack_cost must be >= 0")
+            raise ConfigValidationError("attack_cost must be >= 0")
         if self.convergence_threshold < 0:
-            raise ValueError("convergence_threshold must be >= 0")
+            raise ConfigValidationError("convergence_threshold must be >= 0")
         if self.adversary_tau_init <= 0:
-            raise ValueError("adversary_tau_init must be > 0")
+            raise ConfigValidationError("adversary_tau_init must be > 0")
         if self.adversary_tau_final <= 0:
-            raise ValueError("adversary_tau_final must be > 0")
+            raise ConfigValidationError("adversary_tau_final must be > 0")
         if self.tau_decay_rate <= 0:
-            raise ValueError("tau_decay_rate must be > 0")
+            raise ConfigValidationError("tau_decay_rate must be > 0")
         if not (0.0 < self.bankruptcy_threshold < 1.0):
-            raise ValueError("bankruptcy_threshold must be in (0, 1)")
+            raise ConfigValidationError("bankruptcy_threshold must be in (0, 1)")
         if not (0.0 < self.wolfpack_correlation_threshold <= 1.0):
-            raise ValueError("wolfpack_correlation_threshold must be in (0, 1]")
+            raise ConfigValidationError("wolfpack_correlation_threshold must be in (0, 1]")
         if self.decay_rate < 0:
-            raise ValueError("decay_rate must be >= 0")
+            raise ConfigValidationError("decay_rate must be >= 0")
         if self.feature_dim < 1:
-            raise ValueError("feature_dim must be >= 1")
+            raise ConfigValidationError("feature_dim must be >= 1")
         if self.regime_classes < 1:
-            raise ValueError("regime_classes must be >= 1")
+            raise ConfigValidationError("regime_classes must be >= 1")
         if self.max_context_tokens < 1:
-            raise ValueError("max_context_tokens must be >= 1")
+            raise ConfigValidationError("max_context_tokens must be >= 1")
         if self.mnpo_eta <= 0:
-            raise ValueError("mnpo_eta must be > 0")
+            raise ConfigValidationError("mnpo_eta must be > 0")
         if self.mnpo_beta <= 0:
-            raise ValueError("mnpo_beta must be > 0")
+            raise ConfigValidationError("mnpo_beta must be > 0")
         if self.mnpo_population_size < 1:
-            raise ValueError("mnpo_population_size must be >= 1")
+            raise ConfigValidationError("mnpo_population_size must be >= 1")
 
 
 def decay_qualitative_state(
@@ -203,6 +222,17 @@ def evolve_state(
     qual_override: dict[str, Any] | None = None,
     decay_rate: float = 0.01,
 ) -> ForecastState:
+    """Advance *state* by one time step, applying trend, noise, and disturbance.
+
+    Args:
+        state: Current forecast state.
+        base_trend: Deterministic trend component.
+        noise: Stochastic noise component.
+        disturbance: Adversarial or environmental disturbance.
+        coeff_map: Optional macro-context coefficient mapping.
+        qual_override: Optional qualitative field overrides.
+        decay_rate: Exponential decay rate for qualitative state.
+    """
     macro_contribution = 0.0
     if coeff_map and state.macro_context:
         for k, coeff in coeff_map.items():

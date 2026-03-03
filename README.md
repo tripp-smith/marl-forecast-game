@@ -8,7 +8,7 @@ A multi-agent adversarial forecasting framework that models prediction as a Mark
 - Immutable simulation state via frozen dataclasses with pure-functional transitions
 - 8 agent types: forecaster, adversary, wolfpack adversary, defender, refactorer, bottom-up, top-down, ensemble aggregator
 - Flexible `AgentRegistry` supporting variable agent counts and hierarchical composition
-- Pluggable strategy runtimes (Python, Haskell subprocess, LLM-backed)
+- Pluggable strategy runtimes (Python and LLM-backed)
 
 **Adversarial Robustness**
 - 10 disturbance models: Gaussian, shift, evasion, volatility-scaled, regime shift, volatility burst, drift, historical, escalating, wolfpack
@@ -202,7 +202,7 @@ marl-forecast-game/
 │   ├── metrics.py                 #   MAE, RMSE, MAPE, PIT, CRPS, neg_crps, interval coverage
 │   ├── disturbances.py            #   10 disturbance models + factory
 │   ├── defenses.py                #   5 defense models + stacked combinator + factory
-│   ├── strategy_runtime.py        #   Runtime backends: Python, Haskell, Prompt, ModelBackend
+│   ├── strategy_runtime.py        #   Runtime backends: Python, Prompt, ModelBackend
 │   ├── data.py                    #   Dataset loading, splitting, poisoning detection
 │   ├── data_utils.py              #   Caching, integrity validation, FredTrainingDataBuilder
 │   ├── observability.py           #   structlog + Prometheus instrumentation
@@ -233,10 +233,6 @@ marl-forecast-game/
 ├── tests/                         # Test suite
 │   ├── test_framework.py          #   70 unit/integration tests
 │   └── test_properties.py         #   21 Hypothesis property-based tests
-├── haskell/                       # Haskell migration scaffold
-│   ├── src/Types.hs               #   ForecastState ADT
-│   ├── src/Game.hs                #   Pure evolveState transition
-│   └── test/Main.hs               #   QuickCheck determinism property
 ├── data/                          # Data artifacts
 │   ├── cache/                     #   Cached API responses (FRED, IMF, Polymarket)
 │   ├── models/                    #   Serialized Q-tables
@@ -265,7 +261,7 @@ marl-forecast-game/
 | `disturbance_prob` | float | 0.1 | Probability of disturbance per round |
 | `disturbance_scale` | float | 1.0 | Disturbance amplitude multiplier |
 | `adversarial_intensity` | float | 1.0 | Adversary aggressiveness scale |
-| `runtime_backend` | str | `"python"` | `python`, `haskell`, or `prompt` |
+| `runtime_backend` | str | `"python"` | `python` or `prompt` |
 | `disturbance_model` | str | `"gaussian"` | Disturbance model name |
 | `defense_model` | str | `"dampening"` | Defense model name |
 | `enable_refactor` | bool | True | Enable refactoring agent |
@@ -302,7 +298,6 @@ See [docs/configuration.md](docs/configuration.md) for `DataProfile`, runtime ba
 | [docs/llm-integration.md](docs/llm-integration.md) | Ollama, DSPyLikeRepl, recursive strategy refinement |
 | [docs/configuration.md](docs/configuration.md) | SimulationConfig, DataProfile, model registries |
 | [docs/deployment.md](docs/deployment.md) | Docker, CI/CD, container harness, distributed execution |
-| [docs/haskell-migration.md](docs/haskell-migration.md) | Haskell scaffold, subprocess bridge, QuickCheck parity |
 | [PRD.md](PRD.md) | Product requirements document |
 | [DRD.md](DRD.md) | Data requirements document |
 

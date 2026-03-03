@@ -1,7 +1,9 @@
+"""End-to-end verification suite testing data ingestion, determinism, and robustness."""
 from __future__ import annotations
 
 from dataclasses import replace
 from hashlib import sha256
+from typing import Any
 
 from .data import DataProfile, load_dataset, load_source_rows
 from .distributed import ParallelGameRunner, RayParallelGameRunner, parallel_runner
@@ -11,7 +13,7 @@ from .observability import export_prometheus_metrics
 from .types import ForecastState, SimulationConfig, evolve_state
 
 
-def _scenario_metrics(cfg: SimulationConfig, init: ForecastState) -> dict:
+def _scenario_metrics(cfg: SimulationConfig, init: ForecastState) -> dict[str, Any]:
     game_clean = ForecastGame(cfg, seed=13)
     game_attack = ForecastGame(cfg, seed=13)
     clean = game_clean.run(init, disturbed=False)
@@ -37,6 +39,12 @@ def _scenario_metrics(cfg: SimulationConfig, init: ForecastState) -> dict:
         "robustness": {
             "mae_delta": robustness_delta(clean_metrics["mae"], attack_metrics["mae"]),
             "mae_ratio": robustness_ratio(clean_metrics["mae"], attack_metrics["mae"]),
+            "rmse_delta": robustness_delta(clean_metrics["rmse"], attack_metrics["rmse"]),
+            "rmse_ratio": robustness_ratio(clean_metrics["rmse"], attack_metrics["rmse"]),
+            "mape_delta": robustness_delta(clean_metrics["mape"], attack_metrics["mape"]),
+            "mape_ratio": robustness_ratio(clean_metrics["mape"], attack_metrics["mape"]),
+            "worst_case_delta": robustness_delta(clean_metrics["worst_case"], attack_metrics["worst_case"]),
+            "worst_case_ratio": robustness_ratio(clean_metrics["worst_case"], attack_metrics["worst_case"]),
         },
         "convergence": attack.convergence,
     }
@@ -47,10 +55,10 @@ def _verify_qualitative_determinism(
     init: ForecastState,
     *,
     verification_runs: int = 100,
-) -> dict:
+) -> dict[str, Any]:
     """Run N identical qual-enabled simulations and assert identical outputs."""
     qual_cfg = replace(base_cfg, enable_qual=True)
-    qual_dataset: dict[int, dict] = {
+    qual_dataset: dict[int, dict[str, Any]] = {
         5: {
             "timestamp": "2023-01-05",
             "source_id": "beige_book",
@@ -92,7 +100,13 @@ def _verify_qualitative_determinism(
     }
 
 
-def run_verification(backend: str = "auto", *, enable_qual: bool = False) -> dict:
+def run_verification(backend: str = "auto", *, enable_qual: bool = False) -> dict[str, Any]:
+    """Execute the full verification battery and return a results dict.
+
+    Args:
+        backend: Parallel runner backend (``"auto"``, ``"ray"``, or ``"multiprocessing"``).
+        enable_qual: Include qualitative-determinism checks.
+    """
     bundle = load_dataset(DataProfile(source="sample_csv", periods=240, normalize=True))
 
     cfg = SimulationConfig(
@@ -141,6 +155,20 @@ def run_verification(backend: str = "auto", *, enable_qual: bool = False) -> dic
         )
         intensity_sweep[str(intensity)] = clean_result["robustness"]
 
+    synth_bundle = load_dataset(DataProfile(source="sample_csv", periods=60, normalize=True))
+    synth_init = ForecastState(t=0, value=float(synth_bundle.train[-1]["target"]), exogenous=0.0, hidden_shift=0.0)
+    synth_out = ForecastGame(cfg, seed=13).run(synth_init, disturbed=False)
+    hybrid_out = ForecastGame(cfg, seed=13).run(
+        ForecastState(t=0, value=float(hybrid_bundle.train[-1]["target"]), exogenous=0.0, hidden_shift=0.0),
+        disturbed=False,
+    )
+    synth_mae_val = mae(synth_out.targets, synth_out.forecasts)
+    hybrid_mae_val = mae(hybrid_out.targets, hybrid_out.forecasts)
+    hybrid_mae_within_10pct = (
+        abs(hybrid_mae_val - synth_mae_val) / max(1e-9, synth_mae_val) < 0.10
+        if synth_mae_val > 0 else True
+    )
+
     checks = {
         "split_non_empty": len(bundle.train) > 0 and len(bundle.valid) > 0 and len(bundle.test) > 0,
         "pure_transition": s1 == deterministic_again,
@@ -152,7 +180,28 @@ def run_verification(backend: str = "auto", *, enable_qual: bool = False) -> dic
         "deterministic_100_runs": deterministic_ok,
         "stress_10k_rounds": stress_run.convergence["rounds_executed"] == 10_000,
         "parallel_runner_available": isinstance(runner, (ParallelGameRunner, RayParallelGameRunner)),
+        "hybrid_mae_within_10pct": hybrid_mae_within_10pct,
     }
+
+    undef_cfg = replace(cfg, defense_model="identity")
+    undef_metrics = _scenario_metrics(undef_cfg, init)
+    undef_clean_mae = undef_metrics["clean"]["mae"]
+    undef_attack_mae = undef_metrics["attack"]["mae"]
+    undef_exceeds_20pct = (
+        (undef_attack_mae - undef_clean_mae) / max(1e-9, undef_clean_mae) >= 0.20
+        if undef_clean_mae > 0 else False
+    )
+    checks["undefended_attack_exceeds_20pct"] = undef_exceeds_20pct
+
+    defended_cfg = replace(cfg, defense_model="ensemble")
+    defended_metrics = _scenario_metrics(defended_cfg, init)
+    defended_clean_mae = defended_metrics["clean"]["mae"]
+    defended_attack_mae = defended_metrics["attack"]["mae"]
+    defended_within_5pct = (
+        abs(defended_attack_mae - defended_clean_mae) / max(1e-9, defended_clean_mae) < 0.05
+        if defended_clean_mae > 0 else True
+    )
+    checks["defended_attack_within_5pct"] = defended_within_5pct
 
     if enable_qual:
         qual_check = _verify_qualitative_determinism(

@@ -34,10 +34,12 @@ class DiscreteActionSpace:
         return (2.0 * self.max_delta) / max(1, self.n_bins - 1)
 
     def action_to_delta(self, idx: int) -> float:
+        """Convert a discrete bin index to a continuous delta value."""
         clamped = max(0, min(idx, self.n_bins - 1))
         return -self.max_delta + clamped * self.bin_width
 
     def delta_to_action(self, delta: float) -> int:
+        """Convert a continuous delta to the nearest discrete bin index."""
         clamped = max(-self.max_delta, min(self.max_delta, delta))
         idx = round((clamped + self.max_delta) / self.bin_width)
         return max(0, min(idx, self.n_bins - 1))
@@ -75,6 +77,7 @@ class QTableAgent:
         return self._q_table[state_key]
 
     def act(self, state: ForecastState) -> int:
+        """Select an action via epsilon-greedy exploration."""
         state_key = _state_hash(state)
         if self._rng.random() < self.epsilon:
             return self._rng.randint(0, self.action_space.n_bins - 1)
@@ -92,6 +95,7 @@ class QTableAgent:
         return int(self._rng.choices(range(len(probs)), weights=probs.tolist())[0])
 
     def update(self, state: ForecastState, action: int, reward: float, next_state: ForecastState) -> float:
+        """Perform a Q-learning update and return the TD error."""
         s_key = _state_hash(state)
         ns_key = _state_hash(next_state)
         q = self._get_q(s_key)
@@ -99,9 +103,10 @@ class QTableAgent:
         td_error = reward + self.gamma * float(np.max(nq)) - q[action]
         q[action] += self.alpha * td_error
         self.epsilon = max(self.epsilon_min, self.epsilon * self.epsilon_decay)
-        return td_error
+        return float(td_error)
 
     def to_dict(self) -> dict[str, Any]:
+        """Serialize Q-table and hyperparameters to a JSON-compatible dict."""
         return {
             "q_table": {str(k): v.tolist() for k, v in self._q_table.items()},
             "epsilon": self.epsilon,
@@ -111,6 +116,7 @@ class QTableAgent:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> QTableAgent:
+        """Deserialize a QTableAgent from a dict produced by ``to_dict``."""
         action_space = DiscreteActionSpace(n_bins=data["n_bins"], max_delta=data["max_delta"])
         agent = cls(action_space=action_space, epsilon=data.get("epsilon", 0.05))
         for k, v in data.get("q_table", {}).items():
@@ -196,6 +202,7 @@ class TrainingLoop:
         adversary_agent: QTableAgent | None = None,
         init_state: ForecastState | None = None,
     ) -> dict[str, Any]:
+        """Run training episodes and return convergence statistics."""
         if init_state is None:
             init_state = ForecastState(t=0, value=10.0, exogenous=0.0, hidden_shift=0.0)
 
@@ -245,12 +252,14 @@ class TrainingLoop:
 
     @staticmethod
     def save_q_table(agent: QTableAgent, path: str | Path) -> None:
+        """Persist a QTableAgent to JSON at *path*."""
         p = Path(path)
         p.parent.mkdir(parents=True, exist_ok=True)
         p.write_text(json.dumps(agent.to_dict(), indent=2), encoding="utf-8")
 
     @staticmethod
     def load_q_table(path: str | Path) -> QTableAgent:
+        """Load a QTableAgent from a JSON file at *path*."""
         data = json.loads(Path(path).read_text(encoding="utf-8"))
         return QTableAgent.from_dict(data)
 
@@ -280,6 +289,7 @@ class RADversarialTrainer:
         adversary: QTableAgent,
         init_state: ForecastState | None = None,
     ) -> dict[str, Any]:
+        """Run alternating adversary/forecaster training epochs."""
         if init_state is None:
             init_state = ForecastState(t=0, value=10.0, exogenous=0.0, hidden_shift=0.0)
 

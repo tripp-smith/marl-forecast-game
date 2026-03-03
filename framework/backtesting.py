@@ -12,6 +12,8 @@ from .types import ForecastState, SimulationConfig
 
 @dataclass(frozen=True)
 class WindowResult:
+    """Metrics for a single backtest window."""
+
     window_idx: int
     train_start: int
     train_end: int
@@ -24,6 +26,8 @@ class WindowResult:
 
 @dataclass(frozen=True)
 class BacktestResult:
+    """Aggregate results across all backtest windows."""
+
     n_windows: int
     window_results: tuple[WindowResult, ...]
     aggregate_mae: float
@@ -39,7 +43,8 @@ class WalkForwardBacktester:
     step_size: int = 20
     seed: int = 42
 
-    def run(self, rows: list[dict], *, max_windows: int = 50) -> BacktestResult:
+    def run(self, rows: list[dict[str, Any]], *, max_windows: int = 50) -> BacktestResult:
+        """Execute walk-forward backtesting over *rows* and return aggregate results."""
         n = len(rows)
         if n < self.window_size + self.step_size:
             return BacktestResult(n_windows=0, window_results=(), aggregate_mae=0.0, aggregate_rmse=0.0)
@@ -110,6 +115,7 @@ class SensitivityAnalyzer:
         init_state: ForecastState,
         factors: list[str] | None = None,
     ) -> dict[str, float]:
+        """Compute normalized importance scores for macro-context factors."""
         if factors is None:
             factors = list(init_state.macro_context.keys()) if init_state.macro_context else []
 
