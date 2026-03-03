@@ -9,6 +9,7 @@ from typing import Any
 from .base import RefactorRequest
 from .mock import MockLLMRefactorClient
 from .ollama import OllamaRefactorClient
+from ..mnpo_loss import mnpo_loss
 from ..types import TrajectoryEntry
 
 
@@ -53,3 +54,19 @@ class RecursiveStrategyRefiner:
             strategy_hint=suggestion.rationale,
             raw_response=f"mean_reward={mean_reward:.4f} worst_error={worst_error:.4f}",
         )
+
+
+    def mnpo_refine(self, pair_logprobs: list[tuple[float, float]], eta: float = 1.0, beta: float = 0.1) -> float:
+        """Compute MNPO-style preference loss for strategy refinement loops."""
+        if not pair_logprobs:
+            return 0.0
+        import numpy as np
+
+        policy = np.array([p[0] for p in pair_logprobs], dtype=float)
+        baseline = np.array([p[1] for p in pair_logprobs], dtype=float)
+        winners = np.arange(len(pair_logprobs), dtype=int)
+        losers = np.zeros(len(pair_logprobs), dtype=int)
+        stacked = np.empty(len(pair_logprobs) * 2, dtype=float)
+        stacked[0::2] = policy
+        stacked[1::2] = baseline
+        return float(mnpo_loss(stacked, [], winners, losers, [], eta=eta, beta=beta))

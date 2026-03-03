@@ -3,6 +3,7 @@ from __future__ import annotations
 from contextlib import contextmanager
 from dataclasses import dataclass
 import logging
+import os
 from typing import Any, Callable, Generator
 
 # ---------------------------------------------------------------------------
@@ -159,17 +160,18 @@ try:
     from opentelemetry.sdk.trace import TracerProvider as _TracerProvider
     from opentelemetry.sdk.trace.export import BatchSpanProcessor as _BatchSpanProcessor
 
-    _provider_set = False
-    try:
-        from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter as _OTLPExporter
-        _tp = _TracerProvider()
-        _tp.add_span_processor(_BatchSpanProcessor(_OTLPExporter()))
-        _otel_trace.set_tracer_provider(_tp)
-        _provider_set = True
-    except Exception:
-        _tp = _TracerProvider()
-        _otel_trace.set_tracer_provider(_tp)
-        _provider_set = True
+    _tp = _TracerProvider()
+    # Enable OTLP exporter only when explicitly configured to avoid noisy connection
+    # errors in local/CI environments without a collector.
+    _otlp_endpoint = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", "").strip()
+    if _otlp_endpoint:
+        try:
+            from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter as _OTLPExporter
+
+            _tp.add_span_processor(_BatchSpanProcessor(_OTLPExporter(endpoint=_otlp_endpoint)))
+        except Exception:
+            pass
+    _otel_trace.set_tracer_provider(_tp)
 
     _tracer = _otel_trace.get_tracer("marl_forecast_game")
 except ImportError:

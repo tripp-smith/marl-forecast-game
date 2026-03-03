@@ -62,6 +62,12 @@ def main() -> int:
         print(f"{r.name:<35} {status:<10} {r.duration_s:<12.4f} {err_summary}")
     print("-" * 80)
     print(f"Total: {passed} passed, {failed} failed, {total_duration:.2f}s elapsed")
+
+    # MNPO vs Baseline extension summary
+    print("MNPO vs Baseline (24 scenarios):")
+    for r in results:
+        status = "PASS" if r.passed else "CHECK"
+        print(f"  - {r.name}: {status}")
     print("=" * 80)
     print()
 
