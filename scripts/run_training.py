@@ -19,6 +19,7 @@ from framework.data import DataProfile, load_dataset
 from framework.training import (
     DiscreteActionSpace,
     QTableAgent,
+    MNPOTrainer,
     RADversarialTrainer,
     TrainingLoop,
     WoLFPHCAgent,
@@ -30,7 +31,10 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Train MARL agents")
     parser.add_argument("--episodes", type=int, default=200, help="Training episodes")
     parser.add_argument("--horizon", type=int, default=80, help="Rounds per episode")
-    parser.add_argument("--algorithm", choices=["q", "wolf", "rarl"], default="wolf", help="Training algorithm")
+    parser.add_argument("--algorithm", choices=["q", "wolf", "rarl", "mnpo"], default="wolf", help="Training algorithm")
+    parser.add_argument("--mode", choices=["TD", "HT"], default="TD", help="MNPO mode")
+    parser.add_argument("--opponents", type=int, default=5, help="MNPO number of opponents")
+    parser.add_argument("--eta", type=float, default=1.0, help="MNPO eta")
     parser.add_argument("--output-dir", default="data/models", help="Output directory for Q-tables")
     parser.add_argument("--seed", type=int, default=42, help="Random seed")
     args = parser.parse_args()
@@ -51,6 +55,9 @@ def main() -> int:
         disturbance_model="gaussian",
         defense_model="ensemble",
         enable_refactor=False,
+        mnpo_eta=args.eta,
+        mnpo_beta=0.1,
+        mnpo_population_size=10,
     )
 
     action_space = DiscreteActionSpace(n_bins=21, max_delta=1.0)
@@ -60,12 +67,18 @@ def main() -> int:
     else:
         forecaster = QTableAgent(action_space=action_space)
 
-    if args.algorithm == "rarl":
+    if args.algorithm == "mnpo":
+        trainer = MNPOTrainer(config=cfg, n_episodes=args.episodes, seed=args.seed, mode=args.mode, num_opponents=args.opponents, eta=args.eta)
+        result = {"epochs": []}
+        for _ in range(args.episodes):
+            result["epochs"].append(trainer.train_epoch(forecaster, init_state=init_state))
+        print(f"[training] MNPO complete: {args.episodes} epochs")
+    elif args.algorithm == "rarl":
         adversary = QTableAgent(action_space=action_space)
         trainer = RADversarialTrainer(config=cfg, total_epochs=args.episodes, seed=args.seed)
         result = trainer.train(forecaster, adversary, init_state)
         print(f"[training] RARL complete: {result['total_epochs']} epochs")
-    else:
+    elif args.algorithm != "mnpo":
         loop = TrainingLoop(config=cfg, n_episodes=args.episodes, seed=args.seed)
         result = loop.train(forecaster, init_state=init_state)
         print(f"[training] Complete: {result['n_episodes']} episodes")
