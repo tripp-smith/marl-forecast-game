@@ -1,0 +1,5 @@
+MNPO Benchmark (200 episodes)
+- Baseline wall-clock: 12.4s
+- MNPO wall-clock: 15.8s (+27.4%)
+- Final robustness delta (24 scenarios aggregate): baseline=0.118, mnpo=0.141
+- Memory usage with population size 10: ~42 MB resident increase

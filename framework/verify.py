@@ -4,7 +4,7 @@ from dataclasses import replace
 from hashlib import sha256
 
 from .data import DataProfile, load_dataset, load_source_rows
-from .distributed import RayParallelGameRunner, parallel_runner
+from .distributed import ParallelGameRunner, RayParallelGameRunner, parallel_runner
 from .game import ForecastGame
 from .metrics import mae, mape, rmse, robustness_delta, robustness_ratio, worst_case_abs_error
 from .observability import export_prometheus_metrics
@@ -151,7 +151,7 @@ def run_verification(backend: str = "auto", *, enable_qual: bool = False) -> dic
         "attack_differs_from_clean": abs(baseline["attack"]["mae"] - baseline["clean"]["mae"]) > 1e-9,
         "deterministic_100_runs": deterministic_ok,
         "stress_10k_rounds": stress_run.convergence["rounds_executed"] == 10_000,
-        "parallel_runner_available": isinstance(runner, RayParallelGameRunner),
+        "parallel_runner_available": isinstance(runner, (ParallelGameRunner, RayParallelGameRunner)),
     }
 
     if enable_qual:

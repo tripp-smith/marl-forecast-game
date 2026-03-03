@@ -159,10 +159,16 @@ class OllamaRefactorClient:
         )
         r_idx = kwargs.get("round_idx")
         r_agent = str(kwargs.get("agent", "refactor"))
+        round_idx: int | None = None
+        if isinstance(r_idx, (int, float, str)):
+            try:
+                round_idx = int(r_idx)
+            except ValueError:
+                round_idx = None
         try:
             raw = self.client.generate(
                 prompt,
-                round_idx=int(r_idx) if r_idx is not None else None,
+                round_idx=round_idx,
                 agent=r_agent,
             )
             parsed = json.loads(raw.strip())

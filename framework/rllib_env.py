@@ -35,7 +35,7 @@ class ForecastGameEnv:
     use fixed heuristic policies from the existing agent implementations.
     """
 
-    metadata = {"render_modes": []}
+    metadata: dict[str, list[str]] = {"render_modes": []}
 
     def __init__(self, config: SimulationConfig | None = None, seed: int = 42) -> None:
         if gym is None:

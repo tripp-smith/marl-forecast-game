@@ -305,3 +305,8 @@ See [docs/configuration.md](docs/configuration.md) for `DataProfile`, runtime ba
 | [docs/haskell-migration.md](docs/haskell-migration.md) | Haskell scaffold, subprocess bridge, QuickCheck parity |
 | [PRD.md](PRD.md) | Product requirements document |
 | [DRD.md](DRD.md) | Data requirements document |
+
+
+## MNPO
+
+See `docs/mnpo_integration.md` for Multiplayer Nash Preference Optimization integration details.

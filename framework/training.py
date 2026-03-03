@@ -10,6 +10,10 @@ from typing import Any
 
 import numpy as np
 
+from .mnpo_loss import mnpo_loss, q_values_to_log_probs, tabular_closed_form_update
+from .opponent_population import OpponentPopulation
+from .preference_oracle import MNPOOracle
+
 from .game import ForecastGame
 from .types import AgentAction, ForecastState, SimulationConfig
 
@@ -343,3 +347,111 @@ class IterativeFeedbackLoop:
             "n_updates": len(realized_pairs),
             "total_td_magnitude": total_update,
         }
+
+
+@dataclass
+class TabularMNPOUpdater:
+    """Applies MNPO updates to tabular policies (WoLF-PHC compatible)."""
+
+    eta: float = 1.0
+
+    def update(
+        self,
+        agent: QTableAgent,
+        state_key: int,
+        opponent_tables: list[dict[int, np.ndarray]],
+        preference_scores: list[float],
+    ) -> np.ndarray:
+        q = agent._get_q(state_key)
+        self_prob = np.exp(q - np.max(q))
+        self_prob = self_prob / self_prob.sum()
+
+        opp_probs: list[np.ndarray] = []
+        for table in opponent_tables:
+            opp_q = table.get(state_key, np.zeros_like(q))
+            p = np.exp(opp_q - np.max(opp_q))
+            p = p / p.sum()
+            opp_probs.append(p)
+
+        if opp_probs:
+            new_prob = tabular_closed_form_update(self_prob, opp_probs, preference_scores, self.eta)
+            agent._q_table[state_key] = np.log(np.clip(new_prob, 1e-12, 1.0))
+        else:
+            # fallback: finite-difference style push toward best action
+            grad = np.zeros_like(q)
+            grad[int(np.argmax(q))] = -1.0
+            grad[int(np.argmin(q))] = 1.0
+            agent._q_table[state_key] = q - 0.01 * grad
+            new_prob = np.exp(agent._q_table[state_key] - np.max(agent._q_table[state_key]))
+            new_prob = new_prob / new_prob.sum()
+
+        return new_prob
+
+
+@dataclass
+class MNPOTrainer(TrainingLoop):
+    """MNPO training loop over trajectory preferences and opponent populations."""
+
+    mode: str = "TD"
+    num_opponents: int = 5
+    eta: float = 1.0
+
+    def __post_init__(self) -> None:
+        self.population = OpponentPopulation(mode=self.mode, max_size=self.config.mnpo_population_size)
+        self.oracle = MNPOOracle(mode="crps_based", beta=self.config.mnpo_beta, seed=self.seed)
+        self.updater = TabularMNPOUpdater(eta=self.eta)
+
+    def run_games(self, init_state: ForecastState | None = None) -> list[dict[str, Any]]:
+        if init_state is None:
+            init_state = ForecastState(t=0, value=10.0, exogenous=0.0, hidden_shift=0.0)
+        game = ForecastGame(self.config, seed=self.seed)
+        out = game.run(init_state, disturbed=True)
+        rows: list[dict[str, Any]] = []
+        for log in out.trajectory_logs:
+            state = log["state"]
+            forecast = float(log["forecast"])
+            rows.append(
+                {
+                    "state": state,
+                    "target": float(log["target"]),
+                    "candidate_forecast": forecast,
+                    "opponent_forecast": forecast,
+                }
+            )
+        return rows
+
+    def update_policy(self, agent: QTableAgent, pairs: list[tuple[dict[str, Any], float, float]]) -> float:
+        mix = self.population.get_mixture(self.num_opponents)
+        opponent_logs: list[np.ndarray] = []
+        lambdas = [lam for _, lam in mix]
+
+        q = np.mean(list(agent._q_table.values()), axis=0) if agent._q_table else np.zeros(agent.action_space.n_bins)
+        policy_log = q_values_to_log_probs(q)
+
+        winners_idx = np.array([agent.action_space.delta_to_action(w) for _, w, _ in pairs], dtype=int)
+        losers_idx = np.array([agent.action_space.delta_to_action(l) for _, _, l in pairs], dtype=int)
+
+        for snapshot, _ in mix:
+            opp_q = np.mean([np.array(v) for v in snapshot.get("q_table", {}).values()], axis=0) if snapshot.get("q_table") else np.zeros(agent.action_space.n_bins)
+            opponent_logs.append(q_values_to_log_probs(opp_q))
+
+        loss = mnpo_loss(policy_log, opponent_logs, winners_idx, losers_idx, lambdas, eta=self.eta, beta=self.config.mnpo_beta)
+        grad = np.zeros_like(q)
+        if len(winners_idx) > 0:
+            for w, l in zip(winners_idx, losers_idx):
+                grad[w] -= 1.0
+                grad[l] += 1.0
+            grad /= len(winners_idx)
+        new_q = q - 0.01 * grad
+
+        for state_key in list(agent._q_table.keys())[:10]:
+            agent._q_table[state_key] = new_q.copy()
+
+        return float(loss)
+
+    def train_epoch(self, forecaster: QTableAgent, init_state: ForecastState | None = None) -> dict[str, Any]:
+        trajectories = self.run_games(init_state=init_state)
+        pairs = self.oracle.generate_pairs(trajectories)
+        loss = self.update_policy(forecaster, pairs)
+        self.population.add_opponent(forecaster.to_dict())
+        return {"n_pairs": len(pairs), "loss": loss, "population_size": self.population.size}
