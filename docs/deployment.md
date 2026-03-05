@@ -283,7 +283,7 @@ The CI pipeline is defined in `.github/workflows/ci.yml` with 8 jobs:
 
 ### Artifact Uploads
 
-The `test` job uploads `planning/verification_report.json` as a build artifact for post-run analysis.
+The `test` job uploads `results/verification_report.json` as a build artifact for post-run analysis.
 
 ## Error Penalty Mitigation
 
@@ -368,7 +368,7 @@ from framework.types import ForecastState, SimulationConfig
 cfg = SimulationConfig(horizon=100)
 init = ForecastState(t=0, value=10.0, exogenous=0.0, hidden_shift=0.0)
 out = ForecastGame(cfg, seed=42).run(init)
-export_trajectories(out, "planning/trajectory_export.json", config=cfg, seed=42)
+export_trajectories(out, "results/trajectory_export.json", config=cfg, seed=42)
 ```
 
 Exports include metadata (config hash, timestamp, seed), convergence info, and full trajectory logs.

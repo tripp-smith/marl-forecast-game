@@ -96,6 +96,26 @@ agent = TrainingLoop.load_q_table("data/models/forecaster_q.json")
 
 The serialized format includes the Q-table entries, current epsilon, and action space parameters.
 
+## Using Trained Agents in Live Simulations
+
+The runtime includes `QLearnedAgent`, which wraps a saved policy and emits `AgentAction` deltas in live games.
+
+Example:
+
+```bash
+python scripts/run_simulation.py \
+  --agents forecaster,qlearned-adversary,defender \
+  --q-table data/models/forecaster_q.json \
+  --algorithm wolf \
+  --disturbed
+```
+
+Key runtime flow:
+
+1. `QLearnedAgent` loads a policy via `QTableAgent.load`, `WoLFPHCAgent.load`, or `RADversarialTrainer.load`.
+2. It maps action index -> continuous delta using `DiscreteActionSpace.action_to_delta`.
+3. `ForecastGame` runs mixed registries (rule-based + trained) without changing the core game loop.
+
 ## WoLFPHCAgent (WoLF-PHC)
 
 Extends `QTableAgent` with a mixed-strategy policy that converges toward Nash equilibrium. Based on Bowling & Veloso (2002).

@@ -63,6 +63,7 @@ AGENT_REWARD = _Counter("marl_agent_reward_total", "Cumulative agent reward", ["
 DISTURBANCE_COUNT = _Counter("marl_disturbance_injections_total", "Disturbance injection count") if _Counter is not None else None
 DISTURBANCE_SUCCESS = _Counter("marl_disturbance_success_total", "Disturbances that increased error") if _Counter is not None else None
 ALERT_ANOMALY = _Counter("marl_alert_anomaly_total", "Alert threshold breaches", ["alert_type"]) if _Counter is not None else None
+MARL_POLICY_LOADED = _Gauge("marl_policy_loaded", "Loaded MARL policy", ["algorithm"]) if _Gauge is not None else None
 
 # ---------------------------------------------------------------------------
 # Ray metrics bridge
@@ -153,6 +154,12 @@ def record_alert(alert_type: str) -> None:
     """Increment the anomaly alert counter for the given *alert_type*."""
     if ALERT_ANOMALY is not None:
         ALERT_ANOMALY.labels(alert_type=alert_type).inc()
+
+
+def record_marl_policy_loaded(algorithm: str) -> None:
+    """Set marl_policy_loaded{algorithm=*} to 1 when a trained policy is loaded."""
+    if MARL_POLICY_LOADED is not None:
+        MARL_POLICY_LOADED.labels(algorithm=algorithm).set(1.0)
 
 
 # ---------------------------------------------------------------------------

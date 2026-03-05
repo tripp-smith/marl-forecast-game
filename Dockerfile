@@ -21,7 +21,13 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
 
 CMD ["scripts/validate.sh"]
 
-FROM base AS streamlit
+FROM base AS core
+
+EXPOSE 9090
+
+CMD ["python", "-c", "import time; from framework.observability import start_metrics_server; start_metrics_server(9090); print('core game service running on :9090/metrics'); time.sleep(10**9)"]
+
+FROM core AS streamlit
 
 EXPOSE 8501
 

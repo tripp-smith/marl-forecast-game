@@ -5,10 +5,11 @@ import logging
 import math
 from collections import defaultdict
 from dataclasses import dataclass, field
-from typing import Any, Callable, List
+from typing import Any, Callable, List, Literal
 
 from .defenses import defense_from_name
 from .llm import DSPyLikeRepl, LLMRefactorClient, MockLLMRefactorClient, OllamaClient, RefactorRequest
+from .observability import record_marl_policy_loaded
 from .strategy_runtime import StrategyRuntime
 from .types import AgentAction, ForecastState
 
@@ -35,6 +36,47 @@ class ForecastingAgent:
             return AgentAction(actor=self.name, delta=(0.8 * base_delta) + (0.2 * llm_delta))
         except Exception:
             return AgentAction(actor=self.name, delta=base_delta)
+
+
+@dataclass(frozen=True)
+class QLearnedAgent(ForecastingAgent):
+    """Forecasting or adversarial agent backed by a saved tabular MARL policy."""
+
+    q_table_path: str | None = None
+    algorithm: Literal["q", "wolf", "rarl"] = "q"
+    _q_agent: Any = field(default=None, init=False, repr=False)
+
+    def __post_init__(self) -> None:
+        if not self.q_table_path:
+            return
+        from .training import QTableAgent, RADversarialTrainer, WoLFPHCAgent
+
+        loader: dict[str, Any] = {
+            "q": QTableAgent,
+            "wolf": WoLFPHCAgent,
+            "rarl": RADversarialTrainer,
+        }
+        loaded = loader[self.algorithm].load(self.q_table_path)
+        if hasattr(loaded, "epsilon"):
+            loaded.epsilon = 0.0
+        object.__setattr__(self, "_q_agent", loaded)
+        record_marl_policy_loaded(self.algorithm)
+
+    def act(
+        self,
+        state: ForecastState,
+        runtime: StrategyRuntime | None = None,
+        *,
+        round_idx: int | None = None,
+    ) -> AgentAction:
+        if self._q_agent is None:
+            if runtime is None:
+                return AgentAction(actor=self.name, delta=0.0)
+            return super().act(state, runtime, round_idx=round_idx)
+        idx = self._q_agent.act(state)
+        delta = self._q_agent.action_space.action_to_delta(idx)
+        logging.getLogger(__name__).info("QLearnedAgent delta=%s actor=%s", f"{delta:.4f}", self.name)
+        return AgentAction(actor=self.name, delta=delta)
 
 
 @dataclass(frozen=True)
@@ -239,11 +281,105 @@ class WolfpackAdversary:
 class AgentRegistry:
     """Flexible container for variable numbers of agents."""
 
-    forecasters: tuple[ForecastingAgent | BottomUpAgent | TopDownAgent, ...] = ()
-    adversaries: tuple[AdversaryAgent | WolfpackAdversary, ...] = ()
+    forecasters: tuple[ForecastingAgent | BottomUpAgent | TopDownAgent | QLearnedAgent, ...] = ()
+    adversaries: tuple[AdversaryAgent | WolfpackAdversary | QLearnedAgent, ...] = ()
     defenders: tuple[DefenderAgent, ...] = ()
     refactorer: RefactoringAgent | None = None
     aggregator: EnsembleAggregatorAgent = field(default_factory=EnsembleAggregatorAgent)
+
+    @classmethod
+    def from_config(cls, config: dict[str, Any]) -> AgentRegistry:
+        """Build a registry from an agent list config.
+
+        Example:
+            {"agents": ["forecaster", "qlearned-adversary", "defender"]}
+        """
+        specs = config.get("agents", ("forecaster", "adversary", "defender"))
+
+        forecasters: list[ForecastingAgent | BottomUpAgent | TopDownAgent | QLearnedAgent] = []
+        adversaries: list[AdversaryAgent | WolfpackAdversary | QLearnedAgent] = []
+        defenders: list[DefenderAgent] = []
+        refactorer: RefactoringAgent | None = None
+
+        for item in specs:
+            if isinstance(item, str):
+                agent_type = item
+                name = item
+                kwargs: dict[str, Any] = {}
+            else:
+                agent_type = item.get("type", "forecaster")
+                name = item.get("name", agent_type)
+                kwargs = dict(item.get("kwargs", {}))
+
+            if agent_type == "qlearned-adversary":
+                agent_type = "qlearned"
+                kwargs["role"] = "adversary"
+            elif agent_type == "qlearned-forecaster":
+                agent_type = "qlearned"
+                kwargs["role"] = "forecaster"
+
+            role = str(kwargs.pop("role", ""))
+            agent = create_agent(agent_type=agent_type, name=name, **kwargs)
+
+            if role == "adversary":
+                adversaries.append(agent)  # type: ignore[arg-type]
+                continue
+            if role == "forecaster":
+                forecasters.append(agent)  # type: ignore[arg-type]
+                continue
+
+            if isinstance(agent, DefenderAgent):
+                defenders.append(agent)
+            elif isinstance(agent, RefactoringAgent):
+                refactorer = agent
+            elif isinstance(agent, (AdversaryAgent, WolfpackAdversary)):
+                adversaries.append(agent)
+            elif isinstance(agent, QLearnedAgent) and "adversary" in name:
+                adversaries.append(agent)
+            else:
+                forecasters.append(agent)  # type: ignore[arg-type]
+
+        return cls(
+            forecasters=tuple(forecasters),
+            adversaries=tuple(adversaries),
+            defenders=tuple(defenders),
+            refactorer=refactorer,
+            aggregator=EnsembleAggregatorAgent(mode=str(config.get("aggregator_mode", "equal"))),
+        )
+
+
+def create_agent(agent_type: str, name: str, **kwargs: Any) -> Any:
+    """Create an agent instance from a short type string."""
+    if agent_type == "forecaster":
+        return ForecastingAgent(name=name)
+    if agent_type == "adversary":
+        return AdversaryAgent(
+            name=name,
+            aggressiveness=float(kwargs.get("aggressiveness", 1.0)),
+            attack_cost=float(kwargs.get("attack_cost", 0.0)),
+        )
+    if agent_type == "defender":
+        return DefenderAgent(name=name)
+    if agent_type == "refactor":
+        return RefactoringAgent(name=name)
+    if agent_type == "bottom_up":
+        return BottomUpAgent(name=name, segment_weight=float(kwargs.get("segment_weight", 0.3)))
+    if agent_type == "top_down":
+        return TopDownAgent(name=name, macro_sensitivity=float(kwargs.get("macro_sensitivity", 0.2)))
+    if agent_type == "wolfpack":
+        return WolfpackAdversary(
+            name=name,
+            aggressiveness=float(kwargs.get("aggressiveness", 1.0)),
+            attack_cost=float(kwargs.get("attack_cost", 0.0)),
+            correlation_threshold=float(kwargs.get("correlation_threshold", 0.7)),
+        )
+    if agent_type == "qlearned":
+        return QLearnedAgent(
+            name=name,
+            q_table_path=kwargs.get("q_table_path") or kwargs.get("q_table"),
+            algorithm=str(kwargs.get("algorithm", "q")),
+        )
+    raise ValueError(f"Unknown agent_type: {agent_type}")
 
 
 @dataclass(frozen=True)

@@ -53,8 +53,8 @@ python scripts/run_validation_scenarios.py --list
 ### Report Format
 
 Results are written to:
-- `planning/validation_scenarios_report.json`: Full details per scenario.
-- `planning/validation_scenarios_summary.csv`: One-line-per-scenario summary.
+- `results/validation_scenarios_report.json`: Full details per scenario.
+- `results/validation_scenarios_summary.csv`: One-line-per-scenario summary.
 
 Each `ScenarioResult` contains:
 
@@ -98,7 +98,7 @@ Additionally, the verification function runs an adversarial intensity sweep at 0
 python scripts/run_verification.py
 ```
 
-Output is written to `planning/verification_report.json` and printed to stdout. The script exits with code 1 if any check fails.
+Output is written to `results/verification_report.json` and printed to stdout. The script exits with code 1 if any check fails.
 
 ## Hypothesis Property Tests (21)
 

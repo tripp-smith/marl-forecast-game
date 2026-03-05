@@ -13,6 +13,7 @@ services:
       - "8265:8265"
       - "6379:6379"
       - "8080:8080"
+    profiles: ["full"]
     networks:
       - marl-net
 
@@ -24,6 +25,7 @@ services:
       - ray-head
     deploy:
       replicas: 1
+    profiles: ["full"]
     networks:
       - marl-net
 
@@ -39,6 +41,7 @@ services:
       - ray-head
     networks:
       - marl-net
+    profiles: ["full"]
 
   grafana:
     image: grafana/grafana:latest
@@ -55,6 +58,7 @@ services:
       - prometheus
     networks:
       - marl-net
+    profiles: ["full"]
 
   app:
     build:
@@ -71,6 +75,7 @@ services:
       - ray-head
     networks:
       - marl-net
+    profiles: ["full"]
 
   streamlit:
     build:
@@ -87,6 +92,7 @@ services:
       - app
     networks:
       - marl-net
+    profiles: ["full"]
 
   allinone:
     build:
@@ -101,6 +107,36 @@ services:
       - "9091:9091"
     volumes:
       - ./results:/app/results
+    profiles: ["full"]
+
+  game-core:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: core
+    container_name: marl-game-core
+    environment:
+      - METRICS_PORT=9090
+    ports:
+      - "9091:9090"
+    networks:
+      - marl-net
+    profiles: ["core"]
+
+  streamlit-core:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: streamlit
+    container_name: marl-streamlit-core
+    command: streamlit run ui/app.py --server.port=8501 --server.address=0.0.0.0 --server.headless=true
+    ports:
+      - "8501:8501"
+    depends_on:
+      - game-core
+    networks:
+      - marl-net
+    profiles: ["core"]
 
 networks:
   marl-net:

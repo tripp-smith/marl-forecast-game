@@ -58,7 +58,9 @@ if __name__ == "__main__":
         print(f"Loaded config overrides from {args.config}: {list(cfg_overrides.keys())}")
 
     result = run_verification(backend=args.backend, enable_qual=args.enable_qual)
-    report_path = ROOT / "planning" / "verification_report.json"
+    out_dir = ROOT / "results"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    report_path = out_dir / "verification_report.json"
     report_path.write_text(json.dumps(result, indent=2, sort_keys=True), encoding="utf-8")
     print(json.dumps(result, indent=2, sort_keys=True))
     print(f"verification_report={report_path}")

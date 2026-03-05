@@ -152,6 +152,10 @@ class SimulationConfig:
     mnpo_beta: float = 0.1
     mnpo_population_size: int = 10
     start_date: str = ""
+    agent_type: str = "forecaster"
+    marl_qtable_path: str = ""
+    marl_algorithm: str = "q"
+    agent_specs: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
         if self.horizon < 0:
@@ -196,6 +200,8 @@ class SimulationConfig:
             raise ConfigValidationError("mnpo_beta must be > 0")
         if self.mnpo_population_size < 1:
             raise ConfigValidationError("mnpo_population_size must be >= 1")
+        if self.marl_algorithm not in {"q", "wolf", "rarl"}:
+            raise ConfigValidationError("marl_algorithm must be one of: q, wolf, rarl")
 
 
 def decay_qualitative_state(

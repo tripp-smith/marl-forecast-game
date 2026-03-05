@@ -24,7 +24,7 @@ echo "[pipeline] === Phase 2: Verification ==="
 python scripts/run_verification.py --backend multiprocessing 2>&1 | tee "$RESULTS/verification_output.txt"
 VER_EXIT=${PIPESTATUS[0]}
 if [ "$VER_EXIT" -ne 0 ]; then OVERALL_EXIT=1; fi
-cp planning/verification_report.json "$RESULTS/" 2>/dev/null || true
+cp results/verification_report.json "$RESULTS/" 2>/dev/null || true
 echo "[pipeline] Phase 2 exit code: $VER_EXIT"
 
 echo ""

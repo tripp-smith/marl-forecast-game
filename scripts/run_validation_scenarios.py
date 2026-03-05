@@ -30,8 +30,8 @@ def main() -> int:
     parser.add_argument("--list", action="store_true", help="List available scenarios and exit")
     parser.add_argument(
         "--output-dir",
-        default="planning",
-        help="Directory for report output (default: planning)",
+        default="results",
+        help="Directory for report output (default: results)",
     )
     args = parser.parse_args()
 

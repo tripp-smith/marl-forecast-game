@@ -73,6 +73,7 @@ graph LR
     Adapters --> Cache --> Split --> State
     State --> Registry --> Loop --> Outputs
     Outputs --> Training --> Registry
+    Training -->|"load policy"| Registry
     Outputs --> BMA --> Loop
     Outputs --> Refiner --> Registry
 ```
@@ -143,6 +144,24 @@ python scripts/run_training.py --algorithm rarl --episodes 100
 
 Q-tables are serialized to `data/models/`. See [docs/training.md](docs/training.md) for algorithm details.
 
+## Using Trained Agents In Live Simulations
+
+Use a saved tabular policy directly in the runtime game loop:
+
+```bash
+python scripts/run_simulation.py \
+  --agents forecaster,qlearned-adversary,defender \
+  --q-table data/models/forecaster_q.json \
+  --algorithm wolf \
+  --disturbed
+```
+
+Single-agent smoke test:
+
+```bash
+python scripts/run_simulation.py --agent-type qlearned --q-table data/models/forecaster_q.json --algorithm q --disturbed
+```
+
 ## Walk-Forward Backtesting
 
 Run walk-forward validation with configurable sliding windows:
@@ -151,7 +170,7 @@ Run walk-forward validation with configurable sliding windows:
 python scripts/run_backtest.py --windows 10 --window-size 60 --step-size 20
 ```
 
-Reports are written to `planning/backtest_report.json`. See [docs/bayesian-aggregation.md](docs/bayesian-aggregation.md) for backtesting methodology and probabilistic metrics.
+Reports are written to `results/backtest_report.json`. See [docs/bayesian-aggregation.md](docs/bayesian-aggregation.md) for backtesting methodology and probabilistic metrics.
 
 ## Validation
 
@@ -237,10 +256,7 @@ marl-forecast-game/
 │   ├── cache/                     #   Cached API responses (FRED, IMF, Polymarket)
 │   ├── models/                    #   Serialized Q-tables
 │   └── sample_demand.csv          #   Generated synthetic dataset
-├── planning/                      # Planning documents and reports
-│   ├── TODO_001.md ... TODO_008.md #  Implementation backlog
-│   ├── IMPLEMENTATION_REPORT.md   #   Status report
-│   └── *.json / *.csv             #   Validation and backtest reports
+├── results/                       # Generated reports and exported artifacts
 ├── docs/                          # Detailed documentation
 ├── PRD.md                         # Product requirements document
 ├── DRD.md                         # Data requirements document

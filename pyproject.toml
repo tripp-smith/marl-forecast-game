@@ -1,3 +1,40 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "marl-forecast-game"
+version = "0.1.0"
+description = "Multi-Agent Markov Games forecasting system with tabular MARL"
+requires-python = ">=3.10"
+dependencies = [
+    "hypothesis==6.136.9",
+    "numpy==1.26.4",
+    "scipy==1.13.1",
+    "scikit-learn==1.5.2",
+    "bayesian-optimization==1.5.1",
+    "pyyaml==6.0.2",
+    "prometheus_client==0.20.0",
+    "structlog==24.4.0",
+    "opentelemetry-api==1.28.2",
+    "opentelemetry-sdk==1.28.2",
+    "opentelemetry-exporter-otlp==1.28.2",
+    "streamlit==1.40.1",
+    "plotly==5.24.1",
+    "requests==2.32.3",
+    "pydantic==2.9.2",
+    "hmmlearn==0.3.3",
+    "psutil==6.1.0",
+]
+
+[project.optional-dependencies]
+distributed = [
+    "ray[default]>=2.9,<3.0",
+]
+
+[tool.setuptools.packages.find]
+include = ["framework*", "ui*"]
+
 [tool.pytest.ini_options]
 # addopts = "--cov=framework --cov-report=term-missing"
 # Uncomment the above line when pytest-cov is installed

@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import math
+import pickle
 from dataclasses import dataclass, field
 from pathlib import Path
 from random import Random
@@ -108,8 +109,13 @@ class QTableAgent:
     def to_dict(self) -> dict[str, Any]:
         """Serialize Q-table and hyperparameters to a JSON-compatible dict."""
         return {
+            "class": self.__class__.__name__,
             "q_table": {str(k): v.tolist() for k, v in self._q_table.items()},
+            "alpha": self.alpha,
+            "gamma": self.gamma,
             "epsilon": self.epsilon,
+            "epsilon_decay": self.epsilon_decay,
+            "epsilon_min": self.epsilon_min,
             "n_bins": self.action_space.n_bins,
             "max_delta": self.action_space.max_delta,
         }
@@ -118,10 +124,27 @@ class QTableAgent:
     def from_dict(cls, data: dict[str, Any]) -> QTableAgent:
         """Deserialize a QTableAgent from a dict produced by ``to_dict``."""
         action_space = DiscreteActionSpace(n_bins=data["n_bins"], max_delta=data["max_delta"])
-        agent = cls(action_space=action_space, epsilon=data.get("epsilon", 0.05))
+        agent = cls(
+            action_space=action_space,
+            alpha=data.get("alpha", 0.1),
+            gamma=data.get("gamma", 0.95),
+            epsilon=data.get("epsilon", 0.05),
+            epsilon_decay=data.get("epsilon_decay", 0.995),
+            epsilon_min=data.get("epsilon_min", 0.05),
+        )
         for k, v in data.get("q_table", {}).items():
             agent._q_table[int(k)] = np.array(v)
         return agent
+
+    @classmethod
+    def load(cls, path: str | Path) -> QTableAgent:
+        """Load a Q-table policy from JSON or pickle."""
+        p = Path(path)
+        if p.suffix.lower() == ".json":
+            return _agent_from_payload(json.loads(p.read_text(encoding="utf-8")))
+        with p.open("rb") as f:
+            payload = pickle.load(f)
+        return _agent_from_payload(payload)
 
 
 # ---------------------------------------------------------------------------
@@ -182,6 +205,73 @@ class WoLFPHCAgent(QTableAgent):
             pi /= total
 
         return td_error
+
+    def to_dict(self) -> dict[str, Any]:
+        data = super().to_dict()
+        data.update(
+            {
+                "delta_win": self.delta_win,
+                "delta_lose": self.delta_lose,
+                "policy": {str(k): v.tolist() for k, v in self._policy.items()},
+                "avg_policy": {str(k): v.tolist() for k, v in self._avg_policy.items()},
+                "visit_count": {str(k): v for k, v in self._visit_count.items()},
+            }
+        )
+        return data
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> WoLFPHCAgent:
+        action_space = DiscreteActionSpace(n_bins=data["n_bins"], max_delta=data["max_delta"])
+        agent = cls(
+            action_space=action_space,
+            alpha=data.get("alpha", 0.1),
+            gamma=data.get("gamma", 0.95),
+            epsilon=data.get("epsilon", 0.05),
+            epsilon_decay=data.get("epsilon_decay", 0.995),
+            epsilon_min=data.get("epsilon_min", 0.05),
+            delta_win=data.get("delta_win", 0.01),
+            delta_lose=data.get("delta_lose", 0.04),
+        )
+        for k, v in data.get("q_table", {}).items():
+            agent._q_table[int(k)] = np.array(v)
+        for k, v in data.get("policy", {}).items():
+            agent._policy[int(k)] = np.array(v)
+        for k, v in data.get("avg_policy", {}).items():
+            agent._avg_policy[int(k)] = np.array(v)
+        for k, v in data.get("visit_count", {}).items():
+            agent._visit_count[int(k)] = int(v)
+        return agent
+
+    @classmethod
+    def load(cls, path: str | Path) -> WoLFPHCAgent:
+        """Load a WoLF-PHC policy from JSON or pickle."""
+        p = Path(path)
+        if p.suffix.lower() == ".json":
+            return cls.from_dict(json.loads(p.read_text(encoding="utf-8")))
+        with p.open("rb") as f:
+            payload = pickle.load(f)
+        if isinstance(payload, dict):
+            payload = payload.get("agent", payload)
+            return cls.from_dict(payload)
+        if isinstance(payload, WoLFPHCAgent):
+            return payload
+        raise TypeError(f"Unsupported WoLFPHCAgent payload type: {type(payload)!r}")
+
+
+def _agent_from_payload(payload: Any) -> QTableAgent:
+    """Normalize JSON/pickle payloads into a concrete QTableAgent subtype."""
+    if isinstance(payload, QTableAgent):
+        return payload
+    if not isinstance(payload, dict):
+        raise TypeError(f"Unsupported Q-table payload type: {type(payload)!r}")
+
+    if "agent" in payload and isinstance(payload["agent"], dict):
+        payload = payload["agent"]
+
+    klass = payload.get("class", "QTableAgent")
+    if klass == "WoLFPHCAgent":
+        return WoLFPHCAgent.from_dict(payload)
+    return QTableAgent.from_dict(payload)
 
 
 # ---------------------------------------------------------------------------
@@ -252,16 +342,19 @@ class TrainingLoop:
 
     @staticmethod
     def save_q_table(agent: QTableAgent, path: str | Path) -> None:
-        """Persist a QTableAgent to JSON at *path*."""
+        """Persist a QTableAgent to JSON or pickle based on file extension."""
         p = Path(path)
         p.parent.mkdir(parents=True, exist_ok=True)
+        if p.suffix.lower() == ".pkl":
+            with p.open("wb") as f:
+                pickle.dump({"agent": agent.to_dict()}, f)
+            return
         p.write_text(json.dumps(agent.to_dict(), indent=2), encoding="utf-8")
 
     @staticmethod
     def load_q_table(path: str | Path) -> QTableAgent:
-        """Load a QTableAgent from a JSON file at *path*."""
-        data = json.loads(Path(path).read_text(encoding="utf-8"))
-        return QTableAgent.from_dict(data)
+        """Load a QTableAgent from a JSON or pickle file at *path*."""
+        return QTableAgent.load(path)
 
 
 # ---------------------------------------------------------------------------
@@ -327,6 +420,11 @@ class RADversarialTrainer:
             "alternation_schedule": self.alternation_schedule,
             "epoch_results": epoch_results,
         }
+
+    @classmethod
+    def load(cls, path: str | Path) -> QTableAgent:
+        """Load the protagonist policy used in RARL from a saved checkpoint."""
+        return QTableAgent.load(path)
 
 
 # ---------------------------------------------------------------------------

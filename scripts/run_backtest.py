@@ -27,7 +27,7 @@ def main() -> int:
     parser.add_argument("--windows", type=int, default=10, help="Max windows")
     parser.add_argument("--window-size", type=int, default=60, help="Training window size")
     parser.add_argument("--step-size", type=int, default=20, help="Step size between windows")
-    parser.add_argument("--output-dir", default="planning", help="Report output directory")
+    parser.add_argument("--output-dir", default="results", help="Report output directory")
     parser.add_argument("--seed", type=int, default=42)
     args = parser.parse_args()
 
