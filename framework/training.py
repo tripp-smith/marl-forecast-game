@@ -4,10 +4,11 @@ from __future__ import annotations
 import json
 import math
 import pickle
+from collections import deque
 from dataclasses import dataclass, field
 from pathlib import Path
 from random import Random
-from typing import Any
+from typing import Any, Protocol
 
 import numpy as np
 
@@ -57,6 +58,233 @@ def _state_hash(state: ForecastState, n_buckets: int = 50) -> int:
     if state.qualitative_state:
         base = hash((base, state.qualitative_state, state.economic_regime))
     return base
+
+
+def state_to_vector(state: ForecastState) -> np.ndarray:
+    """Convert an immutable ForecastState into a flat numeric feature vector."""
+    features: list[float] = [
+        float(state.t),
+        float(state.value),
+        float(state.exogenous),
+        float(state.hidden_shift),
+        float(state.economic_regime),
+    ]
+    features.extend(float(v) for _, v in sorted(state.segment_values.items()))
+    features.extend(float(v) for _, v in sorted(state.macro_context.items()))
+    features.extend(float(v) for v in state.raw_qual_state)
+    features.extend(float(v) for v in state.qualitative_state)
+    return np.asarray(features or [0.0], dtype=np.float32)
+
+
+class TrainableAgent(Protocol):
+    action_space: DiscreteActionSpace
+    epsilon: float
+
+    def act(self, state: ForecastState) -> int: ...
+    def update(self, state: ForecastState, action: int, reward: float, next_state: ForecastState) -> float: ...
+
+
+@dataclass(frozen=True)
+class ReplayTransition:
+    state: np.ndarray
+    action: int
+    reward: float
+    next_state: np.ndarray
+    done: bool = False
+
+
+@dataclass
+class ReplayBuffer:
+    capacity: int = 2048
+    _items: deque[ReplayTransition] = field(default_factory=deque, repr=False)
+    _rng: Random = field(default_factory=lambda: Random(42), repr=False)
+
+    def __post_init__(self) -> None:
+        self._items = deque(maxlen=self.capacity)
+
+    def append(self, transition: ReplayTransition) -> None:
+        self._items.append(transition)
+
+    def sample(self, batch_size: int) -> list[ReplayTransition]:
+        size = min(batch_size, len(self._items))
+        if size <= 0:
+            return []
+        idxs = self._rng.sample(range(len(self._items)), size)
+        items = list(self._items)
+        return [items[i] for i in idxs]
+
+    def __len__(self) -> int:
+        return len(self._items)
+
+
+def _maybe_import_torch() -> Any:
+    try:
+        import torch
+        import torch.nn as nn
+        import torch.nn.functional as F
+        import torch.optim as optim
+        return torch, nn, F, optim
+    except ImportError:
+        return None
+
+
+@dataclass
+class DeepRLAgent:
+    """Optional PyTorch-backed DQN/PPO agent for higher-dimensional states."""
+
+    action_space: DiscreteActionSpace = field(default_factory=DiscreteActionSpace)
+    state_dim: int = 5
+    algorithm: str = "dqn"
+    gamma: float = 0.95
+    learning_rate: float = 1e-3
+    epsilon: float = 1.0
+    epsilon_decay: float = 0.995
+    epsilon_min: float = 0.01
+    temperature: float = 1.0
+    temperature_final: float = 0.1
+    temperature_decay: float = 0.995
+    target_update_interval: int = 25
+    replay_buffer_size: int = 2048
+    batch_size: int = 64
+    gpu_enabled: bool = False
+    seed: int = 42
+    _steps: int = field(default=0, init=False, repr=False)
+    _buffer: ReplayBuffer = field(default_factory=ReplayBuffer, init=False, repr=False)
+    _rng: Random = field(default_factory=lambda: Random(42), init=False, repr=False)
+    _torch_bundle: Any = field(default=None, init=False, repr=False)
+    _device: Any = field(default=None, init=False, repr=False)
+    _policy_net: Any = field(default=None, init=False, repr=False)
+    _target_net: Any = field(default=None, init=False, repr=False)
+    _value_net: Any = field(default=None, init=False, repr=False)
+    _optimizer: Any = field(default=None, init=False, repr=False)
+
+    def __post_init__(self) -> None:
+        self._buffer = ReplayBuffer(capacity=self.replay_buffer_size)
+        self._rng = Random(self.seed)
+        bundle = _maybe_import_torch()
+        if bundle is None:
+            raise RuntimeError("DeepRLAgent requires PyTorch to be installed")
+        torch, nn, _, optim = bundle
+        self._torch_bundle = bundle
+        self._device = torch.device("cuda" if self.gpu_enabled and torch.cuda.is_available() else "cpu")
+        torch.manual_seed(self.seed)
+
+        class MLP(nn.Module):  # type: ignore[name-defined,misc]
+            def __init__(self, state_dim: int, action_dim: int, output_dim: int | None = None) -> None:
+                super().__init__()
+                final_dim = action_dim if output_dim is None else output_dim
+                self.net = nn.Sequential(
+                    nn.Linear(state_dim, 128),
+                    nn.ReLU(),
+                    nn.Linear(128, 128),
+                    nn.ReLU(),
+                    nn.Linear(128, final_dim),
+                )
+
+            def forward(self, x: Any) -> Any:
+                return self.net(x)
+
+        self._policy_net = MLP(self.state_dim, self.action_space.n_bins).to(self._device)
+        self._target_net = MLP(self.state_dim, self.action_space.n_bins).to(self._device)
+        self._target_net.load_state_dict(self._policy_net.state_dict())
+        self._target_net.eval()
+        if self.algorithm == "ppo":
+            self._value_net = MLP(self.state_dim, self.action_space.n_bins, output_dim=1).to(self._device)
+            self._optimizer = optim.Adam(
+                list(self._policy_net.parameters()) + list(self._value_net.parameters()),
+                lr=self.learning_rate,
+            )
+        else:
+            self._optimizer = optim.Adam(self._policy_net.parameters(), lr=self.learning_rate)
+
+    def q_values(self, state: ForecastState) -> np.ndarray:
+        torch, _, _, _ = self._torch_bundle
+        vec = torch.tensor(state_to_vector(state), dtype=torch.float32, device=self._device).unsqueeze(0)
+        with torch.no_grad():
+            out = self._policy_net(vec).squeeze(0).detach().cpu().numpy()
+        return np.asarray(out, dtype=float)
+
+    def act(self, state: ForecastState) -> int:
+        if self._rng.random() < self.epsilon:
+            return self._rng.randint(0, self.action_space.n_bins - 1)
+        q_vals = self.q_values(state)
+        if self.temperature > self.temperature_final:
+            scaled = q_vals / max(self.temperature, 1e-6)
+            scaled -= scaled.max()
+            probs = np.exp(scaled)
+            probs = probs / max(probs.sum(), 1e-12)
+            return int(self._rng.choices(range(len(probs)), weights=probs.tolist())[0])
+        return int(np.argmax(q_vals))
+
+    def update(self, state: ForecastState, action: int, reward: float, next_state: ForecastState) -> float:
+        transition = ReplayTransition(
+            state=state_to_vector(state),
+            action=action,
+            reward=float(reward),
+            next_state=state_to_vector(next_state),
+            done=False,
+        )
+        self._buffer.append(transition)
+        td_error = self._optimize_model()
+        self._steps += 1
+        if self._steps % self.target_update_interval == 0:
+            self._target_net.load_state_dict(self._policy_net.state_dict())
+        self.epsilon = max(self.epsilon_min, self.epsilon * self.epsilon_decay)
+        self.temperature = max(self.temperature_final, self.temperature * self.temperature_decay)
+        return float(td_error)
+
+    def _optimize_model(self) -> float:
+        batch = self._buffer.sample(self.batch_size)
+        if not batch:
+            return 0.0
+        if self.algorithm == "ppo":
+            return self._optimize_ppo(batch)
+        return self._optimize_dqn(batch)
+
+    def _optimize_dqn(self, batch: list[ReplayTransition]) -> float:
+        torch, _, F, _ = self._torch_bundle
+        states = torch.tensor(np.stack([b.state for b in batch]), dtype=torch.float32, device=self._device)
+        actions = torch.tensor([b.action for b in batch], dtype=torch.int64, device=self._device).unsqueeze(1)
+        rewards = torch.tensor([b.reward for b in batch], dtype=torch.float32, device=self._device)
+        next_states = torch.tensor(np.stack([b.next_state for b in batch]), dtype=torch.float32, device=self._device)
+        dones = torch.tensor([b.done for b in batch], dtype=torch.float32, device=self._device)
+
+        q_values = self._policy_net(states).gather(1, actions).squeeze(1)
+        with torch.no_grad():
+            next_q = self._target_net(next_states).max(1).values
+            target_q = rewards + self.gamma * next_q * (1.0 - dones)
+        loss = F.smooth_l1_loss(q_values, target_q)
+        self._optimizer.zero_grad()
+        loss.backward()
+        self._optimizer.step()
+        return float(loss.detach().cpu().item())
+
+    def _optimize_ppo(self, batch: list[ReplayTransition]) -> float:
+        torch, _, F, _ = self._torch_bundle
+        clip_eps = 0.2
+        states = torch.tensor(np.stack([b.state for b in batch]), dtype=torch.float32, device=self._device)
+        actions = torch.tensor([b.action for b in batch], dtype=torch.int64, device=self._device)
+        rewards = torch.tensor([b.reward for b in batch], dtype=torch.float32, device=self._device)
+        logits = self._policy_net(states)
+        log_probs = torch.log_softmax(logits, dim=-1)
+        chosen_log_probs = log_probs.gather(1, actions.unsqueeze(1)).squeeze(1)
+
+        with torch.no_grad():
+            old_log_probs = chosen_log_probs.detach()
+            values = self._value_net(states).squeeze(1)
+            advantages = rewards - values
+
+        ratios = torch.exp(chosen_log_probs - old_log_probs)
+        unclipped = ratios * advantages
+        clipped = torch.clamp(ratios, 1.0 - clip_eps, 1.0 + clip_eps) * advantages
+        policy_loss = -torch.min(unclipped, clipped).mean()
+        value_targets = rewards
+        value_loss = F.mse_loss(self._value_net(states).squeeze(1), value_targets)
+        loss = policy_loss + 0.5 * value_loss
+        self._optimizer.zero_grad()
+        loss.backward()
+        self._optimizer.step()
+        return float(loss.detach().cpu().item())
 
 
 @dataclass
@@ -288,15 +516,14 @@ class TrainingLoop:
 
     def train(
         self,
-        forecaster_agent: QTableAgent,
-        adversary_agent: QTableAgent | None = None,
+        forecaster_agent: TrainableAgent,
+        adversary_agent: TrainableAgent | None = None,
         init_state: ForecastState | None = None,
     ) -> dict[str, Any]:
         """Run training episodes and return convergence statistics."""
         if init_state is None:
             init_state = ForecastState(t=0, value=10.0, exogenous=0.0, hidden_shift=0.0)
 
-        action_space = forecaster_agent.action_space
         rewards_history: list[float] = []
         td_errors: list[float] = []
 
@@ -355,6 +582,38 @@ class TrainingLoop:
     def load_q_table(path: str | Path) -> QTableAgent:
         """Load a QTableAgent from a JSON or pickle file at *path*."""
         return QTableAgent.load(path)
+
+
+def build_rl_agent(
+    config: SimulationConfig,
+    *,
+    state_dim: int = 5,
+    action_space: DiscreteActionSpace | None = None,
+    seed: int = 42,
+) -> TrainableAgent:
+    """Construct either the tabular or deep RL backend from SimulationConfig."""
+    space = action_space or DiscreteActionSpace()
+    if config.rl_backend == "deep":
+        return DeepRLAgent(
+            action_space=space,
+            state_dim=state_dim,
+            algorithm=config.rl_algorithm,
+            epsilon=1.0,
+            epsilon_min=config.epsilon_final,
+            replay_buffer_size=config.replay_buffer_size,
+            batch_size=config.rl_batch_size,
+            target_update_interval=config.target_update_interval,
+            gpu_enabled=config.gpu_enabled,
+            temperature=config.temperature_init,
+            temperature_final=config.temperature_final,
+            temperature_decay=config.temperature_decay,
+            seed=seed,
+        )
+    return QTableAgent(
+        action_space=space,
+        epsilon=1.0,
+        epsilon_min=config.epsilon_final,
+    )
 
 
 # ---------------------------------------------------------------------------

@@ -60,6 +60,23 @@ class PromptRuntimeClient(Protocol):
 
 
 @dataclass(frozen=True)
+class ProviderPromptClient:
+    """Prompt client backed by the provider-neutral LLM layer."""
+
+    provider: str = "ollama"
+    model: str = "default"
+    fallback: str = "0.0"
+
+    def complete(self, prompt: str) -> str:
+        from .llm.client import query_text
+
+        try:
+            return query_text(prompt, provider=self.provider, model=self.model)
+        except Exception:
+            return self.fallback
+
+
+@dataclass(frozen=True)
 class PythonStrategyRuntime:
     """Default deterministic local runtime."""
 
@@ -145,6 +162,8 @@ def runtime_from_name(name: str) -> StrategyRuntime:
         return PythonStrategyRuntime()
     if normalized in {"prompt", "mock_llm", "llm"}:
         return PromptStrategyRuntime()
+    if normalized in {"openai", "anthropic", "grok"}:
+        return PromptStrategyRuntime(client=ProviderPromptClient(provider=normalized))
     if normalized in {"chat", "ollama_chat"}:
         return ChatStrategyRuntime()
     return PythonStrategyRuntime()

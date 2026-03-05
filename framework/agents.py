@@ -5,7 +5,7 @@ import logging
 import math
 from collections import defaultdict
 from dataclasses import dataclass, field
-from typing import Any, Callable, List, Literal
+from typing import Any, Callable, List, Literal, cast
 
 from .defenses import defense_from_name
 from .llm import DSPyLikeRepl, LLMRefactorClient, MockLLMRefactorClient, OllamaClient, RefactorRequest
@@ -322,10 +322,10 @@ class AgentRegistry:
             agent = create_agent(agent_type=agent_type, name=name, **kwargs)
 
             if role == "adversary":
-                adversaries.append(agent)  # type: ignore[arg-type]
+                adversaries.append(agent)
                 continue
             if role == "forecaster":
-                forecasters.append(agent)  # type: ignore[arg-type]
+                forecasters.append(agent)
                 continue
 
             if isinstance(agent, DefenderAgent):
@@ -337,7 +337,7 @@ class AgentRegistry:
             elif isinstance(agent, QLearnedAgent) and "adversary" in name:
                 adversaries.append(agent)
             else:
-                forecasters.append(agent)  # type: ignore[arg-type]
+                forecasters.append(agent)
 
         return cls(
             forecasters=tuple(forecasters),
@@ -374,10 +374,11 @@ def create_agent(agent_type: str, name: str, **kwargs: Any) -> Any:
             correlation_threshold=float(kwargs.get("correlation_threshold", 0.7)),
         )
     if agent_type == "qlearned":
+        algorithm = cast(Literal["q", "wolf", "rarl"], str(kwargs.get("algorithm", "q")))
         return QLearnedAgent(
             name=name,
             q_table_path=kwargs.get("q_table_path") or kwargs.get("q_table"),
-            algorithm=str(kwargs.get("algorithm", "q")),
+            algorithm=algorithm,
         )
     raise ValueError(f"Unknown agent_type: {agent_type}")
 

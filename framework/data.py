@@ -9,7 +9,7 @@ import csv
 import json
 import math
 
-from .data_utils import build_fred_training_set, ensure_source_data, fetch_qual_source_rows
+from .data_utils import build_fred_training_set, detect_poisoned_rows, ensure_source_data, fetch_qual_source_rows
 from .exceptions import AdapterFetchError, DataIngestionError, PoisoningDetectedError
 
 
@@ -37,6 +37,7 @@ class DataProfile:
     realtime_refresh: bool = False
     hybrid_weight: float = 0.5
     fail_on_poisoning: bool = False
+    poisoning_threshold: float = 0.05
 
     def __post_init__(self) -> None:
         if self.periods <= 0:
@@ -49,6 +50,8 @@ class DataProfile:
             raise ValueError("train_ratio + valid_ratio must be < 1")
         if not (0.0 <= self.hybrid_weight <= 1.0):
             raise ValueError("hybrid_weight must be in [0,1]")
+        if not (0.0 <= self.poisoning_threshold <= 1.0):
+            raise ValueError("poisoning_threshold must be in [0,1]")
 
 
 def _ensure_required(rows: list[dict[str, Any]]) -> None:
@@ -325,9 +328,11 @@ def load_dataset(profile: DataProfile, path: str | Path = "data/sample_demand.cs
 
     suspects_zscore = detect_poisoning_rows(rows)
     suspects_iqr = detect_poisoning_iqr(rows)
+    ml_results = detect_poisoned_rows(rows, poisoning_threshold=profile.poisoning_threshold)
     seen_ids = set()
     suspects: list[dict[str, Any]] = []
-    for s in suspects_zscore + suspects_iqr:
+    ml_suspects = [row for result in ml_results.values() for row in result.suspects]
+    for s in suspects_zscore + suspects_iqr + ml_suspects:
         row_id = id(s)
         if row_id not in seen_ids:
             seen_ids.add(row_id)

@@ -39,8 +39,10 @@ class MNPOOracle:
                 f"actual={actual:.4f}, candidate={cand:.4f}, opponent={opp:.4f}. "
                 "Reply only with candidate or opponent."
             )
-            out = self.llm_client._post_json("/api/generate", {"model": self.llm_client.model, "prompt": prompt})
-            text = str(out.get("response", "candidate")).lower()
+            try:
+                text = str(self.llm_client.client.generate(prompt)).lower()
+            except Exception:
+                text = "candidate"
             return ((cand, opp, "candidate") if "candidate" in text else (opp, cand, "opponent"))
 
         cand_s = self._score(actual, cand)

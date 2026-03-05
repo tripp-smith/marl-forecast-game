@@ -43,6 +43,14 @@ class CacheStatus:
     age_seconds: float | None
 
 
+@dataclass(frozen=True)
+class AnomalyDetectionResult:
+    suspects: list[dict[str, Any]]
+    scores: list[float]
+    detector: str
+    threshold: float
+
+
 def _coerce_dt(value: str) -> datetime:
     return datetime.fromisoformat(value)
 
@@ -185,6 +193,136 @@ def ensure_source_data(
         "forced": force_redownload,
         "checksum": _checksum_rows(rows),
     }
+
+
+def verify_payload_signature(payload: dict[str, Any]) -> bool:
+    """Check cached payload checksum matches the serialized rows."""
+    rows = payload.get("rows", [])
+    stored_checksum = payload.get("checksum")
+    if not stored_checksum:
+        return False
+    return bool(stored_checksum == _checksum_rows(rows))
+
+
+def detect_isolation_forest_anomalies(
+    rows: list[dict[str, Any]],
+    *,
+    contamination: float = 0.05,
+) -> AnomalyDetectionResult:
+    """Detect anomalies using sklearn IsolationForest on numeric row features."""
+    if len(rows) < 8:
+        return AnomalyDetectionResult(suspects=[], scores=[], detector="isolation_forest", threshold=contamination)
+    try:
+        import numpy as np
+        from sklearn.ensemble import IsolationForest
+    except ImportError:
+        return AnomalyDetectionResult(suspects=[], scores=[], detector="isolation_forest", threshold=contamination)
+
+    matrix = np.asarray(
+        [
+            [
+                float(r.get("target", 0.0)),
+                float(r.get("promo", 0.0)),
+                float(r.get("macro_index", 0.0)),
+            ]
+            for r in rows
+        ],
+        dtype=float,
+    )
+    clf = IsolationForest(contamination=max(0.001, contamination), random_state=42)
+    preds = clf.fit_predict(matrix)
+    scores = (-clf.score_samples(matrix)).tolist()
+    suspects = [row for row, pred in zip(rows, preds) if pred == -1]
+    return AnomalyDetectionResult(suspects=suspects, scores=scores, detector="isolation_forest", threshold=contamination)
+
+
+def detect_autoencoder_anomalies(
+    rows: list[dict[str, Any]],
+    *,
+    threshold: float = 0.05,
+    epochs: int = 50,
+) -> AnomalyDetectionResult:
+    """Detect anomalies using a lightweight PyTorch autoencoder when available."""
+    if len(rows) < 8:
+        return AnomalyDetectionResult(suspects=[], scores=[], detector="autoencoder", threshold=threshold)
+    try:
+        import numpy as np
+        import torch
+        import torch.nn as nn
+        import torch.optim as optim
+    except ImportError:
+        return AnomalyDetectionResult(suspects=[], scores=[], detector="autoencoder", threshold=threshold)
+
+    matrix = np.asarray(
+        [
+            [
+                float(r.get("target", 0.0)),
+                float(r.get("promo", 0.0)),
+                float(r.get("macro_index", 0.0)),
+            ]
+            for r in rows
+        ],
+        dtype=np.float32,
+    )
+    mean = matrix.mean(axis=0, keepdims=True)
+    std = matrix.std(axis=0, keepdims=True)
+    std[std == 0] = 1.0
+    normalized = (matrix - mean) / std
+    data = torch.tensor(normalized, dtype=torch.float32)
+
+    class AutoEncoder(nn.Module):
+        def __init__(self) -> None:
+            super().__init__()
+            self.encoder = nn.Sequential(nn.Linear(3, 8), nn.ReLU(), nn.Linear(8, 2))
+            self.decoder = nn.Sequential(nn.Linear(2, 8), nn.ReLU(), nn.Linear(8, 3))
+
+        def forward(self, x: Any) -> Any:
+            return self.decoder(self.encoder(x))
+
+    model = AutoEncoder()
+    optimizer = optim.Adam(model.parameters(), lr=1e-2)
+    loss_fn = nn.MSELoss()
+    for _ in range(epochs):
+        optimizer.zero_grad()
+        recon = model(data)
+        loss = loss_fn(recon, data)
+        loss.backward()
+        optimizer.step()
+
+    with torch.no_grad():
+        errors = ((model(data) - data) ** 2).mean(dim=1).cpu().numpy().tolist()
+    suspects = [row for row, err in zip(rows, errors) if err >= threshold]
+    return AnomalyDetectionResult(suspects=suspects, scores=errors, detector="autoencoder", threshold=threshold)
+
+
+def detect_poisoned_rows(
+    rows: list[dict[str, Any]],
+    *,
+    poisoning_threshold: float = 0.05,
+) -> dict[str, AnomalyDetectionResult]:
+    """Run all configured anomaly detectors and return their independent results."""
+    results = {
+        "isolation_forest": detect_isolation_forest_anomalies(rows, contamination=poisoning_threshold),
+        "autoencoder": detect_autoencoder_anomalies(rows, threshold=poisoning_threshold),
+    }
+    total_flagged = sum(len(result.suspects) for result in results.values())
+    if total_flagged:
+        try:
+            import structlog
+
+            structlog.get_logger("poisoning_detection").warning(
+                "poisoning_suspects_detected",
+                total_flagged=total_flagged,
+                threshold=poisoning_threshold,
+                detectors={name: len(result.suspects) for name, result in results.items()},
+            )
+        except ImportError:
+            logging.getLogger("poisoning_detection").warning(
+                "poisoning_suspects_detected total=%d threshold=%.4f",
+                total_flagged,
+                poisoning_threshold,
+            )
+    return results
 
 
 # ---------------------------------------------------------------------------

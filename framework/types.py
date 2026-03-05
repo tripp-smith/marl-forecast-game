@@ -155,6 +155,20 @@ class SimulationConfig:
     agent_type: str = "forecaster"
     marl_qtable_path: str = ""
     marl_algorithm: str = "q"
+    rl_backend: str = "tabular"
+    rl_algorithm: str = "dqn"
+    gpu_enabled: bool = False
+    replay_buffer_size: int = 2048
+    rl_batch_size: int = 64
+    target_update_interval: int = 25
+    epsilon_final: float = 0.01
+    temperature_init: float = 1.0
+    temperature_final: float = 0.1
+    temperature_decay: float = 0.995
+    llm_provider: str = "ollama"
+    llm_model: str = "default"
+    llm_fallback_to_local: bool = True
+    poisoning_threshold: float = 0.05
     agent_specs: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
@@ -202,6 +216,26 @@ class SimulationConfig:
             raise ConfigValidationError("mnpo_population_size must be >= 1")
         if self.marl_algorithm not in {"q", "wolf", "rarl"}:
             raise ConfigValidationError("marl_algorithm must be one of: q, wolf, rarl")
+        if self.rl_backend not in {"tabular", "deep"}:
+            raise ConfigValidationError("rl_backend must be one of: tabular, deep")
+        if self.rl_algorithm not in {"dqn", "ppo"}:
+            raise ConfigValidationError("rl_algorithm must be one of: dqn, ppo")
+        if self.replay_buffer_size < 1:
+            raise ConfigValidationError("replay_buffer_size must be >= 1")
+        if self.rl_batch_size < 1:
+            raise ConfigValidationError("rl_batch_size must be >= 1")
+        if self.target_update_interval < 1:
+            raise ConfigValidationError("target_update_interval must be >= 1")
+        if not (0.0 <= self.epsilon_final <= 1.0):
+            raise ConfigValidationError("epsilon_final must be in [0, 1]")
+        if self.temperature_init <= 0:
+            raise ConfigValidationError("temperature_init must be > 0")
+        if self.temperature_final <= 0:
+            raise ConfigValidationError("temperature_final must be > 0")
+        if self.temperature_decay <= 0:
+            raise ConfigValidationError("temperature_decay must be > 0")
+        if not (0.0 <= self.poisoning_threshold <= 1.0):
+            raise ConfigValidationError("poisoning_threshold must be in [0, 1]")
 
 
 def decay_qualitative_state(

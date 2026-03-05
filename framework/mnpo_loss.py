@@ -10,14 +10,15 @@ Nash Equilibrium (target): A policy π* where no player can improve by unilatera
 from __future__ import annotations
 
 import numpy as np
+import numpy.typing as npt
 
 
-def q_values_to_log_probs(q_values: np.ndarray) -> np.ndarray:
+def q_values_to_log_probs(q_values: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
     """Convert Q-values to normalized log-probabilities via softmax."""
     shifted = q_values - np.max(q_values)
     probs = np.exp(shifted)
     probs /= probs.sum()
-    return np.log(np.clip(probs, 1e-12, 1.0))
+    return np.asarray(np.log(np.clip(probs, 1e-12, 1.0)), dtype=np.float64)
 
 
 def mnpo_loss(
@@ -37,11 +38,11 @@ def mnpo_loss(
 
 
 def tabular_closed_form_update(
-    candidate_prob: np.ndarray,
-    opponent_probs: list[np.ndarray],
+    candidate_prob: npt.NDArray[np.float64],
+    opponent_probs: list[npt.NDArray[np.float64]],
     preferences: list[float],
     eta: float,
-) -> np.ndarray:
+) -> npt.NDArray[np.float64]:
     """Closed-form multiplicative policy update for tabular policies."""
     if not opponent_probs:
         return candidate_prob
@@ -53,4 +54,4 @@ def tabular_closed_form_update(
     pref_bonus = np.exp((eta / max(1, n - 1)) * np.array(preferences))
     updated = np.clip(geo * pref_bonus, 1e-12, None)
     updated = updated / updated.sum()
-    return updated
+    return np.asarray(updated, dtype=np.float64)

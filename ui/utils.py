@@ -2,7 +2,9 @@
 from __future__ import annotations
 
 import datetime
+import csv
 import json
+import io
 from pathlib import Path
 from typing import Any
 
@@ -126,9 +128,9 @@ def load_trajectory_logs(path: str | Path) -> list[dict[str, Any]]:
     with open(p) as f:
         data = json.load(f)
     if isinstance(data, list):
-        return data
+        return [dict(item) for item in data]
     if isinstance(data, dict) and "trajectory_logs" in data:
-        return data["trajectory_logs"]
+        return [dict(item) for item in data["trajectory_logs"]]
     return []
 
 
@@ -138,7 +140,89 @@ def load_simulation_result(path: str | Path) -> dict[str, Any]:
     if not p.exists():
         return {}
     with open(p) as f:
-        return json.load(f)
+        return dict(json.load(f))
+
+
+def build_round_dataframe(result: dict[str, Any]) -> list[dict[str, float | int]]:
+    logs = result.get("trajectory_logs", [])
+    if logs:
+        rows = []
+        for idx, entry in enumerate(logs):
+            rows.append(
+                {
+                    "round": idx,
+                    "forecast": float(entry.get("forecast", 0.0)),
+                    "target": float(entry.get("target", 0.0)),
+                    "reward": float(entry.get("reward", 0.0)),
+                    "disturbance": float(entry.get("disturbance", 0.0)),
+                }
+            )
+        return rows
+    forecasts = result.get("forecasts", [])
+    targets = result.get("targets", [])
+    n = min(len(forecasts), len(targets))
+    return [
+        {"round": idx, "forecast": float(forecasts[idx]), "target": float(targets[idx])}
+        for idx in range(n)
+    ]
+
+
+def build_fan_chart_frame(result: dict[str, Any], *, window: int = 8) -> list[dict[str, float | int]]:
+    frame = build_round_dataframe(result)
+    if not frame:
+        return frame
+    residuals = [abs(float(row["forecast"]) - float(row["target"])) for row in frame]
+    bands: list[dict[str, float | int]] = []
+    for idx, row in enumerate(frame):
+        start = max(0, idx - window + 1)
+        rolling = sum(residuals[start : idx + 1]) / max(1, idx - start + 1)
+        forecast = float(row["forecast"])
+        bands.append(
+            {
+                **row,
+                "band_50_low": forecast - 0.5 * rolling,
+                "band_50_high": forecast + 0.5 * rolling,
+                "band_90_low": forecast - 1.5 * rolling,
+                "band_90_high": forecast + 1.5 * rolling,
+            }
+        )
+    return bands
+
+
+def export_result_csv(result: dict[str, Any]) -> bytes:
+    rows = build_round_dataframe(result)
+    if not rows:
+        return b""
+    buffer = io.StringIO()
+    writer = csv.DictWriter(buffer, fieldnames=list(rows[0].keys()))
+    writer.writeheader()
+    writer.writerows(rows)
+    return buffer.getvalue().encode("utf-8")
+
+
+def export_result_pdf(result: dict[str, Any]) -> bytes:
+    buffer = io.BytesIO()
+    metrics = result.get("metrics", {})
+    try:
+        from reportlab.lib.pagesizes import letter
+        from reportlab.pdfgen import canvas
+
+        pdf = canvas.Canvas(buffer, pagesize=letter)
+        pdf.setTitle("MARL Forecast Report")
+        pdf.drawString(72, 760, "MARL Forecast Game Report")
+        y = 730
+        for key in ["mae", "rmse", "mape", "worst_case"]:
+            pdf.drawString(72, y, f"{key}: {metrics.get(key, 0)}")
+            y -= 18
+        pdf.save()
+    except ImportError:
+        payload = {
+            "title": "MARL Forecast Game Report",
+            "metrics": metrics,
+            "rounds": int(result.get("convergence", {}).get("rounds_executed", 0)),
+        }
+        buffer.write(json.dumps(payload, indent=2).encode("utf-8"))
+    return buffer.getvalue()
 
 
 def run_simulation(

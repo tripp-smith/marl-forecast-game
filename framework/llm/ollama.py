@@ -83,6 +83,12 @@ class OllamaClient:
             )
         return response_text
 
+    def query(self, prompt: str, model: str | None = None, **kwargs: Any) -> str:
+        """Provider-neutral alias used by the multi-provider abstraction."""
+        target_model = self.model if model is None else model
+        client = self if target_model == self.model else OllamaClient(base_url=self.base_url, model=target_model, keep_alive=self.keep_alive)
+        return client.generate(prompt, **kwargs)
+
     def embeddings(
         self,
         text: str,

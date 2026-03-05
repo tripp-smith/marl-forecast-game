@@ -8,7 +8,7 @@ from pathlib import Path
 import streamlit as st
 import plotly.graph_objects as go
 
-from ui.utils import RESULTS_DIR
+from ui.utils import RESULTS_DIR, build_fan_chart_frame, export_result_csv, export_result_pdf
 
 st.header("What-If Experimentation")
 
@@ -73,6 +73,56 @@ if run_single or run_comparison:
     fig.add_trace(go.Scatter(y=result["targets"], mode="lines", name="Target"))
     fig.update_layout(xaxis_title="Round", yaxis_title="Value", height=400)
     st.plotly_chart(fig, use_container_width=True)
+
+    fan_rows = build_fan_chart_frame(result)
+    if fan_rows:
+        st.subheader("Forecast Fan Chart")
+        rounds = [row["round"] for row in fan_rows]
+        fig_fan = go.Figure()
+        fig_fan.add_trace(go.Scatter(x=rounds, y=[row["band_90_high"] for row in fan_rows], line=dict(width=0), showlegend=False))
+        fig_fan.add_trace(
+            go.Scatter(
+                x=rounds,
+                y=[row["band_90_low"] for row in fan_rows],
+                line=dict(width=0),
+                fill="tonexty",
+                fillcolor="rgba(54, 162, 235, 0.15)",
+                name="90% band",
+            )
+        )
+        fig_fan.add_trace(go.Scatter(x=rounds, y=[row["band_50_high"] for row in fan_rows], line=dict(width=0), showlegend=False))
+        fig_fan.add_trace(
+            go.Scatter(
+                x=rounds,
+                y=[row["band_50_low"] for row in fan_rows],
+                line=dict(width=0),
+                fill="tonexty",
+                fillcolor="rgba(54, 162, 235, 0.30)",
+                name="50% band",
+            )
+        )
+        fig_fan.add_trace(go.Scatter(x=rounds, y=[row["forecast"] for row in fan_rows], mode="lines", name="Forecast"))
+        fig_fan.add_trace(go.Scatter(x=rounds, y=[row["target"] for row in fan_rows], mode="lines", name="Target"))
+        fig_fan.update_layout(height=420, xaxis_title="Round", yaxis_title="Value")
+        st.plotly_chart(fig_fan, use_container_width=True)
+
+    export_col1, export_col2 = st.columns(2)
+    with export_col1:
+        st.download_button(
+            "Download CSV",
+            data=export_result_csv(result),
+            file_name="whatif_result.csv",
+            mime="text/csv",
+            use_container_width=True,
+        )
+    with export_col2:
+        st.download_button(
+            "Download PDF",
+            data=export_result_pdf(result),
+            file_name="whatif_report.pdf",
+            mime="application/pdf",
+            use_container_width=True,
+        )
 
     if RESULTS_DIR.is_dir():
         ts = int(time.time())
