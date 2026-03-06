@@ -26,7 +26,10 @@ A multi-agent adversarial forecasting framework that models prediction as a Mark
 - Tabular Q-learning with epsilon-greedy and Boltzmann (softmax) action selection
 - WoLF-PHC (Win or Learn Fast - Policy Hill Climbing) for equilibrium-seeking
 - Robust Adversarial RL (RARL) with bounded rationality curriculum and alternating training epochs
+- Bandit backends for partial-feedback training: Tsallis-INF and Maximin-UCB
 - Temperature-scheduled adversary: decays from exploratory to exploitative across RARL epochs
+- Evolutionary strategy populations for forecasters, adversaries, and defenders
+- Correlated-equilibrium and Bayesian uncertainty hooks in the runtime game loop
 - Q-table serialization for persistence and reproducibility
 
 **Data Integration**
@@ -289,6 +292,16 @@ marl-forecast-game/
 | `tau_decay_rate` | float | 0.05 | Exponential decay rate for tau schedule |
 | `bankruptcy_threshold` | float | 0.01 | Kelly bankroll floor for agent pruning |
 | `wolfpack_correlation_threshold` | float | 0.7 | Pearson rho cutoff for wolfpack coalition |
+| `dynamics` | str | `"static"` | `static` or `evolutionary` strategy populations |
+| `population_size` | int | 20 | Evolutionary strategy pool size |
+| `evolution_rate` | float | 0.05 | Replicator-dynamics update rate |
+| `equilibrium_type` | str | `"nash"` | `nash`, `correlated`, or `bayesian` coordination mode |
+| `prior_alpha` | tuple[float, ...] | `(1.0, 1.0)` | Dirichlet prior for hidden-type beliefs |
+| `feedback_mode` | str | `"full"` | `full`, `bandit_uninformed`, or `bandit_informed` |
+| `bias_check` | bool | `True` | Enable LLM bias/signaling probes |
+| `signal_rounds` | int | 3 | Number of LLM signaling probe rounds |
+| `coalitions` | str | `"static"` | `static` or `dynamic` coalition topology |
+| `sabotage_prob` | float | 0.1 | Probability of sabotage-style forecast penalty |
 
 See [docs/configuration.md](docs/configuration.md) for `DataProfile`, runtime backends, and model name registries.
 

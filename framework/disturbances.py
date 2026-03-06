@@ -6,6 +6,8 @@ from dataclasses import dataclass
 from random import Random
 from typing import Protocol
 
+import numpy as np
+
 from .types import ForecastState, SimulationConfig
 
 
@@ -230,6 +232,29 @@ class GARCHDisturbance:
         eps = rng.gauss(0, sigma * config.disturbance_scale * config.adversarial_intensity)
         vol_state[0] = self.omega + self.alpha * eps * eps + self.beta * sigma2
         return eps
+
+
+@dataclass(frozen=True)
+class DisturbancePosterior:
+    """Dirichlet posterior over benign/adversarial disturbance regimes."""
+
+    alpha: tuple[float, ...] = (1.0, 1.0)
+
+    @property
+    def posterior(self) -> tuple[float, ...]:
+        total = sum(self.alpha) or 1.0
+        return tuple(a / total for a in self.alpha)
+
+    def update(self, disturbance: float, adversary_delta: float) -> "DisturbancePosterior":
+        suspicious = min(1.0, (abs(disturbance) + abs(adversary_delta)) / 1.5)
+        benign = max(0.0, 1.0 - suspicious)
+        if len(self.alpha) > 2:
+            spread = benign / max(1, len(self.alpha) - 1)
+            likelihood = np.array([spread] * (len(self.alpha) - 1) + [suspicious], dtype=float)
+        else:
+            likelihood = np.array([benign, suspicious], dtype=float)
+        alpha = np.array(self.alpha, dtype=float) + likelihood
+        return DisturbancePosterior(alpha=tuple(float(v) for v in alpha))
 
 
 def disturbance_from_name(name: str) -> DisturbanceModel:

@@ -1,9 +1,9 @@
 {
-  "checksum": "69487f5fc439a55c889e51211b5345037def92203fce21ee11129ceab334d259",
-  "fetched_at": "2026-03-03T15:15:09.782209",
+  "checksum": "b16a54782e81e5cfca851f7c68b3f9d9d8d98719f8015682071cdf0c0667feef",
+  "fetched_at": "2026-03-06T00:07:02.871234",
   "rows": [
     {
-      "fetched_at": "2026-03-03 15:15:09.781365",
+      "fetched_at": "2026-03-06 00:07:02.870793",
       "macro_index": 100.0,
       "promo": 0.0,
       "series_id": "imf_ngdp_rpch",
@@ -12,7 +12,7 @@
       "timestamp": "1986-01-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:09.781365",
+      "fetched_at": "2026-03-06 00:07:02.870793",
       "macro_index": 100.1,
       "promo": 0.0,
       "series_id": "imf_ngdp_rpch",
@@ -21,7 +21,7 @@
       "timestamp": "1987-01-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:09.781365",
+      "fetched_at": "2026-03-06 00:07:02.870793",
       "macro_index": 100.2,
       "promo": 0.0,
       "series_id": "imf_ngdp_rpch",
@@ -30,7 +30,7 @@
       "timestamp": "1988-01-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:09.781365",
+      "fetched_at": "2026-03-06 00:07:02.870793",
       "macro_index": 100.3,
       "promo": 0.0,
       "series_id": "imf_ngdp_rpch",
@@ -39,7 +39,7 @@
       "timestamp": "1989-01-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:09.781365",
+      "fetched_at": "2026-03-06 00:07:02.870793",
       "macro_index": 100.4,
       "promo": 0.0,
       "series_id": "imf_ngdp_rpch",
@@ -48,7 +48,7 @@
       "timestamp": "1990-01-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:09.781365",
+      "fetched_at": "2026-03-06 00:07:02.870793",
       "macro_index": 100.5,
       "promo": 0.0,
       "series_id": "imf_ngdp_rpch",
@@ -57,7 +57,7 @@
       "timestamp": "1991-01-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:09.781365",
+      "fetched_at": "2026-03-06 00:07:02.870793",
       "macro_index": 100.6,
       "promo": 0.0,
       "series_id": "imf_ngdp_rpch",
@@ -66,7 +66,7 @@
       "timestamp": "1992-01-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:09.781365",
+      "fetched_at": "2026-03-06 00:07:02.870793",
       "macro_index": 100.7,
       "promo": 0.0,
       "series_id": "imf_ngdp_rpch",
@@ -75,7 +75,7 @@
       "timestamp": "1993-01-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:09.781365",
+      "fetched_at": "2026-03-06 00:07:02.870793",
       "macro_index": 100.8,
       "promo": 0.0,
       "series_id": "imf_ngdp_rpch",
@@ -84,7 +84,7 @@
       "timestamp": "1994-01-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:09.781365",
+      "fetched_at": "2026-03-06 00:07:02.870793",
       "macro_index": 100.9,
       "promo": 0.0,
       "series_id": "imf_ngdp_rpch",
@@ -93,7 +93,7 @@
       "timestamp": "1995-01-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:09.781365",
+      "fetched_at": "2026-03-06 00:07:02.870793",
       "macro_index": 101.0,
       "promo": 0.0,
       "series_id": "imf_ngdp_rpch",
@@ -102,7 +102,7 @@
       "timestamp": "1996-01-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:09.781365",
+      "fetched_at": "2026-03-06 00:07:02.870793",
       "macro_index": 101.1,
       "promo": 0.0,
       "series_id": "imf_ngdp_rpch",
@@ -111,7 +111,7 @@
       "timestamp": "1997-01-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:09.781365",
+      "fetched_at": "2026-03-06 00:07:02.870793",
       "macro_index": 101.2,
       "promo": 0.0,
       "series_id": "imf_ngdp_rpch",
@@ -120,7 +120,7 @@
       "timestamp": "1998-01-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:09.781365",
+      "fetched_at": "2026-03-06 00:07:02.870793",
       "macro_index": 101.3,
       "promo": 0.0,
       "series_id": "imf_ngdp_rpch",
@@ -129,7 +129,7 @@
       "timestamp": "1999-01-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:09.781365",
+      "fetched_at": "2026-03-06 00:07:02.870793",
       "macro_index": 101.4,
       "promo": 0.0,
       "series_id": "imf_ngdp_rpch",
@@ -138,7 +138,7 @@
       "timestamp": "2000-01-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:09.781365",
+      "fetched_at": "2026-03-06 00:07:02.870793",
       "macro_index": 101.5,
       "promo": 0.0,
       "series_id": "imf_ngdp_rpch",
@@ -147,7 +147,7 @@
       "timestamp": "2001-01-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:09.781365",
+      "fetched_at": "2026-03-06 00:07:02.870793",
       "macro_index": 101.6,
       "promo": 0.0,
       "series_id": "imf_ngdp_rpch",
@@ -156,7 +156,7 @@
       "timestamp": "2002-01-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:09.781365",
+      "fetched_at": "2026-03-06 00:07:02.870793",
       "macro_index": 101.7,
       "promo": 0.0,
       "series_id": "imf_ngdp_rpch",
@@ -165,7 +165,7 @@
       "timestamp": "2003-01-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:09.781365",
+      "fetched_at": "2026-03-06 00:07:02.870793",
       "macro_index": 101.8,
       "promo": 0.0,
       "series_id": "imf_ngdp_rpch",
@@ -174,7 +174,7 @@
       "timestamp": "2004-01-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:09.781365",
+      "fetched_at": "2026-03-06 00:07:02.870793",
       "macro_index": 101.9,
       "promo": 0.0,
       "series_id": "imf_ngdp_rpch",
@@ -183,7 +183,7 @@
       "timestamp": "2005-01-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:09.781365",
+      "fetched_at": "2026-03-06 00:07:02.870793",
       "macro_index": 102.0,
       "promo": 0.0,
       "series_id": "imf_ngdp_rpch",
@@ -192,7 +192,7 @@
       "timestamp": "2006-01-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:09.781365",
+      "fetched_at": "2026-03-06 00:07:02.870793",
       "macro_index": 102.1,
       "promo": 0.0,
       "series_id": "imf_ngdp_rpch",
@@ -201,7 +201,7 @@
       "timestamp": "2007-01-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:09.781365",
+      "fetched_at": "2026-03-06 00:07:02.870793",
       "macro_index": 102.2,
       "promo": 0.0,
       "series_id": "imf_ngdp_rpch",
@@ -210,7 +210,7 @@
       "timestamp": "2008-01-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:09.781365",
+      "fetched_at": "2026-03-06 00:07:02.870793",
       "macro_index": 102.3,
       "promo": 0.0,
       "series_id": "imf_ngdp_rpch",
@@ -219,7 +219,7 @@
       "timestamp": "2009-01-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:09.781365",
+      "fetched_at": "2026-03-06 00:07:02.870793",
       "macro_index": 102.4,
       "promo": 0.0,
       "series_id": "imf_ngdp_rpch",
@@ -228,7 +228,7 @@
       "timestamp": "2010-01-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:09.781365",
+      "fetched_at": "2026-03-06 00:07:02.870793",
       "macro_index": 102.5,
       "promo": 0.0,
       "series_id": "imf_ngdp_rpch",
@@ -237,7 +237,7 @@
       "timestamp": "2011-01-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:09.781365",
+      "fetched_at": "2026-03-06 00:07:02.870793",
       "macro_index": 102.6,
       "promo": 0.0,
       "series_id": "imf_ngdp_rpch",
@@ -246,7 +246,7 @@
       "timestamp": "2012-01-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:09.781365",
+      "fetched_at": "2026-03-06 00:07:02.870793",
       "macro_index": 102.7,
       "promo": 0.0,
       "series_id": "imf_ngdp_rpch",
@@ -255,7 +255,7 @@
       "timestamp": "2013-01-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:09.781365",
+      "fetched_at": "2026-03-06 00:07:02.870793",
       "macro_index": 102.8,
       "promo": 0.0,
       "series_id": "imf_ngdp_rpch",
@@ -264,7 +264,7 @@
       "timestamp": "2014-01-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:09.781365",
+      "fetched_at": "2026-03-06 00:07:02.870793",
       "macro_index": 102.9,
       "promo": 0.0,
       "series_id": "imf_ngdp_rpch",
@@ -273,7 +273,7 @@
       "timestamp": "2015-01-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:09.781365",
+      "fetched_at": "2026-03-06 00:07:02.870793",
       "macro_index": 103.0,
       "promo": 0.0,
       "series_id": "imf_ngdp_rpch",
@@ -282,7 +282,7 @@
       "timestamp": "2016-01-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:09.781365",
+      "fetched_at": "2026-03-06 00:07:02.870793",
       "macro_index": 103.1,
       "promo": 0.0,
       "series_id": "imf_ngdp_rpch",
@@ -291,7 +291,7 @@
       "timestamp": "2017-01-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:09.781365",
+      "fetched_at": "2026-03-06 00:07:02.870793",
       "macro_index": 103.2,
       "promo": 0.0,
       "series_id": "imf_ngdp_rpch",
@@ -300,7 +300,7 @@
       "timestamp": "2018-01-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:09.781365",
+      "fetched_at": "2026-03-06 00:07:02.870793",
       "macro_index": 103.3,
       "promo": 0.0,
       "series_id": "imf_ngdp_rpch",
@@ -309,7 +309,7 @@
       "timestamp": "2019-01-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:09.781365",
+      "fetched_at": "2026-03-06 00:07:02.870793",
       "macro_index": 103.4,
       "promo": 0.0,
       "series_id": "imf_ngdp_rpch",
@@ -318,7 +318,7 @@
       "timestamp": "2020-01-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:09.781365",
+      "fetched_at": "2026-03-06 00:07:02.870793",
       "macro_index": 103.5,
       "promo": 0.0,
       "series_id": "imf_ngdp_rpch",
@@ -327,7 +327,7 @@
       "timestamp": "2021-01-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:09.781365",
+      "fetched_at": "2026-03-06 00:07:02.870793",
       "macro_index": 103.6,
       "promo": 0.0,
       "series_id": "imf_ngdp_rpch",
@@ -336,7 +336,7 @@
       "timestamp": "2022-01-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:09.781365",
+      "fetched_at": "2026-03-06 00:07:02.870793",
       "macro_index": 103.7,
       "promo": 0.0,
       "series_id": "imf_ngdp_rpch",
@@ -345,7 +345,7 @@
       "timestamp": "2023-01-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:09.781365",
+      "fetched_at": "2026-03-06 00:07:02.870793",
       "macro_index": 103.8,
       "promo": 0.0,
       "series_id": "imf_ngdp_rpch",
@@ -354,7 +354,7 @@
       "timestamp": "2024-01-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:09.781365",
+      "fetched_at": "2026-03-06 00:07:02.870793",
       "macro_index": 103.9,
       "promo": 0.0,
       "series_id": "imf_ngdp_rpch",
@@ -363,7 +363,7 @@
       "timestamp": "2025-01-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:09.781365",
+      "fetched_at": "2026-03-06 00:07:02.870793",
       "macro_index": 104.0,
       "promo": 0.0,
       "series_id": "imf_ngdp_rpch",
@@ -372,7 +372,7 @@
       "timestamp": "2026-01-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:09.781365",
+      "fetched_at": "2026-03-06 00:07:02.870793",
       "macro_index": 104.1,
       "promo": 0.0,
       "series_id": "imf_ngdp_rpch",
@@ -381,7 +381,7 @@
       "timestamp": "2027-01-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:09.781365",
+      "fetched_at": "2026-03-06 00:07:02.870793",
       "macro_index": 104.2,
       "promo": 0.0,
       "series_id": "imf_ngdp_rpch",
@@ -390,7 +390,7 @@
       "timestamp": "2028-01-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:09.781365",
+      "fetched_at": "2026-03-06 00:07:02.870793",
       "macro_index": 104.3,
       "promo": 0.0,
       "series_id": "imf_ngdp_rpch",
@@ -399,7 +399,7 @@
       "timestamp": "2029-01-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:09.781365",
+      "fetched_at": "2026-03-06 00:07:02.870793",
       "macro_index": 104.4,
       "promo": 0.0,
       "series_id": "imf_ngdp_rpch",

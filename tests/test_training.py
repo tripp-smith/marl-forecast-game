@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import math
+
 import pytest
 
-from framework.training import QTableAgent, build_rl_agent, state_to_vector
+from framework.training import MaximinUCBBandit, QTableAgent, TsallisINFBandit, build_rl_agent, state_to_vector
 from framework.types import ForecastState, SimulationConfig
 
 
@@ -29,6 +31,14 @@ def test_build_rl_agent_uses_config_switches():
     assert isinstance(tabular, QTableAgent)
     assert tabular.epsilon_min == pytest.approx(0.02)
 
+    bandit_cfg = SimulationConfig(feedback_mode="bandit_uninformed", regret_horizon=500)
+    bandit = build_rl_agent(bandit_cfg)
+    assert isinstance(bandit, TsallisINFBandit)
+
+    informed_cfg = SimulationConfig(feedback_mode="bandit_informed")
+    informed = build_rl_agent(informed_cfg)
+    assert isinstance(informed, MaximinUCBBandit)
+
 
 def test_simulation_config_validates_new_rl_fields():
     with pytest.raises(ValueError):
@@ -37,6 +47,8 @@ def test_simulation_config_validates_new_rl_fields():
         SimulationConfig(rl_algorithm="invalid")
     with pytest.raises(ValueError):
         SimulationConfig(poisoning_threshold=2.0)
+    with pytest.raises(ValueError):
+        SimulationConfig(feedback_mode="invalid")
 
 
 def test_deep_rl_backend_matches_tabular_policy_direction_when_torch_available():
@@ -69,3 +81,23 @@ def test_deep_rl_backend_matches_tabular_policy_direction_when_torch_available()
     assert int(tabular_q.argmax()) == int(deep_q.argmax())
     assert float(deep_q[action]) == pytest.approx(float(deep_q.max()))
     assert all(abs(float(val)) < 1e6 for val in deep_q)
+
+
+def test_bandit_backend_keeps_regret_sublinear_on_easy_problem():
+    cfg = SimulationConfig(feedback_mode="bandit_uninformed", regret_horizon=500)
+    agent = build_rl_agent(cfg)
+    state = ForecastState(t=0, value=0.0, exogenous=0.0, hidden_shift=0.0)
+    means = [1.0] + [0.1] * (agent.action_space.n_bins - 1)  # type: ignore[attr-defined]
+    cumulative_reward = 0.0
+    horizon = 500
+
+    for round_idx in range(horizon):
+        s = ForecastState(t=round_idx, value=0.0, exogenous=0.0, hidden_shift=0.0)
+        action = agent.act(s)
+        reward = means[action]
+        cumulative_reward += reward
+        agent.update(s, action, reward, state)
+
+    regret = horizon * means[0] - cumulative_reward
+    assert regret < horizon ** 0.75
+    assert regret < 10 * math.log(horizon)

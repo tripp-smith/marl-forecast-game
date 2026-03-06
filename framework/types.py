@@ -151,6 +151,20 @@ class SimulationConfig:
     mnpo_eta: float = 1.0
     mnpo_beta: float = 0.1
     mnpo_population_size: int = 10
+    dynamics: str = "static"
+    population_size: int = 20
+    evolution_rate: float = 0.05
+    evolution_batch_size: int = 100
+    equilibrium_type: str = "nash"
+    prior_alpha: Tuple[float, ...] = (1.0, 1.0)
+    quarantine_threshold: float = 0.7
+    feedback_mode: str = "full"
+    regret_horizon: int = 500
+    bias_check: bool = True
+    signal_rounds: int = 3
+    coalitions: str = "static"
+    sabotage_prob: float = 0.1
+    coalition_reform_interval: int = 50
     start_date: str = ""
     agent_type: str = "forecaster"
     marl_qtable_path: str = ""
@@ -214,6 +228,32 @@ class SimulationConfig:
             raise ConfigValidationError("mnpo_beta must be > 0")
         if self.mnpo_population_size < 1:
             raise ConfigValidationError("mnpo_population_size must be >= 1")
+        if self.dynamics not in {"static", "evolutionary"}:
+            raise ConfigValidationError("dynamics must be one of: static, evolutionary")
+        if self.population_size < 1:
+            raise ConfigValidationError("population_size must be >= 1")
+        if self.evolution_rate < 0:
+            raise ConfigValidationError("evolution_rate must be >= 0")
+        if self.evolution_batch_size < 1:
+            raise ConfigValidationError("evolution_batch_size must be >= 1")
+        if self.equilibrium_type not in {"nash", "correlated", "bayesian"}:
+            raise ConfigValidationError("equilibrium_type must be one of: nash, correlated, bayesian")
+        if len(self.prior_alpha) < 2 or any(alpha <= 0 for alpha in self.prior_alpha):
+            raise ConfigValidationError("prior_alpha must contain at least two positive values")
+        if not (0.0 <= self.quarantine_threshold <= 1.0):
+            raise ConfigValidationError("quarantine_threshold must be in [0, 1]")
+        if self.feedback_mode not in {"full", "bandit_uninformed", "bandit_informed"}:
+            raise ConfigValidationError("feedback_mode must be one of: full, bandit_uninformed, bandit_informed")
+        if self.regret_horizon < 1:
+            raise ConfigValidationError("regret_horizon must be >= 1")
+        if self.signal_rounds < 1:
+            raise ConfigValidationError("signal_rounds must be >= 1")
+        if self.coalitions not in {"static", "dynamic"}:
+            raise ConfigValidationError("coalitions must be one of: static, dynamic")
+        if not (0.0 <= self.sabotage_prob <= 1.0):
+            raise ConfigValidationError("sabotage_prob must be in [0, 1]")
+        if self.coalition_reform_interval < 1:
+            raise ConfigValidationError("coalition_reform_interval must be >= 1")
         if self.marl_algorithm not in {"q", "wolf", "rarl"}:
             raise ConfigValidationError("marl_algorithm must be one of: q, wolf, rarl")
         if self.rl_backend not in {"tabular", "deep"}:

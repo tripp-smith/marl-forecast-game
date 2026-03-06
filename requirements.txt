@@ -1,6 +1,7 @@
 pytest==8.3.3
 hypothesis==6.136.9
 numpy==1.26.4
+networkx==3.4.2
 scipy==1.13.1
 scikit-learn==1.5.2
 bayesian-optimization==1.5.1

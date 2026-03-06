@@ -1,9 +1,9 @@
 {
-  "checksum": "1bb0eda3a8dab57baa25359d26cd999f9f7c39edc3fce2ecca3ef9621dd63cc4",
-  "fetched_at": "2026-03-03T15:15:14.481019",
+  "checksum": "2a0707e80e8057fd36bba26a6438831802ff0b0d88699450bc4302948535b05c",
+  "fetched_at": "2026-03-06T00:07:09.925950",
   "rows": [
     {
-      "fetched_at": "2026-03-03 15:15:14.480810",
+      "fetched_at": "2026-03-06 00:07:09.925800",
       "macro_index": 99.5,
       "promo": 0.0,
       "series_id": "oecd_cli",
@@ -12,7 +12,7 @@
       "timestamp": "2023-01-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:14.480810",
+      "fetched_at": "2026-03-06 00:07:09.925800",
       "macro_index": 99.89999999999999,
       "promo": 0.0,
       "series_id": "oecd_cli",
@@ -21,7 +21,7 @@
       "timestamp": "2023-01-31 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:14.480810",
+      "fetched_at": "2026-03-06 00:07:09.925800",
       "macro_index": 100.3,
       "promo": 0.0,
       "series_id": "oecd_cli",
@@ -30,7 +30,7 @@
       "timestamp": "2023-03-02 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:14.480810",
+      "fetched_at": "2026-03-06 00:07:09.925800",
       "macro_index": 100.7,
       "promo": 0.0,
       "series_id": "oecd_cli",
@@ -39,7 +39,7 @@
       "timestamp": "2023-04-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:14.480810",
+      "fetched_at": "2026-03-06 00:07:09.925800",
       "macro_index": 101.10000000000001,
       "promo": 0.0,
       "series_id": "oecd_cli",
@@ -48,7 +48,7 @@
       "timestamp": "2023-05-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:14.480810",
+      "fetched_at": "2026-03-06 00:07:09.925800",
       "macro_index": 101.5,
       "promo": 0.0,
       "series_id": "oecd_cli",
@@ -57,7 +57,7 @@
       "timestamp": "2023-05-31 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:14.480810",
+      "fetched_at": "2026-03-06 00:07:09.925800",
       "macro_index": 100.1,
       "promo": 0.0,
       "series_id": "oecd_cli",
@@ -66,7 +66,7 @@
       "timestamp": "2023-06-30 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:14.480810",
+      "fetched_at": "2026-03-06 00:07:09.925800",
       "macro_index": 100.5,
       "promo": 0.0,
       "series_id": "oecd_cli",
@@ -75,7 +75,7 @@
       "timestamp": "2023-07-30 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:14.480810",
+      "fetched_at": "2026-03-06 00:07:09.925800",
       "macro_index": 100.89999999999999,
       "promo": 0.0,
       "series_id": "oecd_cli",
@@ -84,7 +84,7 @@
       "timestamp": "2023-08-29 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:14.480810",
+      "fetched_at": "2026-03-06 00:07:09.925800",
       "macro_index": 101.30000000000001,
       "promo": 0.0,
       "series_id": "oecd_cli",

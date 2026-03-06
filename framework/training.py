@@ -16,6 +16,7 @@ from .mnpo_loss import mnpo_loss, q_values_to_log_probs, tabular_closed_form_upd
 from .opponent_population import OpponentPopulation
 from .preference_oracle import MNPOOracle
 
+from .agents import EvolutionaryAgentPopulation
 from .game import ForecastGame
 from .types import AgentAction, ForecastState, SimulationConfig
 
@@ -526,9 +527,18 @@ class TrainingLoop:
 
         rewards_history: list[float] = []
         td_errors: list[float] = []
+        population = (
+            EvolutionaryAgentPopulation.bootstrap(
+                population_size=self.config.population_size,
+                evolution_rate=self.config.evolution_rate,
+                seed=self.seed,
+            )
+            if self.config.dynamics == "evolutionary"
+            else None
+        )
 
         for ep in range(self.n_episodes):
-            game = ForecastGame(self.config, seed=self.seed + ep)
+            game = ForecastGame(self.config, seed=self.seed + ep, evolutionary_population=population)
             out = game.run(init_state, disturbed=True)
 
             episode_reward = 0.0
@@ -555,6 +565,8 @@ class TrainingLoop:
                 episode_reward += reward
 
             rewards_history.append(episode_reward / max(1, len(out.trajectory_logs)))
+            if out.evolutionary_population is not None:
+                population = out.evolutionary_population
 
         window = min(50, len(rewards_history))
         convergence_reward = sum(rewards_history[-window:]) / window if rewards_history else 0.0
@@ -584,6 +596,76 @@ class TrainingLoop:
         return QTableAgent.load(path)
 
 
+@dataclass
+class TsallisINFBandit:
+    """Payoff-only bandit backend with Tsallis-style exploration."""
+
+    action_space: DiscreteActionSpace = field(default_factory=DiscreteActionSpace)
+    horizon: int = 500
+    epsilon: float = 0.0
+    cumulative_losses: np.ndarray = field(default_factory=lambda: np.zeros(21), repr=False)
+    counts: np.ndarray = field(default_factory=lambda: np.zeros(21), repr=False)
+    round_idx: int = 0
+    _rng: Random = field(default_factory=lambda: Random(42), repr=False)
+    _last_probs: np.ndarray = field(default_factory=lambda: np.ones(21) / 21.0, repr=False)
+
+    def __post_init__(self) -> None:
+        n = self.action_space.n_bins
+        self.cumulative_losses = np.zeros(n, dtype=float)
+        self.counts = np.zeros(n, dtype=float)
+        self._last_probs = np.ones(n, dtype=float) / n
+
+    def _probabilities(self) -> np.ndarray:
+        eta = 1.0 / math.sqrt(max(1.0, self.round_idx + 1.0))
+        centered = -eta * (self.cumulative_losses - float(self.cumulative_losses.min()))
+        weights = np.power(np.clip(1.0 + 0.5 * centered, 1e-9, None), 2.0)
+        return weights / max(weights.sum(), 1e-12)
+
+    def act(self, state: ForecastState) -> int:
+        self._last_probs = self._probabilities()
+        return int(self._rng.choices(range(len(self._last_probs)), weights=self._last_probs.tolist())[0])
+
+    def update(self, state: ForecastState, action: int, reward: float, next_state: ForecastState) -> float:
+        self.round_idx += 1
+        self.counts[action] += 1.0
+        loss = -float(reward)
+        est_loss = loss / max(1e-9, float(self._last_probs[action]))
+        self.cumulative_losses[action] += est_loss
+        return est_loss
+
+
+@dataclass
+class MaximinUCBBandit:
+    """Informed-feedback bandit backend using pessimistic confidence bounds."""
+
+    action_space: DiscreteActionSpace = field(default_factory=DiscreteActionSpace)
+    epsilon: float = 0.0
+    counts: np.ndarray = field(default_factory=lambda: np.zeros(21), repr=False)
+    values: np.ndarray = field(default_factory=lambda: np.zeros(21), repr=False)
+    round_idx: int = 0
+
+    def __post_init__(self) -> None:
+        n = self.action_space.n_bins
+        self.counts = np.zeros(n, dtype=float)
+        self.values = np.zeros(n, dtype=float)
+
+    def act(self, state: ForecastState) -> int:
+        self.round_idx += 1
+        unexplored = np.where(self.counts < 1)[0]
+        if unexplored.size:
+            return int(unexplored[0])
+        bonus = np.sqrt((2.0 * np.log(max(2, self.round_idx))) / np.maximum(self.counts, 1.0))
+        lower_bounds = self.values - bonus
+        return int(np.argmax(lower_bounds))
+
+    def update(self, state: ForecastState, action: int, reward: float, next_state: ForecastState) -> float:
+        self.counts[action] += 1.0
+        step = 1.0 / self.counts[action]
+        td_error = float(reward) - self.values[action]
+        self.values[action] += step * td_error
+        return td_error
+
+
 def build_rl_agent(
     config: SimulationConfig,
     *,
@@ -593,6 +675,10 @@ def build_rl_agent(
 ) -> TrainableAgent:
     """Construct either the tabular or deep RL backend from SimulationConfig."""
     space = action_space or DiscreteActionSpace()
+    if config.feedback_mode == "bandit_uninformed":
+        return TsallisINFBandit(action_space=space, horizon=config.regret_horizon)
+    if config.feedback_mode == "bandit_informed":
+        return MaximinUCBBandit(action_space=space)
     if config.rl_backend == "deep":
         return DeepRLAgent(
             action_space=space,
@@ -767,12 +853,22 @@ class MNPOTrainer(TrainingLoop):
         self.population = OpponentPopulation(mode=self.mode, max_size=self.config.mnpo_population_size)
         self.oracle = MNPOOracle(mode="crps_based", beta=self.config.mnpo_beta, seed=self.seed)
         self.updater = TabularMNPOUpdater(eta=self.eta)
+        self.evolutionary_population = (
+            EvolutionaryAgentPopulation.bootstrap(
+                population_size=self.config.population_size,
+                evolution_rate=self.config.evolution_rate,
+                seed=self.seed,
+            )
+            if self.config.dynamics == "evolutionary"
+            else None
+        )
 
     def run_games(self, init_state: ForecastState | None = None) -> list[dict[str, Any]]:
         if init_state is None:
             init_state = ForecastState(t=0, value=10.0, exogenous=0.0, hidden_shift=0.0)
-        game = ForecastGame(self.config, seed=self.seed)
+        game = ForecastGame(self.config, seed=self.seed, evolutionary_population=self.evolutionary_population)
         out = game.run(init_state, disturbed=True)
+        self.evolutionary_population = out.evolutionary_population
         rows: list[dict[str, Any]] = []
         for log in out.trajectory_logs:
             state = log["state"]

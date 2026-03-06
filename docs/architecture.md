@@ -32,6 +32,9 @@ graph TB
         Forecasters["Forecasters<br/>(ForecastingAgent, BottomUp, TopDown)"]
         Adversaries["Adversaries<br/>(AdversaryAgent, WolfpackAdversary)"]
         Defenders["Defenders<br/>(DefenderAgent)"]
+        Evo["EvolutionaryAgentPopulation"]
+        Eq["Correlated / Bayesian Coordination"]
+        Topo["CoalitionTopologyManager"]
         Aggregator["EnsembleAggregatorAgent"]
         Loop["Game Loop<br/>(ForecastGame.run)"]
         Evolve["evolve_state<br/>(pure transition)"]
@@ -46,6 +49,10 @@ graph TB
     Split --> State
     State --> Registry
     Registry --> Forecasters & Adversaries & Defenders
+    Registry --> Evo
+    Evo --> Loop
+    Eq --> Loop
+    Topo --> Loop
     Forecasters --> Aggregator
     Aggregator --> Loop
     Adversaries --> Loop
@@ -128,6 +135,8 @@ Each round:
 9. Rewards are computed and distributed. The refactoring agent adjusts its bias.
 10. `StepResult` and `TrajectoryEntry` are recorded.
 
+When advanced modes are enabled, the loop also samples from evolutionary strategy pools, optionally solves a correlated-equilibrium recommendation for the round, updates Bayesian hidden-type posteriors, and logs coalition/sabotage metadata.
+
 The loop terminates when `n_rounds` is reached, `max_rounds` is hit, or a round exceeds `max_round_timeout_s`.
 
 ## Data Flow
@@ -151,9 +160,11 @@ graph LR
 |---|---|---|
 | `types.py` | (none) | `ForecastState`, `SimulationConfig`, `evolve_state` |
 | `agents.py` | `types`, `defenses`, `llm`, `strategy_runtime` | 8 agent types, `AgentRegistry`, `SafeAgentExecutor` |
-| `game.py` | `agents`, `aggregation`, `disturbances`, `observability`, `strategy_runtime`, `types` | `ForecastGame`, `GameOutputs` |
+| `game.py` | `agents`, `aggregation`, `disturbances`, `equilibria`, `topology`, `observability`, `strategy_runtime`, `types` | `ForecastGame`, `GameOutputs` |
 | `aggregation.py` | `types`, `metrics` | `BayesianAggregator` (Kelly-Criterion BMA) |
-| `training.py` | `game`, `types` | `QTableAgent`, `WoLFPHCAgent`, `TrainingLoop`, `RADversarialTrainer` |
+| `training.py` | `agents`, `game`, `types` | `QTableAgent`, `WoLFPHCAgent`, bandit backends, `TrainingLoop`, `RADversarialTrainer` |
+| `equilibria.py` | `scipy`, `numpy` | Correlated equilibrium solver, Bayesian belief updates |
+| `topology.py` | `networkx` | Coalition graph formation and modularity tracking |
 | `backtesting.py` | `game`, `metrics`, `types` | `WalkForwardBacktester`, `SensitivityAnalyzer` |
 | `scenarios.py` | `game`, `types` | `ScenarioGenerator`, `ScenarioFan` |
 | `distributed.py` | `game`, `types`, `observability` | `ParallelGameRunner`, `RayParallelGameRunner`, `FaultToleranceConfig`, `parallel_runner()` |

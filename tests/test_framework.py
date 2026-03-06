@@ -201,6 +201,21 @@ def test_game_outputs_include_structured_trajectory_logs():
     )
 
 
+def test_game_supports_evolutionary_and_bayesian_modes():
+    cfg = SimulationConfig(
+        horizon=5,
+        max_rounds=5,
+        dynamics="evolutionary",
+        equilibrium_type="bayesian",
+        coalitions="dynamic",
+        sabotage_prob=0.2,
+    )
+    out = ForecastGame(cfg, seed=4).run(ForecastState(t=0, value=5.0, exogenous=0.2, hidden_shift=0.0), disturbed=True)
+    assert out.evolutionary_population is not None
+    assert "posterior" in out.convergence
+    assert out.coalition_graph is not None
+
+
 def test_poisoning_detector_flags_outlier():
     from datetime import datetime, timedelta
 

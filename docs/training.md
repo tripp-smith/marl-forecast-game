@@ -190,6 +190,19 @@ For each episode:
 }
 ```
 
+When `SimulationConfig.dynamics == "evolutionary"`, `TrainingLoop` also threads an `EvolutionaryAgentPopulation` through episodes and reuses the evolved population emitted by the previous `ForecastGame`.
+
+## Partial-Feedback Bandit Backends
+
+For incomplete-information settings, `build_rl_agent(config)` now supports:
+
+| Backend | Config | Description |
+|---|---|---|
+| `TsallisINFBandit` | `feedback_mode="bandit_uninformed"` | Payoff-only updates with Tsallis-style exploration |
+| `MaximinUCBBandit` | `feedback_mode="bandit_informed"` | Pessimistic-confidence action selection for informed bandit feedback |
+
+If `feedback_mode != "full"`, these bandit backends are selected before tabular or deep RL.
+
 ## RADversarialTrainer (Robust Adversarial RL)
 
 Implements alternating training between forecaster and adversary for minimax robustness:
@@ -262,6 +275,10 @@ class IterativeFeedbackLoop:
 ```
 
 Each pair is `(state, forecast, realized_value)`. The method computes the realized reward as `-|realized - forecast|` and updates the agent's Q-table, enabling online adaptation from ground truth data.
+
+## MNPO With Evolutionary Populations
+
+`MNPOTrainer` now supports `dynamics="evolutionary"` by carrying an `EvolutionaryAgentPopulation` alongside the existing `OpponentPopulation`. The runtime game batch returns the evolved population, which becomes the input population for the next MNPO epoch.
 
 ## CLI Reference
 

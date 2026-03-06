@@ -30,6 +30,20 @@ class SimulationConfig:
 | `tau_decay_rate` | float | 0.05 | > 0 | Exponential decay rate for tau schedule |
 | `bankruptcy_threshold` | float | 0.01 | > 0 | Kelly bankroll floor below which agents are pruned |
 | `wolfpack_correlation_threshold` | float | 0.7 | [0, 1] | Pearson rho cutoff for wolfpack coalition membership |
+| `dynamics` | str | `"static"` | `static`/`evolutionary` | Strategy update regime used by `ForecastGame` and MNPO |
+| `population_size` | int | 20 | >= 1 | Evolutionary strategy pool size |
+| `evolution_rate` | float | 0.05 | >= 0 | Replicator-dynamics learning rate |
+| `evolution_batch_size` | int | 100 | >= 1 | Batch size used when evolving populations |
+| `equilibrium_type` | str | `"nash"` | `nash`/`correlated`/`bayesian` | Coordination mode used in the game loop |
+| `prior_alpha` | tuple[float, ...] | `(1.0, 1.0)` | positive entries | Dirichlet prior over hidden agent types |
+| `quarantine_threshold` | float | 0.7 | [0, 1] | Posterior threshold for adversary quarantine |
+| `feedback_mode` | str | `"full"` | `full`/`bandit_uninformed`/`bandit_informed` | Training feedback regime |
+| `regret_horizon` | int | 500 | >= 1 | Target horizon for bandit updates |
+| `bias_check` | bool | `True` | -- | Enable LLM bias/signaling probes |
+| `signal_rounds` | int | 3 | >= 1 | Number of LLM signaling probes per evaluation |
+| `coalitions` | str | `"static"` | `static`/`dynamic` | Coalition topology regime |
+| `sabotage_prob` | float | 0.1 | [0, 1] | Probability of sabotage-style penalty per round |
+| `coalition_reform_interval` | int | 50 | >= 1 | Dynamic coalition refresh cadence |
 
 ### Validation Rules
 
@@ -47,6 +61,31 @@ The `__post_init__` method raises `ValueError` if:
 - `tau_decay_rate <= 0`
 - `bankruptcy_threshold <= 0`
 - `wolfpack_correlation_threshold` outside `[0, 1]`
+
+## Advanced Game-Theory Modes
+
+### Evolutionary Dynamics
+
+- Set `dynamics="evolutionary"` to enable `EvolutionaryAgentPopulation`.
+- `population_size` and `evolution_rate` control strategy-pool breadth and replicator pressure.
+- The game loop samples variants per role and returns the evolved population in `GameOutputs.evolutionary_population`.
+
+### Equilibrium and Bayesian Coordination
+
+- `equilibrium_type="correlated"` uses `framework/equilibria.py` to solve a welfare-maximizing correlated equilibrium from round-local payoff matrices.
+- `equilibrium_type="bayesian"` maintains a Dirichlet posterior over hidden types and can quarantine high-posterior adversaries when `quarantine_threshold` is exceeded.
+
+### Partial-Feedback Training
+
+- `feedback_mode="bandit_uninformed"` selects `TsallisINFBandit`.
+- `feedback_mode="bandit_informed"` selects `MaximinUCBBandit`.
+- `regret_horizon` provides the intended online horizon for bandit exploration pressure.
+
+### Coalitions and Sabotage
+
+- `coalitions="dynamic"` enables `CoalitionTopologyManager` in `framework/topology.py`.
+- `coalition_reform_interval` controls how often coalition graphs are recomputed.
+- `sabotage_prob` injects sabotage penalties into the runtime forecast path and records them in trajectory logs.
 
 ## DataProfile
 

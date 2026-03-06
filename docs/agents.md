@@ -206,6 +206,15 @@ class SafeAgentExecutor:
 
 Every agent call in the game loop goes through `SafeAgentExecutor.execute()`. If an agent raises any exception, the executor returns a zero-delta fallback action and logs a warning. This prevents a single agent failure from crashing the entire simulation.
 
+## Evolutionary Strategy Populations
+
+`framework.agents` now includes:
+
+- `StrategyVariant`: immutable role-specific strategy parameterization (`delta_scale`, `delta_bias`, `bankroll`, `proportion`, `subgroup`)
+- `EvolutionaryAgentPopulation`: immutable pool updated via replicator dynamics and Kelly-style bankruptcy pruning
+
+`ForecastGame` samples these variants when `SimulationConfig.dynamics == "evolutionary"`, and `TrainingLoop`/`MNPOTrainer` can reuse the evolved population across episodes.
+
 ## Agent Interaction Diagram
 
 ```mermaid

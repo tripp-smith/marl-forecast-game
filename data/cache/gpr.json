@@ -1,9 +1,9 @@
 {
-  "checksum": "a793e39ba19c25cd2093be543bbcaadd0099c3ab68b950fc0c64facce5183129",
-  "fetched_at": "2026-03-03T15:15:14.384025",
+  "checksum": "59229e9a5fb7656bd0bf6ebd4d28cb5492102604adcb37b2f2ae330243710eb5",
+  "fetched_at": "2026-03-06T00:07:09.827423",
   "rows": [
     {
-      "fetched_at": "2026-03-03 15:15:14.383721",
+      "fetched_at": "2026-03-06 00:07:09.827241",
       "macro_index": 100.0,
       "promo": 0.0,
       "series_id": "gpr_index",
@@ -12,7 +12,7 @@
       "timestamp": "2023-01-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:14.383721",
+      "fetched_at": "2026-03-06 00:07:09.827241",
       "macro_index": 103.0,
       "promo": 0.0,
       "series_id": "gpr_index",
@@ -21,7 +21,7 @@
       "timestamp": "2023-01-31 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:14.383721",
+      "fetched_at": "2026-03-06 00:07:09.827241",
       "macro_index": 106.0,
       "promo": 0.0,
       "series_id": "gpr_index",
@@ -30,7 +30,7 @@
       "timestamp": "2023-03-02 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:14.383721",
+      "fetched_at": "2026-03-06 00:07:09.827241",
       "macro_index": 109.0,
       "promo": 0.0,
       "series_id": "gpr_index",
@@ -39,7 +39,7 @@
       "timestamp": "2023-04-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:14.383721",
+      "fetched_at": "2026-03-06 00:07:09.827241",
       "macro_index": 112.0,
       "promo": 0.0,
       "series_id": "gpr_index",
@@ -48,7 +48,7 @@
       "timestamp": "2023-05-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:14.383721",
+      "fetched_at": "2026-03-06 00:07:09.827241",
       "macro_index": 115.0,
       "promo": 0.0,
       "series_id": "gpr_index",
@@ -57,7 +57,7 @@
       "timestamp": "2023-05-31 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:14.383721",
+      "fetched_at": "2026-03-06 00:07:09.827241",
       "macro_index": 118.0,
       "promo": 0.0,
       "series_id": "gpr_index",
@@ -66,7 +66,7 @@
       "timestamp": "2023-06-30 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:14.383721",
+      "fetched_at": "2026-03-06 00:07:09.827241",
       "macro_index": 135.0,
       "promo": 0.0,
       "series_id": "gpr_index",
@@ -75,7 +75,7 @@
       "timestamp": "2023-07-30 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:14.383721",
+      "fetched_at": "2026-03-06 00:07:09.827241",
       "macro_index": 138.0,
       "promo": 0.0,
       "series_id": "gpr_index",
@@ -84,7 +84,7 @@
       "timestamp": "2023-08-29 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:14.383721",
+      "fetched_at": "2026-03-06 00:07:09.827241",
       "macro_index": 141.0,
       "promo": 0.0,
       "series_id": "gpr_index",

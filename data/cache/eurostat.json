@@ -1,9 +1,9 @@
 {
-  "checksum": "e55bf6917411e5bbdba24f4033879502e69c5212f063365fb87477f89e22da39",
-  "fetched_at": "2026-03-03T15:15:28.052700",
+  "checksum": "cea0e8f3e751a7dea3ea9681a75f1718e91de3f3c2ace0bf64dd4c0adc927703",
+  "fetched_at": "2026-03-06T00:07:21.925533",
   "rows": [
     {
-      "fetched_at": "2026-03-03 15:15:28.051893",
+      "fetched_at": "2026-03-06 00:07:21.925238",
       "macro_index": 2673.3623,
       "promo": 0.0,
       "series_id": "eurostat_gdp",
@@ -12,7 +12,7 @@
       "timestamp": "2018-07-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:28.051893",
+      "fetched_at": "2026-03-06 00:07:21.925238",
       "macro_index": 2687.803,
       "promo": 0.0,
       "series_id": "eurostat_gdp",
@@ -21,7 +21,7 @@
       "timestamp": "2018-10-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:28.051893",
+      "fetched_at": "2026-03-06 00:07:21.925238",
       "macro_index": 2707.1803999999997,
       "promo": 0.0,
       "series_id": "eurostat_gdp",
@@ -30,7 +30,7 @@
       "timestamp": "2019-01-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:28.051893",
+      "fetched_at": "2026-03-06 00:07:21.925238",
       "macro_index": 2716.9703999999997,
       "promo": 0.0,
       "series_id": "eurostat_gdp",
@@ -39,7 +39,7 @@
       "timestamp": "2019-04-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:28.051893",
+      "fetched_at": "2026-03-06 00:07:21.925238",
       "macro_index": 2722.0634,
       "promo": 0.0,
       "series_id": "eurostat_gdp",
@@ -48,7 +48,7 @@
       "timestamp": "2019-07-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:28.051893",
+      "fetched_at": "2026-03-06 00:07:21.925238",
       "macro_index": 2719.2955,
       "promo": 0.0,
       "series_id": "eurostat_gdp",
@@ -57,7 +57,7 @@
       "timestamp": "2019-10-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:28.051893",
+      "fetched_at": "2026-03-06 00:07:21.925238",
       "macro_index": 2630.8986,
       "promo": 0.0,
       "series_id": "eurostat_gdp",
@@ -66,7 +66,7 @@
       "timestamp": "2020-01-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:28.051893",
+      "fetched_at": "2026-03-06 00:07:21.925238",
       "macro_index": 2338.4592000000002,
       "promo": 0.0,
       "series_id": "eurostat_gdp",
@@ -75,7 +75,7 @@
       "timestamp": "2020-04-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:28.051893",
+      "fetched_at": "2026-03-06 00:07:21.925238",
       "macro_index": 2608.3726,
       "promo": 0.0,
       "series_id": "eurostat_gdp",
@@ -84,7 +84,7 @@
       "timestamp": "2020-07-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:28.051893",
+      "fetched_at": "2026-03-06 00:07:21.925238",
       "macro_index": 2617.9973999999997,
       "promo": 0.0,
       "series_id": "eurostat_gdp",
@@ -93,7 +93,7 @@
       "timestamp": "2020-10-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:28.051893",
+      "fetched_at": "2026-03-06 00:07:21.925238",
       "macro_index": 2638.674,
       "promo": 0.0,
       "series_id": "eurostat_gdp",
@@ -102,7 +102,7 @@
       "timestamp": "2021-01-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:28.051893",
+      "fetched_at": "2026-03-06 00:07:21.925238",
       "macro_index": 2695.9408,
       "promo": 0.0,
       "series_id": "eurostat_gdp",
@@ -111,7 +111,7 @@
       "timestamp": "2021-04-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:28.051893",
+      "fetched_at": "2026-03-06 00:07:21.925238",
       "macro_index": 2743.2777,
       "promo": 0.0,
       "series_id": "eurostat_gdp",
@@ -120,7 +120,7 @@
       "timestamp": "2021-07-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:28.051893",
+      "fetched_at": "2026-03-06 00:07:21.925238",
       "macro_index": 2765.3844,
       "promo": 0.0,
       "series_id": "eurostat_gdp",
@@ -129,7 +129,7 @@
       "timestamp": "2021-10-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:28.051893",
+      "fetched_at": "2026-03-06 00:07:21.925238",
       "macro_index": 2785.6495,
       "promo": 0.0,
       "series_id": "eurostat_gdp",
@@ -138,7 +138,7 @@
       "timestamp": "2022-01-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:28.051893",
+      "fetched_at": "2026-03-06 00:07:21.925238",
       "macro_index": 2811.8404,
       "promo": 0.0,
       "series_id": "eurostat_gdp",
@@ -147,7 +147,7 @@
       "timestamp": "2022-04-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:28.051893",
+      "fetched_at": "2026-03-06 00:07:21.925238",
       "macro_index": 2824.4633,
       "promo": 0.0,
       "series_id": "eurostat_gdp",
@@ -156,7 +156,7 @@
       "timestamp": "2022-07-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:28.051893",
+      "fetched_at": "2026-03-06 00:07:21.925238",
       "macro_index": 2822.9773999999998,
       "promo": 0.0,
       "series_id": "eurostat_gdp",
@@ -165,7 +165,7 @@
       "timestamp": "2022-10-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:28.051893",
+      "fetched_at": "2026-03-06 00:07:21.925238",
       "macro_index": 2822.2852000000003,
       "promo": 0.0,
       "series_id": "eurostat_gdp",
@@ -174,7 +174,7 @@
       "timestamp": "2023-01-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:28.051893",
+      "fetched_at": "2026-03-06 00:07:21.925238",
       "macro_index": 2827.9793999999997,
       "promo": 0.0,
       "series_id": "eurostat_gdp",
@@ -183,7 +183,7 @@
       "timestamp": "2023-04-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:28.051893",
+      "fetched_at": "2026-03-06 00:07:21.925238",
       "macro_index": 2827.393,
       "promo": 0.0,
       "series_id": "eurostat_gdp",
@@ -192,7 +192,7 @@
       "timestamp": "2023-07-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:28.051893",
+      "fetched_at": "2026-03-06 00:07:21.925238",
       "macro_index": 2828.9417999999996,
       "promo": 0.0,
       "series_id": "eurostat_gdp",
@@ -201,7 +201,7 @@
       "timestamp": "2023-10-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:28.051893",
+      "fetched_at": "2026-03-06 00:07:21.925238",
       "macro_index": 2836.6797,
       "promo": 0.0,
       "series_id": "eurostat_gdp",
@@ -210,7 +210,7 @@
       "timestamp": "2024-01-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:28.051893",
+      "fetched_at": "2026-03-06 00:07:21.925238",
       "macro_index": 2843.2205,
       "promo": 0.0,
       "series_id": "eurostat_gdp",
@@ -219,7 +219,7 @@
       "timestamp": "2024-04-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:28.051893",
+      "fetched_at": "2026-03-06 00:07:21.925238",
       "macro_index": 2855.8862000000004,
       "promo": 0.0,
       "series_id": "eurostat_gdp",
@@ -228,7 +228,7 @@
       "timestamp": "2024-07-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:28.051893",
+      "fetched_at": "2026-03-06 00:07:21.925238",
       "macro_index": 2866.9,
       "promo": 0.0,
       "series_id": "eurostat_gdp",
@@ -237,7 +237,7 @@
       "timestamp": "2024-10-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:28.051893",
+      "fetched_at": "2026-03-06 00:07:21.925238",
       "macro_index": 2882.9397999999997,
       "promo": 0.0,
       "series_id": "eurostat_gdp",
@@ -246,7 +246,7 @@
       "timestamp": "2025-01-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:28.051893",
+      "fetched_at": "2026-03-06 00:07:21.925238",
       "macro_index": 2887.2405,
       "promo": 0.0,
       "series_id": "eurostat_gdp",
@@ -255,7 +255,7 @@
       "timestamp": "2025-04-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:28.051893",
+      "fetched_at": "2026-03-06 00:07:21.925238",
       "macro_index": 2895.0105,
       "promo": 0.0,
       "series_id": "eurostat_gdp",
@@ -264,7 +264,7 @@
       "timestamp": "2025-07-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:28.051893",
+      "fetched_at": "2026-03-06 00:07:21.925238",
       "macro_index": 2905.0459,
       "promo": 0.0,
       "series_id": "eurostat_gdp",

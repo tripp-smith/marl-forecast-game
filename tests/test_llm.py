@@ -10,6 +10,7 @@ from framework.llm.client import (
     GrokProviderClient,
     OllamaProviderClient,
     OpenAIProviderClient,
+    bias_simulate,
     provider_client_from_config,
 )
 from framework.llm.refiner import RecursiveStrategyRefiner
@@ -90,3 +91,27 @@ def test_provider_outputs_are_forecast_like_strings(mock_post):
     text = OllamaProviderClient(model="m").query("prompt")
     assert isinstance(text, str)
     assert re.search(r"0\.\d+", text)
+
+
+def test_bias_simulate_flags_injected_bias():
+    client = Mock()
+    client.provider_name = "mock"
+    client.query.side_effect = [
+        "cooperate",
+        "optimistic",
+        "defect",
+        "balanced",
+        "cooperate",
+        "optimistic",
+        "defect",
+        "balanced",
+        "cooperate",
+        "optimistic",
+        "defect",
+        "balanced",
+        "cooperate",
+    ]
+    report = bias_simulate(client=client, provider="ollama", model="m", signal_rounds=3)
+    assert report.bias_detected is True
+    assert report.gini_coefficient > 0.2
+    assert len(report.probes) == 10

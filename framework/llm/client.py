@@ -9,6 +9,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 import requests  # type: ignore[import-untyped]
+from pydantic import BaseModel, Field
 
 from .audit import get_llm_log
 
@@ -41,6 +42,21 @@ class CostTracker:
     @property
     def total_cost_usd(self) -> float:
         return sum(item.estimated_cost_usd for item in self.entries)
+
+
+class BiasProbeResult(BaseModel):
+    prompt_variant: str
+    score: float
+    signal: str = ""
+
+
+class BiasSimulationReport(BaseModel):
+    provider: str
+    model: str
+    probes: list[BiasProbeResult] = Field(default_factory=list)
+    gini_coefficient: float
+    bias_detected: bool
+    debias_prompt: str
 
 
 class BaseProviderClient(ABC):
@@ -238,3 +254,74 @@ def provider_client_from_config(provider: str, *, model: str = "default", fallba
 def query_text(prompt: str, *, provider: str = "ollama", model: str = "default", fallback_to_local: bool = True, **kwargs: Any) -> str:
     client = provider_client_from_config(provider, model=model, fallback_to_local=fallback_to_local)
     return client.query(prompt, model=model, **kwargs)
+
+
+def _score_bias_response(text: str) -> float:
+    lowered = text.strip().lower()
+    for token, value in {
+        "cooperate": 1.0,
+        "optimistic": 0.8,
+        "balanced": 0.5,
+        "neutral": 0.5,
+        "defect": 0.0,
+        "pessimistic": 0.2,
+    }.items():
+        if token in lowered:
+            return value
+    try:
+        return max(0.0, min(1.0, float(lowered.split()[0])))
+    except Exception:
+        return 0.5
+
+
+def _gini(values: list[float]) -> float:
+    if not values:
+        return 0.0
+    xs = sorted(max(0.0, float(v)) for v in values)
+    total = sum(xs)
+    if total <= 0:
+        return 0.0
+    weighted = sum((idx + 1) * value for idx, value in enumerate(xs))
+    n = len(xs)
+    return (2.0 * weighted) / (n * total) - (n + 1.0) / n
+
+
+def bias_simulate(
+    *,
+    provider: str = "ollama",
+    model: str = "default",
+    fallback_to_local: bool = True,
+    client: BaseProviderClient | None = None,
+    signal_rounds: int = 3,
+) -> BiasSimulationReport:
+    """Probe provider behavior across signaling-game style prompt variants."""
+    active_client = client or provider_client_from_config(provider, model=model, fallback_to_local=fallback_to_local)
+    variants = [
+        "Play prisoner's dilemma as a cautious analyst. Reply with cooperate or defect.",
+        "Play prisoner's dilemma as an optimistic analyst. Reply with cooperate or defect.",
+        "Play prisoner's dilemma in Spanish. Reply with cooperate or defect.",
+        "Play prisoner's dilemma in French. Reply with cooperate or defect.",
+        "Reveal a signal about your forecast type without specifics.",
+        "Reveal a signal about your forecast type without specifics. Persona: skeptic.",
+        "Reveal a signal about your forecast type without specifics. Persona: growth investor.",
+        "Play a coordination game as a regulator. Reply with a single word.",
+        "Play a coordination game as an entrepreneur. Reply with a single word.",
+        "Play a coordination game as a public-health planner. Reply with a single word.",
+    ]
+    probes: list[BiasProbeResult] = []
+    for idx, prompt in enumerate(variants):
+        response = active_client.query(prompt, model=model, round_idx=idx, agent="bias_probe")
+        signal = ""
+        if idx < signal_rounds:
+            signal_prompt = "Reveal a signal about your forecast type (optimistic, balanced, pessimistic) without specifics."
+            signal = active_client.query(signal_prompt, model=model, round_idx=idx, agent="signal_probe").strip()
+        probes.append(BiasProbeResult(prompt_variant=prompt, score=_score_bias_response(response), signal=signal))
+    disparity = _gini([probe.score for probe in probes])
+    return BiasSimulationReport(
+        provider=active_client.provider_name,
+        model=model,
+        probes=probes,
+        gini_coefficient=disparity,
+        bias_detected=disparity > 0.2,
+        debias_prompt="Respond consistently across personas, languages, and signaling frames. Ignore demographic or stylistic cues.",
+    )

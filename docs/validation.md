@@ -4,6 +4,14 @@
 
 The framework provides three layers of validation: a 24-scenario validation framework, 9 automated verification checks, and 21 Hypothesis property-based tests. Together they cover data integrity, simulation correctness, determinism, robustness, and advanced feature behavior.
 
+Recent game-theory additions are covered by targeted tests in:
+
+- `tests/test_agents.py` for evolutionary replicator dynamics and bankruptcy pruning
+- `tests/test_equilibria.py` for correlated-equilibrium and Bayesian posterior updates
+- `tests/test_topology.py` for dynamic coalition formation and modularity
+- `tests/test_training.py` for bandit backend selection and sublinear-regret behavior
+- `tests/test_llm.py` for LLM bias/signaling probes
+
 ## Validation Scenarios (24)
 
 Scenarios are registered in `SCENARIO_REGISTRY` and executed via `run_all_scenarios()`. Each scenario is defined by a `ValidationScenario` dataclass specifying the data source, adversarial parameters, and expected properties.

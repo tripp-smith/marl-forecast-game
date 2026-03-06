@@ -1,9 +1,9 @@
 {
-  "checksum": "c421af779162ec399c393bcd8019f500102c263abc7db36d400d69b5b02fab24",
-  "fetched_at": "2026-03-03T15:15:26.888262",
+  "checksum": "3a09c8eb7af74b8f534f312e751799ae0bdea658cf0a49ade7e501de29238701",
+  "fetched_at": "2026-03-06T00:09:46.054734",
   "rows": [
     {
-      "fetched_at": "2026-03-03 15:15:26.887510",
+      "fetched_at": "2026-03-06 00:09:46.054348",
       "macro_index": 3.59262581167523,
       "promo": 0.0,
       "series_id": "worldbank_ny_gdp_mktp_kd_zg",
@@ -12,7 +12,7 @@
       "timestamp": "1996-07-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:26.887510",
+      "fetched_at": "2026-03-06 00:09:46.054348",
       "macro_index": 3.96560649440364,
       "promo": 0.0,
       "series_id": "worldbank_ny_gdp_mktp_kd_zg",
@@ -21,7 +21,7 @@
       "timestamp": "1997-07-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:26.887510",
+      "fetched_at": "2026-03-06 00:09:46.054348",
       "macro_index": 2.83211105781118,
       "promo": 0.0,
       "series_id": "worldbank_ny_gdp_mktp_kd_zg",
@@ -30,7 +30,7 @@
       "timestamp": "1998-07-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:26.887510",
+      "fetched_at": "2026-03-06 00:09:46.054348",
       "macro_index": 3.58036735454232,
       "promo": 0.0,
       "series_id": "worldbank_ny_gdp_mktp_kd_zg",
@@ -39,7 +39,7 @@
       "timestamp": "1999-07-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:26.887510",
+      "fetched_at": "2026-03-06 00:09:46.054348",
       "macro_index": 4.55506182477725,
       "promo": 0.0,
       "series_id": "worldbank_ny_gdp_mktp_kd_zg",
@@ -48,7 +48,7 @@
       "timestamp": "2000-07-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:26.887510",
+      "fetched_at": "2026-03-06 00:09:46.054348",
       "macro_index": 2.03855309163356,
       "promo": 0.0,
       "series_id": "worldbank_ny_gdp_mktp_kd_zg",
@@ -57,7 +57,7 @@
       "timestamp": "2001-07-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:26.887510",
+      "fetched_at": "2026-03-06 00:09:46.054348",
       "macro_index": 2.31107096730885,
       "promo": 0.0,
       "series_id": "worldbank_ny_gdp_mktp_kd_zg",
@@ -66,7 +66,7 @@
       "timestamp": "2002-07-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:26.887510",
+      "fetched_at": "2026-03-06 00:09:46.054348",
       "macro_index": 3.09383471039331,
       "promo": 0.0,
       "series_id": "worldbank_ny_gdp_mktp_kd_zg",
@@ -75,7 +75,7 @@
       "timestamp": "2003-07-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:26.887510",
+      "fetched_at": "2026-03-06 00:09:46.054348",
       "macro_index": 4.50184539653775,
       "promo": 0.0,
       "series_id": "worldbank_ny_gdp_mktp_kd_zg",
@@ -84,7 +84,7 @@
       "timestamp": "2004-07-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:26.887510",
+      "fetched_at": "2026-03-06 00:09:46.054348",
       "macro_index": 4.05453629039749,
       "promo": 0.0,
       "series_id": "worldbank_ny_gdp_mktp_kd_zg",
@@ -93,7 +93,7 @@
       "timestamp": "2005-07-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:26.887510",
+      "fetched_at": "2026-03-06 00:09:46.054348",
       "macro_index": 4.47616958858079,
       "promo": 0.0,
       "series_id": "worldbank_ny_gdp_mktp_kd_zg",
@@ -102,7 +102,7 @@
       "timestamp": "2006-07-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:26.887510",
+      "fetched_at": "2026-03-06 00:09:46.054348",
       "macro_index": 4.41384473328108,
       "promo": 0.0,
       "series_id": "worldbank_ny_gdp_mktp_kd_zg",
@@ -111,7 +111,7 @@
       "timestamp": "2007-07-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:26.887510",
+      "fetched_at": "2026-03-06 00:09:46.054348",
       "macro_index": 2.09239458384161,
       "promo": 0.0,
       "series_id": "worldbank_ny_gdp_mktp_kd_zg",
@@ -120,7 +120,7 @@
       "timestamp": "2008-07-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:26.887510",
+      "fetched_at": "2026-03-06 00:09:46.054348",
       "macro_index": -1.31864911944237,
       "promo": 0.0,
       "series_id": "worldbank_ny_gdp_mktp_kd_zg",
@@ -129,7 +129,7 @@
       "timestamp": "2009-07-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:26.887510",
+      "fetched_at": "2026-03-06 00:09:46.054348",
       "macro_index": 4.52424032554688,
       "promo": 0.0,
       "series_id": "worldbank_ny_gdp_mktp_kd_zg",
@@ -138,7 +138,7 @@
       "timestamp": "2010-07-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:26.887510",
+      "fetched_at": "2026-03-06 00:09:46.054348",
       "macro_index": 3.33900335400304,
       "promo": 0.0,
       "series_id": "worldbank_ny_gdp_mktp_kd_zg",
@@ -147,7 +147,7 @@
       "timestamp": "2011-07-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:26.887510",
+      "fetched_at": "2026-03-06 00:09:46.054348",
       "macro_index": 2.73120979279713,
       "promo": 0.0,
       "series_id": "worldbank_ny_gdp_mktp_kd_zg",
@@ -156,7 +156,7 @@
       "timestamp": "2012-07-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:26.887510",
+      "fetched_at": "2026-03-06 00:09:46.054348",
       "macro_index": 2.88814205849086,
       "promo": 0.0,
       "series_id": "worldbank_ny_gdp_mktp_kd_zg",
@@ -165,7 +165,7 @@
       "timestamp": "2013-07-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:26.887510",
+      "fetched_at": "2026-03-06 00:09:46.054348",
       "macro_index": 3.13301748764174,
       "promo": 0.0,
       "series_id": "worldbank_ny_gdp_mktp_kd_zg",
@@ -174,7 +174,7 @@
       "timestamp": "2014-07-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:26.887510",
+      "fetched_at": "2026-03-06 00:09:46.054348",
       "macro_index": 3.11378907834442,
       "promo": 0.0,
       "series_id": "worldbank_ny_gdp_mktp_kd_zg",
@@ -183,7 +183,7 @@
       "timestamp": "2015-07-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:26.887510",
+      "fetched_at": "2026-03-06 00:09:46.054348",
       "macro_index": 2.79359207247063,
       "promo": 0.0,
       "series_id": "worldbank_ny_gdp_mktp_kd_zg",
@@ -192,7 +192,7 @@
       "timestamp": "2016-07-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:26.887510",
+      "fetched_at": "2026-03-06 00:09:46.054348",
       "macro_index": 3.45183009055707,
       "promo": 0.0,
       "series_id": "worldbank_ny_gdp_mktp_kd_zg",
@@ -201,7 +201,7 @@
       "timestamp": "2017-07-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:26.887510",
+      "fetched_at": "2026-03-06 00:09:46.054348",
       "macro_index": 3.27395826417856,
       "promo": 0.0,
       "series_id": "worldbank_ny_gdp_mktp_kd_zg",
@@ -210,7 +210,7 @@
       "timestamp": "2018-07-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:26.887510",
+      "fetched_at": "2026-03-06 00:09:46.054348",
       "macro_index": 2.67911757479919,
       "promo": 0.0,
       "series_id": "worldbank_ny_gdp_mktp_kd_zg",
@@ -219,7 +219,7 @@
       "timestamp": "2019-07-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:26.887510",
+      "fetched_at": "2026-03-06 00:09:46.054348",
       "macro_index": -2.8992231033702,
       "promo": 0.0,
       "series_id": "worldbank_ny_gdp_mktp_kd_zg",
@@ -228,7 +228,7 @@
       "timestamp": "2020-07-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:26.887510",
+      "fetched_at": "2026-03-06 00:09:46.054348",
       "macro_index": 6.41334961541973,
       "promo": 0.0,
       "series_id": "worldbank_ny_gdp_mktp_kd_zg",
@@ -237,7 +237,7 @@
       "timestamp": "2021-07-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:26.887510",
+      "fetched_at": "2026-03-06 00:09:46.054348",
       "macro_index": 3.40305483746891,
       "promo": 0.0,
       "series_id": "worldbank_ny_gdp_mktp_kd_zg",
@@ -246,7 +246,7 @@
       "timestamp": "2022-07-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:26.887510",
+      "fetched_at": "2026-03-06 00:09:46.054348",
       "macro_index": 2.9485947500487,
       "promo": 0.0,
       "series_id": "worldbank_ny_gdp_mktp_kd_zg",
@@ -255,7 +255,7 @@
       "timestamp": "2023-07-01 00:00:00"
     },
     {
-      "fetched_at": "2026-03-03 15:15:26.887510",
+      "fetched_at": "2026-03-06 00:09:46.054348",
       "macro_index": 2.87194964204313,
       "promo": 0.0,
       "series_id": "worldbank_ny_gdp_mktp_kd_zg",
