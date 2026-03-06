@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 import time
 from dataclasses import asdict
@@ -33,7 +34,15 @@ def main() -> int:
         default="results",
         help="Directory for report output (default: results)",
     )
+    parser.add_argument(
+        "--cache-dir",
+        default=None,
+        help="Override cache directory for external-source scenarios",
+    )
     args = parser.parse_args()
+
+    if args.cache_dir:
+        os.environ["MFG_CACHE_DIR"] = args.cache_dir
 
     if args.list:
         print(f"{'Name':<30} {'Description'}")

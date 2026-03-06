@@ -3,3 +3,14 @@ __pycache__/
 .venv/
 .hypothesis/
 scratch/
+.mypy_cache/
+.pytest_cache/
+results/test-harness/
+results/backtest_report.json
+results/validation_scenarios_report.json
+results/validation_scenarios_summary.csv
+results/verification_report.json
+data/preferences/
+data/tmp_probe_sample.csv
+logs/*
+!logs/.gitkeep

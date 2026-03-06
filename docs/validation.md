@@ -10,6 +10,23 @@ The validation stack is designed to support academic claims with three layers of
 
 This is intentionally stricter than a smoke-test-only workflow. A forecasting system that claims adversarial robustness should show not just that it runs, but that it runs repeatably and remains auditable.
 
+## Programmatic Harness
+
+The recommended local entrypoint is the root-level harness:
+
+```bash
+python run_project_tests.py --mode quick
+python run_project_tests.py --mode full
+```
+
+It writes a consolidated report to `results/test-harness/<timestamp>/` by default, including:
+
+- `summary.json`
+- `summary.md`
+- per-stage logs under `stages/`
+
+Full mode runs `pytest`, verification, validation scenarios, reproducibility, benchmark, training smoke matrices, simulation smoke checks, backtest smoke, stress, mypy, and UI syntax validation.
+
 ## Benchmark Protocol
 
 The benchmark harness lives in [benchmarks/run_benchmark.py](../benchmarks/run_benchmark.py).
@@ -136,7 +153,7 @@ The framework still provides the existing scenario-based validation suite for fu
 | 23 | `rarl_bounded_rationality_convergence` | MARL | RARL avoids gradient starvation | `_run_rarl_bounded_rationality` |
 | 24 | `wolfpack_ensemble_stress_test` | Robustness | Wolfpack adversary vs. stacked defense | `_run_wolfpack_stress_test` |
 
-Run all scenarios:
+Run all 28 scenarios:
 
 ```bash
 python scripts/run_validation_scenarios.py --scenarios all
@@ -151,6 +168,8 @@ Run:
 ```bash
 python scripts/run_verification.py
 ```
+
+The default verification report currently includes 13 checks in non-qual mode.
 
 Primary artifacts:
 

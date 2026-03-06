@@ -183,6 +183,11 @@ def main() -> int:
     parser.add_argument("--step-size", type=int, default=12)
     parser.add_argument("--windows", type=int, default=6)
     parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument(
+        "--output-dir",
+        default=str(ROOT / "results" / "benchmarks"),
+        help="Directory for benchmark report output",
+    )
     args = parser.parse_args()
 
     rows = _load_rows(args.source, args.periods)
@@ -269,7 +274,7 @@ def main() -> int:
         "p_values": p_values,
     }
 
-    output_dir = ROOT / "results" / "benchmarks"
+    output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     json_path = output_dir / "benchmark_summary.json"
     md_path = output_dir / "benchmark_summary.md"

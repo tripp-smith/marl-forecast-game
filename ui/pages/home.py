@@ -87,6 +87,12 @@ PAGES = [
         "desc": "Reward curves, RAD epochs, and training metrics",
         "key": "nav_training_viz",
     },
+    {
+        "icon": "\U0001f50d",
+        "title": "Findings Validator",
+        "desc": "Validate test-harness summaries, stage logs, and linked artifacts",
+        "key": "nav_findings",
+    },
 ]
 
 for row_start in range(0, len(PAGES), 3):

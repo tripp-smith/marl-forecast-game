@@ -10,7 +10,9 @@ from typing import Any
 
 import streamlit as st
 
-RESULTS_DIR = Path("/app/results")
+ROOT_DIR = Path(__file__).resolve().parents[1]
+RESULTS_DIR = Path("/app/results") if Path("/app/results").is_dir() else ROOT_DIR / "results"
+LOGS_DIR = ROOT_DIR / "logs"
 
 
 def discover_result_files(
@@ -23,6 +25,100 @@ def discover_result_files(
         return []
     files = sorted(d.glob(f"*{suffix}"), key=lambda p: p.stat().st_mtime, reverse=True)
     return files
+
+
+def discover_harness_summaries(
+    results_dir: str | Path = RESULTS_DIR / "test-harness",
+) -> list[Path]:
+    """Find programmatic test harness summaries, sorted newest-first."""
+    d = Path(results_dir)
+    if not d.is_dir():
+        return []
+    return sorted(d.glob("*/summary.json"), key=lambda p: p.stat().st_mtime, reverse=True)
+
+
+def load_json_file(path: str | Path) -> Any:
+    p = Path(path)
+    with p.open(encoding="utf-8") as handle:
+        return json.load(handle)
+
+
+def _resolve_path(path: str | Path) -> Path:
+    p = Path(path)
+    return p if p.is_absolute() else ROOT_DIR / p
+
+
+def _validate_harness_payload(summary: Any, *, summary_path: Path) -> dict[str, Any]:
+    findings: list[str] = []
+    required_top = {"mode", "started_at", "finished_at", "report_dir", "overall_passed", "stages"}
+    missing_top = sorted(required_top - set(summary.keys()))
+    if missing_top:
+        findings.append(f"missing top-level keys: {', '.join(missing_top)}")
+
+    summary_md = summary_path.with_name("summary.md")
+    missing_paths: list[str] = []
+    if not summary_md.exists():
+        findings.append("summary.md is missing")
+        missing_paths.append(str(summary_md))
+
+    stage_failures: list[dict[str, Any]] = []
+    stages = summary.get("stages", [])
+    if not isinstance(stages, list) or not stages:
+        findings.append("stages must be a non-empty list")
+        stages = []
+
+    for stage in stages:
+        if not isinstance(stage, dict):
+            findings.append("stage entry is not an object")
+            continue
+        required_stage = {"name", "command", "exit_code", "passed", "duration_s", "log_path", "artifacts", "notes"}
+        missing_stage = sorted(required_stage - set(stage.keys()))
+        if missing_stage:
+            findings.append(f"stage {stage.get('name', '?')} missing keys: {', '.join(missing_stage)}")
+        log_path = _resolve_path(stage.get("log_path", ""))
+        if not log_path.exists():
+            findings.append(f"missing log for stage {stage.get('name', '?')}: {log_path}")
+            missing_paths.append(str(log_path))
+        for artifact in stage.get("artifacts", []):
+            artifact_path = _resolve_path(artifact)
+            if not artifact_path.exists():
+                findings.append(f"missing artifact for stage {stage.get('name', '?')}: {artifact_path}")
+                missing_paths.append(str(artifact_path))
+        if not stage.get("passed", False):
+            stage_failures.append(stage)
+
+    return {
+        "path": summary_path,
+        "summary": summary,
+        "valid": not findings,
+        "stage_failures": stage_failures,
+        "validation_findings": findings,
+        "missing_paths": missing_paths,
+    }
+
+
+def validate_harness_summary(path: str | Path) -> dict[str, Any]:
+    """Validate the structure and linked artifacts for a harness summary."""
+    summary_path = Path(path)
+
+    try:
+        summary = load_json_file(summary_path)
+    except Exception as exc:
+        return {
+            "path": summary_path,
+            "summary": {},
+            "valid": False,
+            "stage_failures": [],
+            "validation_findings": [f"failed to load summary: {exc}"],
+            "missing_paths": [],
+        }
+
+    return _validate_harness_payload(summary, summary_path=summary_path)
+
+
+def validate_harness_data(summary: Any, *, label: str = "<uploaded>") -> dict[str, Any]:
+    """Validate a harness summary payload that does not live on disk."""
+    return _validate_harness_payload(summary, summary_path=Path(label))
 
 
 def get_result_metadata(path: Path) -> dict[str, Any]:

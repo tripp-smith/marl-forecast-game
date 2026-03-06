@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import math
+import os
 import pickle
 from collections import deque
 from dataclasses import dataclass, field
@@ -861,11 +862,15 @@ class MNPOTrainer(TrainingLoop):
     mode: str = "TD"
     num_opponents: int = 5
     eta: float = 1.0
+    preference_save_dir: str | Path = "data/preferences"
 
     def __post_init__(self) -> None:
         self.population = OpponentPopulation(mode=self.mode, max_size=self.config.mnpo_population_size)
         self.oracle = MNPOOracle(mode="crps_based", beta=self.config.mnpo_beta, seed=self.seed)
         self.updater = TabularMNPOUpdater(eta=self.eta)
+        env_preference_dir = os.getenv("MFG_PREFERENCE_DIR")
+        if env_preference_dir and self.preference_save_dir == "data/preferences":
+            self.preference_save_dir = env_preference_dir
         self.evolutionary_population = (
             EvolutionaryAgentPopulation.bootstrap(
                 population_size=self.config.population_size,
@@ -927,7 +932,7 @@ class MNPOTrainer(TrainingLoop):
 
     def train_epoch(self, forecaster: QTableAgent, init_state: ForecastState | None = None) -> dict[str, Any]:
         trajectories = self.run_games(init_state=init_state)
-        pairs = self.oracle.generate_pairs(trajectories)
+        pairs = self.oracle.generate_pairs(trajectories, save_dir=self.preference_save_dir)
         loss = self.update_policy(forecaster, pairs)
         self.population.add_opponent(forecaster.to_dict())
         return {"n_pairs": len(pairs), "loss": loss, "population_size": self.population.size}

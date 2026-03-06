@@ -51,14 +51,26 @@ if __name__ == "__main__":
         default=None,
         help="Path to a YAML config file for SimulationConfig overrides",
     )
+    parser.add_argument(
+        "--output-dir",
+        type=str,
+        default="results",
+        help="Directory for verification report output (default: results)",
+    )
+    parser.add_argument(
+        "--cache-dir",
+        type=str,
+        default=None,
+        help="Override cache directory for adapter-backed verification checks",
+    )
     args = parser.parse_args()
 
     if args.config:
         cfg_overrides = _load_config_from_yaml(args.config)
         print(f"Loaded config overrides from {args.config}: {list(cfg_overrides.keys())}")
 
-    result = run_verification(backend=args.backend, enable_qual=args.enable_qual)
-    out_dir = ROOT / "results"
+    result = run_verification(backend=args.backend, enable_qual=args.enable_qual, cache_dir=args.cache_dir)
+    out_dir = Path(args.output_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     report_path = out_dir / "verification_report.json"
     report_path.write_text(json.dumps(result, indent=2, sort_keys=True), encoding="utf-8")

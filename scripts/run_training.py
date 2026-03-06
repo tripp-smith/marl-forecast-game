@@ -37,9 +37,20 @@ def main() -> int:
     parser.add_argument("--eta", type=float, default=1.0, help="MNPO eta")
     parser.add_argument("--output-dir", default="data/models", help="Output directory for Q-tables")
     parser.add_argument("--seed", type=int, default=42, help="Random seed")
+    parser.add_argument(
+        "--source",
+        choices=["sample_csv", "fred_training"],
+        default=None,
+        help="Dataset source override (default: fred_training with FRED_API_KEY, else sample_csv)",
+    )
+    parser.add_argument(
+        "--preferences-dir",
+        default=None,
+        help="Override preference-pair output directory for MNPO training",
+    )
     args = parser.parse_args()
 
-    source = "fred_training" if os.getenv("FRED_API_KEY") else "sample_csv"
+    source = args.source or ("fred_training" if os.getenv("FRED_API_KEY") else "sample_csv")
     print(f"[training] Data source: {source}")
     bundle = load_dataset(DataProfile(source=source, periods=max(120, args.horizon * 2)))
 
@@ -68,7 +79,15 @@ def main() -> int:
         forecaster = QTableAgent(action_space=action_space)
 
     if args.algorithm == "mnpo":
-        trainer = MNPOTrainer(config=cfg, n_episodes=args.episodes, seed=args.seed, mode=args.mode, num_opponents=args.opponents, eta=args.eta)
+        trainer = MNPOTrainer(
+            config=cfg,
+            n_episodes=args.episodes,
+            seed=args.seed,
+            mode=args.mode,
+            num_opponents=args.opponents,
+            eta=args.eta,
+            preference_save_dir=args.preferences_dir or os.getenv("MFG_PREFERENCE_DIR", "data/preferences"),
+        )
         result = {"epochs": []}
         for _ in range(args.episodes):
             result["epochs"].append(trainer.train_epoch(forecaster, init_state=init_state))

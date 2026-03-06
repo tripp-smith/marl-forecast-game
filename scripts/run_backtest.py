@@ -29,9 +29,15 @@ def main() -> int:
     parser.add_argument("--step-size", type=int, default=20, help="Step size between windows")
     parser.add_argument("--output-dir", default="results", help="Report output directory")
     parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument(
+        "--source",
+        choices=["sample_csv", "fred_training"],
+        default=None,
+        help="Dataset source override (default: fred_training with FRED_API_KEY, else sample_csv)",
+    )
     args = parser.parse_args()
 
-    source = "fred_training" if os.getenv("FRED_API_KEY") else "sample_csv"
+    source = args.source or ("fred_training" if os.getenv("FRED_API_KEY") else "sample_csv")
     print(f"[backtest] Data source: {source}")
 
     periods = args.window_size * args.windows + args.step_size * args.windows

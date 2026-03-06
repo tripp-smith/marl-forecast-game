@@ -43,8 +43,9 @@ whatif_page = st.Page("pages/whatif.py", title="What-If", icon="\U0001f52c")
 lineage_page = st.Page("pages/lineage.py", title="Data Lineage", icon="\U0001f5c2")
 llm_page = st.Page("pages/llm.py", title="LLM Inspection", icon="\U0001f9e0")
 training_page = st.Page("pages/training_viz.py", title="Training", icon="\U0001f4c8")
+findings_page = st.Page("pages/findings.py", title="Findings Validator", icon="\U0001f50d")
 
-nav = st.navigation([home_page, replay, agents_page, dag_page, metrics_page, perf_page, whatif_page, lineage_page, llm_page, training_page])
+nav = st.navigation([home_page, replay, agents_page, dag_page, metrics_page, perf_page, whatif_page, lineage_page, llm_page, training_page, findings_page])
 
 with st.sidebar:
     st.title("MARL Forecast Game")

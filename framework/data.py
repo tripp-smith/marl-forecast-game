@@ -8,6 +8,7 @@ from typing import Any
 import csv
 import json
 import math
+import os
 
 from .data_utils import build_fred_training_set, detect_poisoned_rows, ensure_source_data, fetch_qual_source_rows
 from .exceptions import AdapterFetchError, DataIngestionError, PoisoningDetectedError
@@ -122,7 +123,7 @@ def load_source_rows(
     *,
     realtime_refresh: bool = False,
     force_redownload: bool = False,
-    cache_dir: str | Path = "data/cache",
+    cache_dir: str | Path | None = None,
 ) -> list[dict[str, Any]]:
     """Fetch rows from a named external source adapter with optional caching.
 
@@ -294,27 +295,45 @@ def should_reject_poisoning(total_rows: int, suspect_rows: int) -> bool:
     return suspect_rows >= 2 and (suspect_rows / max(1, total_rows)) >= 0.02
 
 
-def load_dataset(profile: DataProfile, path: str | Path = "data/sample_demand.csv") -> DatasetBundle:
+def load_dataset(
+    profile: DataProfile,
+    path: str | Path = "data/sample_demand.csv",
+    *,
+    cache_dir: str | Path | None = None,
+) -> DatasetBundle:
     """Load, validate, normalize, and split a dataset according to *profile*."""
+    cache_dir = cache_dir or os.getenv("MFG_CACHE_DIR")
+    sample_path = Path(path)
     if profile.source == "sample_csv":
-        build_sample_dataset(path, periods=profile.periods)
-        rows = load_csv(path)
+        if not sample_path.exists():
+            build_sample_dataset(sample_path, periods=profile.periods)
+        rows = load_csv(sample_path)
     elif profile.source == "fred_training":
         import logging
-        import os
         if not os.getenv("FRED_API_KEY"):
             logging.warning("FRED_API_KEY not set; fred_training will use synthetic proxy")
-        fred_rows, _meta = build_fred_training_set(periods=profile.periods)
+        fred_rows, _meta = build_fred_training_set(periods=profile.periods, cache_dir=cache_dir)
         rows = fred_rows
     elif profile.source in {
         "fred", "imf", "polymarket", "bis", "gpr", "oecd_cli",
         "kaggle", "worldbank", "bea", "kalshi", "predictit", "eurostat",
     }:
-        rows = load_source_rows(profile.source, periods=profile.periods, realtime_refresh=profile.realtime_refresh)
+        rows = load_source_rows(
+            profile.source,
+            periods=profile.periods,
+            realtime_refresh=profile.realtime_refresh,
+            cache_dir=cache_dir,
+        )
     elif profile.source == "hybrid":
-        build_sample_dataset(path, periods=profile.periods)
-        synthetic = load_csv(path)
-        real = load_source_rows("fred", periods=profile.periods, realtime_refresh=profile.realtime_refresh)
+        if not sample_path.exists():
+            build_sample_dataset(sample_path, periods=profile.periods)
+        synthetic = load_csv(sample_path)
+        real = load_source_rows(
+            "fred",
+            periods=profile.periods,
+            realtime_refresh=profile.realtime_refresh,
+            cache_dir=cache_dir,
+        )
         rows = build_hybrid_rows(real, synthetic, real_weight=profile.hybrid_weight)
     elif str(path).endswith(".json"):
         rows = load_json(path)

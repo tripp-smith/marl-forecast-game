@@ -19,6 +19,16 @@ def _digest(values: list[float]) -> str:
 
 
 def main() -> int:
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Deterministic reproducibility check for the public package API.")
+    parser.add_argument(
+        "--output-dir",
+        default=str(ROOT / "results" / "experiments"),
+        help="Directory for the reproducibility report output",
+    )
+    args = parser.parse_args()
+
     cfg = SimulationConfig(
         horizon=24,
         max_rounds=24,
@@ -47,7 +57,7 @@ def main() -> int:
         "different_seed_changes_trace": shifted_seed != same_seed_runs[0],
     }
 
-    output_dir = ROOT / "results" / "experiments"
+    output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     output_path = output_dir / "reproducibility_check.json"
     output_path.write_text(json.dumps(report, indent=2), encoding="utf-8")
