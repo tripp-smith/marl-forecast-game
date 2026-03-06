@@ -1,8 +1,12 @@
 from __future__ import annotations
 
+from dataclasses import FrozenInstanceError
+
 import pytest
 
-from framework.agents import EvolutionaryAgentPopulation, StrategyVariant
+from framework.agents import EvolutionaryAgentPopulation, ForecastingAgent, StrategyVariant, WolfpackAdversary
+from framework.strategy_runtime import PythonStrategyRuntime
+from framework.types import ForecastState
 
 
 def test_evolutionary_population_shifts_toward_high_fitness_strategy():
@@ -53,3 +57,54 @@ def test_evolutionary_population_prunes_bankrupt_variants():
     )
     names = [variant.name for variant in evolved.variants_for("adversary")]
     assert names == ["adversary_variant_0"]
+
+
+def test_forecasting_agent_retries_llm_parse_failures(monkeypatch, caplog):
+    class StubRepl:
+        def __init__(self) -> None:
+            self.responses = iter(
+                (
+                    {"completion": "invalid"},
+                    {"completion": "still_invalid"},
+                    {"completion": "0.25"},
+                )
+            )
+
+        def run_turn(self, prompt: str, **_: object) -> dict[str, str]:
+            return next(self.responses)
+
+    sleeps: list[float] = []
+    monkeypatch.setattr("framework.agents.base.time.sleep", sleeps.append)
+
+    agent = ForecastingAgent(llm_repl=StubRepl())  # type: ignore[arg-type]
+    state = ForecastState(t=0, value=10.0, exogenous=0.5, hidden_shift=0.0)
+    action = agent.act(state, PythonStrategyRuntime(), round_idx=1)
+
+    assert action.delta == pytest.approx((0.8 * 0.6) + (0.2 * 0.25))
+    assert sleeps == [0.5, 1.0]
+    assert "LLM parse failed" in caplog.text
+
+
+def test_forecasting_agent_falls_back_after_exhausting_parse_retries(monkeypatch):
+    class StubRepl:
+        def run_turn(self, prompt: str, **_: object) -> dict[str, str]:
+            return {"completion": "not_a_float"}
+
+    sleeps: list[float] = []
+    monkeypatch.setattr("framework.agents.base.time.sleep", sleeps.append)
+
+    state = ForecastState(t=0, value=10.0, exogenous=0.5, hidden_shift=0.0)
+    action = ForecastingAgent(llm_repl=StubRepl()).act(  # type: ignore[arg-type]
+        state,
+        PythonStrategyRuntime(),
+        round_idx=1,
+    )
+
+    assert action.delta == pytest.approx(0.6)
+    assert sleeps == [0.5, 1.0, 2.0]
+
+
+def test_wolfpack_adversary_is_frozen():
+    wolf = WolfpackAdversary()
+    with pytest.raises(FrozenInstanceError):
+        wolf.aggressiveness = 2.0

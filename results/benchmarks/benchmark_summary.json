@@ -7,47 +7,47 @@
   "results": [
     {
       "name": "naive_last",
-      "mae": 3.1748999999999996,
-      "rmse": 3.807087528544622,
-      "crps": 3.0386453022347437,
+      "mae": 8.349575,
+      "rmse": 12.520571721171523,
+      "crps": 8.211354258386745,
       "coverage": 0.05,
       "n_forecasts": 40
     },
     {
       "name": "moving_average_5",
-      "mae": 2.8330800000000003,
-      "rmse": 3.4050845040909046,
-      "crps": 1.9933868389732545,
-      "coverage": 0.925,
+      "mae": 8.064375000000002,
+      "rmse": 12.098331964572639,
+      "crps": 6.910376380059207,
+      "coverage": 0.675,
       "n_forecasts": 40
     },
     {
       "name": "game_clean_ensemble",
-      "mae": 2.9722492089233024,
-      "rmse": 3.4964871685600687,
-      "crps": 2.915045536299419,
-      "coverage": 0.025,
+      "mae": 9.17327349587526,
+      "rmse": 13.691159936017975,
+      "crps": 9.115703130207152,
+      "coverage": 0.0,
       "n_forecasts": 40
     },
     {
       "name": "game_attack_identity",
-      "mae": 2.9017411469301346,
-      "rmse": 3.4725159225279705,
-      "crps": 2.805466853388569,
-      "coverage": 0.1,
+      "mae": 9.384733304061692,
+      "rmse": 13.914184365690566,
+      "crps": 9.276296076240302,
+      "coverage": 0.05,
       "n_forecasts": 40
     },
     {
       "name": "game_attack_ensemble",
-      "mae": 2.93267362665891,
-      "rmse": 3.5027318313346103,
-      "crps": 2.834302858016619,
-      "coverage": 0.075,
+      "mae": 9.480166618491786,
+      "rmse": 14.023141418312091,
+      "crps": 9.37183834550386,
+      "coverage": 0.025,
       "n_forecasts": 40
     }
   ],
   "p_values": {
-    "game_attack_ensemble vs naive_last": 0.6380216515103754,
-    "game_attack_ensemble vs game_attack_identity": 0.553703216640214
+    "game_attack_ensemble vs naive_last": 0.004564786588685855,
+    "game_attack_ensemble vs game_attack_identity": 0.15758149703160174
   }
 }

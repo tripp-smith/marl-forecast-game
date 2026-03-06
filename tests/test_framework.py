@@ -770,13 +770,14 @@ def test_wolfpack_correlation_matrix():
 
     wolf = WolfpackAdversary(correlation_threshold=0.7)
     rng = random.Random(99)
+    residuals = {"agent_a": [], "agent_b": [], "agent_c": []}
     for _ in range(50):
         base = rng.gauss(0, 1)
-        wolf.record_residual("agent_a", base + rng.gauss(0, 0.05))
-        wolf.record_residual("agent_b", base + rng.gauss(0, 0.05))
-        wolf.record_residual("agent_c", rng.gauss(0, 1))
+        residuals["agent_a"].append(base + rng.gauss(0, 0.05))
+        residuals["agent_b"].append(base + rng.gauss(0, 0.05))
+        residuals["agent_c"].append(rng.gauss(0, 1))
 
-    corr = wolf.compute_correlation_matrix()
+    corr = wolf.compute_correlation_matrix(residuals)
     assert corr[("agent_a", "agent_b")] > 0.7
     assert abs(corr.get(("agent_a", "agent_c"), 0.0)) < 0.7
 
@@ -786,13 +787,14 @@ def test_wolfpack_target_selection():
 
     wolf = WolfpackAdversary(correlation_threshold=0.7)
     rng = random.Random(99)
+    residuals = {"agent_a": [], "agent_b": [], "agent_c": []}
     for _ in range(50):
         base = rng.gauss(0, 1)
-        wolf.record_residual("agent_a", base + rng.gauss(0, 0.05))
-        wolf.record_residual("agent_b", base + rng.gauss(0, 0.05))
-        wolf.record_residual("agent_c", rng.gauss(0, 1))
+        residuals["agent_a"].append(base + rng.gauss(0, 0.05))
+        residuals["agent_b"].append(base + rng.gauss(0, 0.05))
+        residuals["agent_c"].append(rng.gauss(0, 1))
 
-    primary, coalition = wolf.select_targets("agent_a")
+    primary, coalition = wolf.select_targets("agent_a", residuals)
     assert primary == "agent_a"
     assert "agent_b" in coalition
     assert "agent_c" not in coalition
@@ -804,10 +806,11 @@ def test_wolfpack_coalition_size_bounded():
     wolf = WolfpackAdversary(correlation_threshold=0.5)
     rng = random.Random(42)
     agents = [f"agent_{i}" for i in range(5)]
+    residuals = {name: [] for name in agents}
     for _ in range(30):
         for name in agents:
-            wolf.record_residual(name, rng.gauss(0, 1))
-    _, coalition = wolf.select_targets("agent_0")
+            residuals[name].append(rng.gauss(0, 1))
+    _, coalition = wolf.select_targets("agent_0", residuals)
     assert len(coalition) < len(agents)
 
 

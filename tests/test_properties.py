@@ -396,11 +396,12 @@ def test_wolfpack_target_set_bounded(n_agents, threshold):
     wolf = WolfpackAdversary(correlation_threshold=threshold)
     rng = stdlib_random.Random(42)
     names = [f"agent_{i}" for i in range(n_agents)]
+    residuals = {name: [] for name in names}
     for _ in range(30):
         for name in names:
-            wolf.record_residual(name, rng.gauss(0, 1))
+            residuals[name].append(rng.gauss(0, 1))
     primary = names[0]
-    _, coalition = wolf.select_targets(primary)
+    _, coalition = wolf.select_targets(primary, residuals)
     assert len(coalition) + 1 <= n_agents
 
 

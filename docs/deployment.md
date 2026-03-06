@@ -27,7 +27,7 @@ FROM python:3.10-slim AS base
 ### Key Properties
 
 - **Healthcheck**: Runs `run_verification()` every 30s. Failures are logged to `/app/logs/healthcheck.log`.
-- **Default command**: `scripts/validate.sh` (pytest + verification).
+- **Default command**: `scripts/validate.sh`, which delegates to `python run_project_tests.py --mode quick`.
 
 ### Building and Running
 
@@ -59,10 +59,9 @@ docker run --rm \
 The `scripts/run_container_test_harness.sh` script provides a comprehensive containerized test pipeline:
 
 1. Builds the Docker image.
-2. Runs `pytest -q` inside the container.
-3. Runs `python scripts/run_verification.py` inside the container.
-4. Runs all validation scenarios inside the container.
-5. Collects logs and reports.
+2. Runs `python run_project_tests.py --mode full --backend multiprocessing --report-dir /app/results` inside the container.
+3. Collects the consolidated harness summary and stage logs.
+4. Collects logs and reports.
 
 ```bash
 bash scripts/run_container_test_harness.sh
@@ -119,13 +118,8 @@ The pipeline runs to completion while the other four services stay alive indefin
 
 The pipeline script (`scripts/run_all_pipeline.sh`) executes sequentially:
 
-1. `pytest` -- unit + property tests
-2. `run_verification.py` -- 9 determinism/correctness checks
-3. `run_training.py` -- 20-episode MARL smoke training
-4. `run_backtest.py` -- 5-window walk-forward backtest
-5. `run_validation_scenarios.py` -- all 24 scenarios
-6. `run_stress_test.py` -- 20-game, 200-round stress test
-7. Trajectory export -- generates `simulation_clean.json`, `simulation_attacked.json`, `simulation_attacked_s99.json`
+1. `run_project_tests.py --mode full` -- consolidated repo-wide harness
+2. Trajectory export -- generates `simulation_clean.json`, `simulation_attacked.json`, `simulation_attacked_s99.json`
 
 All output is written to `/app/results/` and immediately available in the Streamlit UI.
 
@@ -302,7 +296,7 @@ Per TRD requirements, forecast errors carry financial and legal risks. The follo
 - [ ] Configure `METRICS_PORT` for Prometheus scraping
 - [ ] Set `LOG_LEVEL=INFO` for production logging
 - [ ] Verify data freshness: cache age < 24h (check via `cache_status()`)
-- [ ] Run `scripts/run_verification.py` and confirm all 9 checks pass
+- [ ] Run `python run_project_tests.py --mode full` and confirm the harness summary is green
 - [ ] Monitor `/app/logs/healthcheck.log` for failures
 - [ ] Set `convergence_threshold` appropriate to use case
 - [ ] Review poisoning detection thresholds for data source characteristics

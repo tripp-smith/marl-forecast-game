@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+import os
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from hashlib import sha256
@@ -31,6 +32,12 @@ from .data_sources import (
 )
 
 REQUIRED_SCHEMA_FIELDS = {"timestamp", "series_id", "target", "promo", "macro_index"}
+
+
+def _resolve_cache_dir(cache_dir: str | Path | None = None) -> str | Path:
+    if cache_dir is not None:
+        return cache_dir
+    return os.getenv("MFG_CACHE_DIR", "data/cache")
 
 
 @dataclass(frozen=True)
@@ -159,7 +166,7 @@ def ensure_source_data(
     source: str,
     *,
     periods: int,
-    cache_dir: str | Path = "data/cache",
+    cache_dir: str | Path | None = None,
     max_age_hours: int = 24,
     force_redownload: bool = False,
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
@@ -172,7 +179,7 @@ def ensure_source_data(
         max_age_hours: Maximum cache age before refetch.
         force_redownload: Bypass cache freshness check.
     """
-    cache_path = Path(cache_dir) / f"{source}.json"
+    cache_path = Path(_resolve_cache_dir(cache_dir)) / f"{source}.json"
     status = cache_status(cache_path, max_age_hours=max_age_hours)
     if status.exists and status.is_fresh and not force_redownload:
         rows = load_rows_from_cache(cache_path)
@@ -329,9 +336,9 @@ def detect_poisoned_rows(
 # Standalone data-integrity validation functions
 # ---------------------------------------------------------------------------
 
-def validate_cache_integrity(source: str, *, cache_dir: str | Path = "data/cache") -> dict[str, Any]:
+def validate_cache_integrity(source: str, *, cache_dir: str | Path | None = None) -> dict[str, Any]:
     """Verify a cache file has valid checksum, parseable timestamps, and no null targets."""
-    path = Path(cache_dir) / f"{source}.json"
+    path = Path(_resolve_cache_dir(cache_dir)) / f"{source}.json"
     result: dict[str, Any] = {"source": source, "path": str(path), "valid": True, "errors": []}
     if not path.exists():
         result["valid"] = False
@@ -449,7 +456,7 @@ def validate_no_future_leakage(
 def build_fred_training_set(
     periods: int = 120,
     *,
-    cache_dir: str | Path = "data/cache",
+    cache_dir: str | Path | None = None,
     force_redownload: bool = False,
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     """Build a multi-series FRED training dataset with chronological alignment.
@@ -459,7 +466,7 @@ def build_fred_training_set(
     """
     from .data_sources.macro_fred import FredMacroAdapter
 
-    cache_path = Path(cache_dir) / "fred_training.json"
+    cache_path = Path(_resolve_cache_dir(cache_dir)) / "fred_training.json"
     status = cache_status(cache_path, max_age_hours=24)
 
     if status.exists and status.is_fresh and not force_redownload:

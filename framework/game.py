@@ -1,9 +1,9 @@
 """Multi-agent forecasting game engine with adversarial disturbances and defenses."""
 from __future__ import annotations
 
-import logging
-from datetime import datetime
 from dataclasses import asdict, dataclass, replace
+from datetime import datetime
+import logging
 from random import Random
 import time
 from typing import Any, Callable, List
@@ -24,7 +24,7 @@ from .agents import (
     WolfpackAdversary,
 )
 from .aggregation import BayesianAggregator
-from .disturbances import WolfpackDisturbance, disturbance_from_name
+from .disturbances import disturbance_from_name
 from .equilibria import BayesianBeliefState, bayesian_likelihood_from_observation, compute_correlated_equilibrium
 from .topology import CoalitionTopologyManager
 from .observability import (
@@ -69,6 +69,42 @@ def _state_to_dict(state: ForecastState) -> dict[str, Any]:
         "economic_regime": state.economic_regime,
         "last_qual_update_step": state.last_qual_update_step,
     }
+
+
+@dataclass(frozen=True)
+class RoundActions:
+    """Per-round action bundle produced before state evolution."""
+
+    all_forecast_actions: tuple[AgentAction, ...]
+    forecast_action: AgentAction
+    adversary_action: AgentAction
+    defender_action: AgentAction
+    forecast_variants: tuple[tuple[str, str], ...] = ()
+    adversary_variant_name: str = ""
+    defender_variant_name: str = ""
+    wolfpack_adversaries: tuple[WolfpackAdversary, ...] = ()
+    quarantined: bool = False
+
+
+@dataclass(frozen=True)
+class RoundOutcome:
+    """Forecast and state-transition artifacts for a single round."""
+
+    disturbance: float
+    sabotage_penalty: float
+    forecast: float
+    next_state: ForecastState
+    target: float
+
+
+@dataclass(frozen=True)
+class RewardUpdate:
+    """Reward, error, and bias updates derived from a round transition."""
+
+    error: float
+    reward: float
+    reward_breakdown: dict[str, float]
+    refactor_bias: float
 
 
 @dataclass(frozen=True)
@@ -209,6 +245,329 @@ class ForecastGame:
         with create_span("simulation.run", {"seed": self._seed, "disturbed": disturbed, "n_rounds": n_rounds}):
             return self._run_inner(initial, n_rounds, disturbed=disturbed)
 
+    def _compute_actions(
+        self,
+        state: ForecastState,
+        *,
+        round_idx: int,
+        disturbed: bool,
+        cumulative_rewards: dict[str, float],
+        coalition_payload: tuple[tuple[str, ...], ...],
+        wolfpack_residuals: dict[str, list[float]],
+    ) -> RoundActions:
+        """Compute forecast, adversary, and defender actions for a round.
+
+        Args:
+            state: Current immutable simulation state.
+            round_idx: Current round index.
+            disturbed: Whether disturbances are enabled for the run.
+            cumulative_rewards: Running reward totals keyed by agent id.
+            coalition_payload: Dynamic coalition membership for the round.
+            wolfpack_residuals: Residual history keyed by forecaster id.
+
+        Returns:
+            Fully materialized round actions including metadata needed downstream.
+        """
+        all_forecast_actions: list[AgentAction] = []
+        forecast_variants: list[tuple[str, str]] = []
+        for forecast_agent in self._registry.forecasters:
+            if isinstance(forecast_agent, TopDownAgent):
+                action = self.safe_exec.execute(forecast_agent.act, state)
+            elif isinstance(forecast_agent, BottomUpAgent):
+                action = self.safe_exec.execute(forecast_agent.act, state, self.runtime)
+            else:
+                action = self.safe_exec.execute(forecast_agent.act, state, self.runtime, round_idx=round_idx)
+            if self.evolutionary_population is not None:
+                subgroup = coalition_payload[0][0] if coalition_payload else None
+                variant = self.evolutionary_population.sample("forecaster", self._rng, subgroup=subgroup)
+                action = self.evolutionary_population.apply_variant(action, variant)
+                if variant is not None:
+                    forecast_variants.append((action.actor, variant.name))
+            all_forecast_actions.append(action)
+
+        adversary_variant_name = ""
+        wolfpack_adversaries = tuple(
+            adversary for adversary in self._registry.adversaries if isinstance(adversary, WolfpackAdversary)
+        )
+        if disturbed and wolfpack_adversaries and len(all_forecast_actions) > 1:
+            wolf = wolfpack_adversaries[0]
+            if self.bayesian_agg.weights:
+                primary_idx = max(range(len(self.bayesian_agg.weights)), key=lambda i: self.bayesian_agg.weights[i])
+                primary_name = self.bayesian_agg.agent_names[primary_idx]
+            else:
+                primary_name = all_forecast_actions[0].actor
+            _, coalition = wolf.select_targets(primary_name, wolfpack_residuals)
+            targeted = {primary_name, *coalition}
+            perturbed_actions: list[AgentAction] = []
+            for forecast_action in all_forecast_actions:
+                if forecast_action.actor in targeted:
+                    is_primary = forecast_action.actor == primary_name
+                    wolf_action = wolf.act(state, is_primary=is_primary)
+                    perturbed_actions.append(
+                        AgentAction(actor=forecast_action.actor, delta=forecast_action.delta + wolf_action.delta)
+                    )
+                else:
+                    perturbed_actions.append(forecast_action)
+            all_forecast_actions = perturbed_actions
+            adversary_action = AgentAction(actor=wolf.name, delta=0.0)
+        elif disturbed:
+            adversary_actions = [self.safe_exec.execute(adversary.act, state) for adversary in self._registry.adversaries]
+            if self.evolutionary_population is not None and adversary_actions:
+                adjusted_adversary_actions: list[AgentAction] = []
+                for adversary_action in adversary_actions:
+                    subgroup = coalition_payload[-1][0] if coalition_payload else None
+                    variant = self.evolutionary_population.sample("adversary", self._rng, subgroup=subgroup)
+                    adjusted_adversary_actions.append(self.evolutionary_population.apply_variant(adversary_action, variant))
+                    if variant is not None:
+                        adversary_variant_name = variant.name
+                adversary_actions = adjusted_adversary_actions
+            adversary_action = (
+                adversary_actions[0]
+                if len(adversary_actions) == 1
+                else AgentAction(
+                    actor="adversary",
+                    delta=sum(action.delta for action in adversary_actions) / max(1, len(adversary_actions)),
+                )
+            )
+        else:
+            adversary_action = AgentAction(
+                actor=self._registry.adversaries[0].name if self._registry.adversaries else "adversary",
+                delta=0.0,
+            )
+
+        forecast_action = (
+            all_forecast_actions[0]
+            if len(all_forecast_actions) == 1
+            else self._registry.aggregator.aggregate(all_forecast_actions, cumulative_rewards)
+        )
+        defender_actions = [
+            self.safe_exec.execute(defender.act, forecast_action, adversary_action, self.config.defense_model)
+            for defender in self._registry.defenders
+        ]
+        defender_variant_name = ""
+        if self.evolutionary_population is not None and defender_actions:
+            adjusted_defender_actions: list[AgentAction] = []
+            for defender_action in defender_actions:
+                variant = self.evolutionary_population.sample("defender", self._rng)
+                adjusted_defender_actions.append(self.evolutionary_population.apply_variant(defender_action, variant))
+                if variant is not None:
+                    defender_variant_name = variant.name
+            defender_actions = adjusted_defender_actions
+        defender_action = (
+            defender_actions[0]
+            if len(defender_actions) == 1
+            else AgentAction(
+                actor="defender",
+                delta=sum(action.delta for action in defender_actions) / max(1, len(defender_actions)),
+            )
+        )
+
+        if self.config.equilibrium_type == "correlated":
+            target_proxy = state.value + 0.4 + (0.4 * state.exogenous)
+            f_candidates = np.array(
+                [0.8 * forecast_action.delta, forecast_action.delta, 1.2 * forecast_action.delta],
+                dtype=float,
+            )
+            a_candidates = np.array(
+                [0.8 * adversary_action.delta, adversary_action.delta, 1.2 * adversary_action.delta],
+                dtype=float,
+            )
+            forecaster_payoff = np.zeros((len(f_candidates), len(a_candidates)))
+            adversary_payoff = np.zeros_like(forecaster_payoff)
+            for left_idx, forecast_delta in enumerate(f_candidates):
+                for right_idx, adversary_delta in enumerate(a_candidates):
+                    proxy_error = abs(
+                        target_proxy - (state.value + forecast_delta + adversary_delta + defender_action.delta)
+                    )
+                    forecaster_payoff[left_idx, right_idx] = -proxy_error
+                    adversary_payoff[left_idx, right_idx] = proxy_error
+            ce = compute_correlated_equilibrium((forecaster_payoff, adversary_payoff))
+            forecast_idx, adversary_idx = ce.sample_actions(self._rng)
+            forecast_action = AgentAction(actor=forecast_action.actor, delta=float(f_candidates[forecast_idx]))
+            adversary_action = AgentAction(actor=adversary_action.actor, delta=float(a_candidates[adversary_idx]))
+
+        quarantined = False
+        if self.config.equilibrium_type == "bayesian":
+            posterior_adv = self._belief_state.posterior[-1]
+            if posterior_adv >= self.config.quarantine_threshold:
+                quarantined = True
+                adversary_action = AgentAction(actor=adversary_action.actor, delta=0.0)
+
+        return RoundActions(
+            all_forecast_actions=tuple(all_forecast_actions),
+            forecast_action=forecast_action,
+            adversary_action=adversary_action,
+            defender_action=defender_action,
+            forecast_variants=tuple(forecast_variants),
+            adversary_variant_name=adversary_variant_name,
+            defender_variant_name=defender_variant_name,
+            wolfpack_adversaries=wolfpack_adversaries,
+            quarantined=quarantined,
+        )
+
+    def _apply_disturbances(
+        self,
+        state: ForecastState,
+        actions: RoundActions,
+        *,
+        refactor_bias: float,
+        disturbed: bool,
+    ) -> RoundOutcome:
+        """Apply disturbances and evolve the state for a round.
+
+        Args:
+            state: Current immutable simulation state.
+            actions: Pre-computed actions for the round.
+            refactor_bias: Running bias correction carried into the round.
+            disturbed: Whether disturbances are enabled.
+
+        Returns:
+            Forecast values and the resulting next state.
+        """
+        disturbance_val = self.disturbance.sample(state, self._rng, self.config) if disturbed else 0.0
+        forecast = (
+            state.value
+            + actions.forecast_action.delta
+            + actions.adversary_action.delta
+            + actions.defender_action.delta
+            + refactor_bias
+        )
+        sabotage_penalty = 0.0
+        if disturbed and self.config.sabotage_prob > 0.0 and self._rng.random() <= self.config.sabotage_prob:
+            sabotage_penalty = self._rng.uniform(-0.2, 0.2) * max(
+                1.0,
+                abs(actions.forecast_action.delta) + abs(actions.adversary_action.delta),
+            )
+            forecast += sabotage_penalty
+        noise = self._rng.gauss(0, self.config.base_noise_std)
+
+        qual_override: dict[str, Any] | None = None
+        if self.config.enable_qual and self._qual_dataset and state.t in self._qual_dataset:
+            qual_record = self._qual_dataset[state.t]
+            qual_text = qual_record.get("text", "")
+            if self._qual_extractor is not None:
+                raw_tensor = self._qual_extractor.extract(
+                    qual_text,
+                    self.config.qualitative_extractor_prompt,
+                )
+            else:
+                raw_tensor = (0,) * self.config.feature_dim
+            regime = 0
+            if self._regime_classifier is not None:
+                regime = self._regime_classifier.classify(
+                    dict(state.macro_context),
+                    raw_tensor,
+                    self.config.regime_prompt,
+                )
+            qual_override = {
+                "qualitative_state": raw_tensor,
+                "raw_qual_state": tuple(float(value) for value in raw_tensor),
+                "raw_qual_text": qual_text[: self.config.max_context_tokens] if qual_text else None,
+                "economic_regime": regime,
+                "last_qual_update_step": state.t,
+            }
+
+        next_state = evolve_state(
+            state,
+            base_trend=0.4,
+            noise=noise,
+            disturbance=disturbance_val,
+            qual_override=qual_override,
+            decay_rate=self.config.decay_rate,
+        )
+        return RoundOutcome(
+            disturbance=disturbance_val,
+            sabotage_penalty=sabotage_penalty,
+            forecast=forecast,
+            next_state=next_state,
+            target=next_state.value,
+        )
+
+    def _update_rewards_and_bias(
+        self,
+        state: ForecastState,
+        actions: RoundActions,
+        outcome: RoundOutcome,
+        *,
+        round_idx: int,
+        refactor_bias: float,
+        previous_abs_error: float,
+        wolfpack_residuals: dict[str, list[float]],
+    ) -> RewardUpdate:
+        """Compute rewards, update bias, and refresh Bayesian aggregation state.
+
+        Args:
+            state: Round-start simulation state.
+            actions: Action bundle used for the round.
+            outcome: Forecast and transition results for the round.
+            round_idx: Current round index.
+            refactor_bias: Bias entering the round.
+            previous_abs_error: Absolute error from the prior round.
+            wolfpack_residuals: Residual history keyed by forecasting agent id.
+
+        Returns:
+            Reward update payload containing the new error and bias.
+        """
+        error = outcome.target - outcome.forecast
+        reward = -abs(error)
+        benign_mass, suspicious_mass = bayesian_likelihood_from_observation(
+            actions.adversary_action.delta,
+            outcome.disturbance + outcome.sabotage_penalty,
+        )
+        if len(self._belief_state.alpha) > 2:
+            base = benign_mass / max(1, len(self._belief_state.alpha) - 1)
+            likelihood = tuple(base for _ in range(len(self._belief_state.alpha) - 1)) + (suspicious_mass,)
+        else:
+            likelihood = (benign_mass, suspicious_mass)
+        self._belief_state = self._belief_state.update(likelihood)
+
+        record_agent_metrics(actions.forecast_action.actor, "forecaster", actions.forecast_action.delta, max(0.0, reward))
+        record_agent_metrics(
+            actions.adversary_action.actor,
+            "adversary",
+            actions.adversary_action.delta,
+            max(0.0, -reward),
+        )
+        record_agent_metrics(actions.defender_action.actor, "defender", actions.defender_action.delta, max(0.0, reward))
+        record_disturbance(outcome.disturbance != 0.0, abs(error) > previous_abs_error)
+
+        if len(actions.all_forecast_actions) > 1:
+            agent_errors: dict[str, float] = {}
+            agent_means: dict[str, float] = {}
+            agent_stds: dict[str, float] = {}
+            for forecast_action in actions.all_forecast_actions:
+                forecast_value = state.value + forecast_action.delta
+                agent_means[forecast_action.actor] = forecast_value
+                agent_stds[forecast_action.actor] = self.config.base_noise_std
+                agent_errors[forecast_action.actor] = outcome.target - forecast_value
+            self.bayesian_agg.update(
+                agent_errors,
+                means=agent_means,
+                stds=agent_stds,
+                bankruptcy_threshold=self.config.bankruptcy_threshold,
+            )
+            for forecast_action in actions.all_forecast_actions:
+                wolfpack_residuals.setdefault(forecast_action.actor, []).append(agent_errors[forecast_action.actor])
+
+        next_refactor_bias = refactor_bias
+        if self.config.enable_refactor and self.refactor is not None:
+            next_refactor_bias += self.refactor.revise(
+                error,
+                use_llm=self.config.enable_llm_refactor,
+                round_idx=round_idx,
+            )
+
+        return RewardUpdate(
+            error=error,
+            reward=reward,
+            reward_breakdown={
+                "forecaster": reward,
+                "adversary": -reward,
+                "defender": reward,
+            },
+            refactor_bias=next_refactor_bias,
+        )
+
     def _run_inner(self, initial: ForecastState, n_rounds: int, *, disturbed: bool) -> GameOutputs:
         wall_start = time.perf_counter()
         llm_log = get_llm_log()
@@ -229,6 +588,7 @@ class ForecastGame:
         prev_abs_error: float = 0.0
         cap_hits: int = 0
         coalition_graph: dict[str, Any] | None = None
+        wolfpack_residuals: dict[str, list[float]] = {}
 
         for idx in range(n_rounds):
             start = time.perf_counter()
@@ -251,185 +611,29 @@ class ForecastGame:
                 )
                 coalition_graph = self._topology.graph_payload()
 
-            all_forecast_actions: list[AgentAction] = []
-            forecast_variants: list[tuple[str, str]] = []
-            for f_agent in self._registry.forecasters:
-                if isinstance(f_agent, TopDownAgent):
-                    action = self.safe_exec.execute(f_agent.act, state)
-                elif isinstance(f_agent, BottomUpAgent):
-                    action = self.safe_exec.execute(f_agent.act, state, self.runtime)
-                else:
-                    action = self.safe_exec.execute(f_agent.act, state, self.runtime, round_idx=idx)
-                if self.evolutionary_population is not None:
-                    subgroup = coalition_payload[0][0] if coalition_payload else None
-                    variant = self.evolutionary_population.sample("forecaster", self._rng, subgroup=subgroup)
-                    action = self.evolutionary_population.apply_variant(action, variant)
-                    if variant is not None:
-                        forecast_variants.append((action.actor, variant.name))
-                all_forecast_actions.append(action)
-
-            adversary_variant_name = ""
-            wolfpack_adversaries = [
-                a for a in self._registry.adversaries if isinstance(a, WolfpackAdversary)
-            ]
-            if disturbed and wolfpack_adversaries and len(all_forecast_actions) > 1:
-                wolf = wolfpack_adversaries[0]
-                bma_w = self.bayesian_agg.weights
-                if bma_w:
-                    primary_idx = max(range(len(bma_w)), key=lambda i: bma_w[i])
-                    primary_name = self.bayesian_agg.agent_names[primary_idx]
-                else:
-                    primary_name = all_forecast_actions[0].actor
-                _, coalition = wolf.select_targets(primary_name)
-                targeted = {primary_name} | set(coalition)
-                perturbed_actions: list[AgentAction] = []
-                for fa in all_forecast_actions:
-                    if fa.actor in targeted:
-                        is_primary = fa.actor == primary_name
-                        wp_action = wolf.act(state, is_primary=is_primary)
-                        perturbed_actions.append(AgentAction(actor=fa.actor, delta=fa.delta + wp_action.delta))
-                    else:
-                        perturbed_actions.append(fa)
-                all_forecast_actions = perturbed_actions
-                a_action = AgentAction(actor=wolf.name, delta=0.0)
-            elif disturbed:
-                adv_actions = [self.safe_exec.execute(a.act, state) for a in self._registry.adversaries]
-                adversary_variant_name = ""
-                if self.evolutionary_population is not None and adv_actions:
-                    adjusted_adv_actions: list[AgentAction] = []
-                    for adv_action in adv_actions:
-                        subgroup = coalition_payload[-1][0] if coalition_payload else None
-                        variant = self.evolutionary_population.sample("adversary", self._rng, subgroup=subgroup)
-                        adjusted_adv_actions.append(self.evolutionary_population.apply_variant(adv_action, variant))
-                        if variant is not None:
-                            adversary_variant_name = variant.name
-                    adv_actions = adjusted_adv_actions
-                a_action = adv_actions[0] if len(adv_actions) == 1 else \
-                    AgentAction(actor="adversary", delta=sum(a.delta for a in adv_actions) / max(1, len(adv_actions)))
-            else:
-                adversary_variant_name = ""
-                a_action = AgentAction(actor=self._registry.adversaries[0].name if self._registry.adversaries else "adversary", delta=0.0)
-
-            f_action = all_forecast_actions[0] if len(all_forecast_actions) == 1 else \
-                self._registry.aggregator.aggregate(all_forecast_actions, cumulative_rewards)
-
-            def_actions = [self.safe_exec.execute(d.act, f_action, a_action, self.config.defense_model) for d in self._registry.defenders]
-            defender_variant_name = ""
-            if self.evolutionary_population is not None and def_actions:
-                adjusted_def_actions: list[AgentAction] = []
-                for def_action in def_actions:
-                    variant = self.evolutionary_population.sample("defender", self._rng)
-                    adjusted_def_actions.append(self.evolutionary_population.apply_variant(def_action, variant))
-                    if variant is not None:
-                        defender_variant_name = variant.name
-                def_actions = adjusted_def_actions
-            d_action = def_actions[0] if len(def_actions) == 1 else \
-                AgentAction(actor="defender", delta=sum(d.delta for d in def_actions) / max(1, len(def_actions)))
-
-            if self.config.equilibrium_type == "correlated":
-                target_proxy = state.value + 0.4 + (0.4 * state.exogenous)
-                f_candidates = np.array([0.8 * f_action.delta, f_action.delta, 1.2 * f_action.delta], dtype=float)
-                a_candidates = np.array([0.8 * a_action.delta, a_action.delta, 1.2 * a_action.delta], dtype=float)
-                forecaster_payoff = np.zeros((len(f_candidates), len(a_candidates)))
-                adversary_payoff = np.zeros_like(forecaster_payoff)
-                for i, f_delta in enumerate(f_candidates):
-                    for j, a_delta in enumerate(a_candidates):
-                        proxy_error = abs(target_proxy - (state.value + f_delta + a_delta + d_action.delta))
-                        forecaster_payoff[i, j] = -proxy_error
-                        adversary_payoff[i, j] = proxy_error
-                ce = compute_correlated_equilibrium((forecaster_payoff, adversary_payoff))
-                f_idx, a_idx = ce.sample_actions(self._rng)
-                f_action = AgentAction(actor=f_action.actor, delta=float(f_candidates[f_idx]))
-                a_action = AgentAction(actor=a_action.actor, delta=float(a_candidates[a_idx]))
-
-            quarantined = False
-            if self.config.equilibrium_type == "bayesian":
-                posterior_adv = self._belief_state.posterior[-1]
-                if posterior_adv >= self.config.quarantine_threshold:
-                    quarantined = True
-                    a_action = AgentAction(actor=a_action.actor, delta=0.0)
-
-            disturbance_val = self.disturbance.sample(state, self._rng, self.config) if disturbed else 0.0
-            forecast = state.value + f_action.delta + a_action.delta + d_action.delta + refactor_bias
-            sabotage_penalty = 0.0
-            if disturbed and self.config.sabotage_prob > 0.0 and self._rng.random() <= self.config.sabotage_prob:
-                sabotage_penalty = self._rng.uniform(-0.2, 0.2) * max(1.0, abs(f_action.delta) + abs(a_action.delta))
-                forecast += sabotage_penalty
-            noise = self._rng.gauss(0, self.config.base_noise_std)
-
-            qual_override: dict[str, Any] | None = None
-            if self.config.enable_qual and self._qual_dataset and state.t in self._qual_dataset:
-                qual_rec = self._qual_dataset[state.t]
-                qual_text = qual_rec.get("text", "")
-                if self._qual_extractor is not None:
-                    raw_tensor = self._qual_extractor.extract(
-                        qual_text, self.config.qualitative_extractor_prompt,
-                    )
-                else:
-                    raw_tensor = (0,) * self.config.feature_dim
-                regime = 0
-                if self._regime_classifier is not None:
-                    regime = self._regime_classifier.classify(
-                        dict(state.macro_context),
-                        raw_tensor,
-                        self.config.regime_prompt,
-                    )
-                qual_override = {
-                    "qualitative_state": raw_tensor,
-                    "raw_qual_state": tuple(float(v) for v in raw_tensor),
-                    "raw_qual_text": qual_text[:self.config.max_context_tokens] if qual_text else None,
-                    "economic_regime": regime,
-                    "last_qual_update_step": state.t,
-                }
-
-            next_state = evolve_state(
+            actions = self._compute_actions(
                 state,
-                base_trend=0.4,
-                noise=noise,
-                disturbance=disturbance_val,
-                qual_override=qual_override,
-                decay_rate=self.config.decay_rate,
+                round_idx=idx,
+                disturbed=disturbed,
+                cumulative_rewards=cumulative_rewards,
+                coalition_payload=coalition_payload,
+                wolfpack_residuals=wolfpack_residuals,
             )
-            target = next_state.value
-            error = target - forecast
-            reward = -abs(error)
-            benign_mass, suspicious_mass = bayesian_likelihood_from_observation(a_action.delta, disturbance_val + sabotage_penalty)
-            if len(self._belief_state.alpha) > 2:
-                base = benign_mass / max(1, len(self._belief_state.alpha) - 1)
-                likelihood = tuple(base for _ in range(len(self._belief_state.alpha) - 1)) + (suspicious_mass,)
-            else:
-                likelihood = (benign_mass, suspicious_mass)
-            self._belief_state = self._belief_state.update(likelihood)
+            outcome = self._apply_disturbances(state, actions, refactor_bias=refactor_bias, disturbed=disturbed)
+            update = self._update_rewards_and_bias(
+                state,
+                actions,
+                outcome,
+                round_idx=idx,
+                refactor_bias=refactor_bias,
+                previous_abs_error=prev_abs_error,
+                wolfpack_residuals=wolfpack_residuals,
+            )
+            reward_breakdown = frozen_mapping(update.reward_breakdown)
+            previous_abs_error = prev_abs_error
+            prev_abs_error = abs(update.error)
 
-            record_agent_metrics(f_action.actor, "forecaster", f_action.delta, max(0.0, reward))
-            record_agent_metrics(a_action.actor, "adversary", a_action.delta, max(0.0, -reward))
-            record_agent_metrics(d_action.actor, "defender", d_action.delta, max(0.0, reward))
-            record_disturbance(disturbance_val != 0.0, abs(error) > prev_abs_error)
-            prev_abs_error = abs(error)
-
-            if len(all_forecast_actions) > 1:
-                agent_errors: dict[str, float] = {}
-                agent_means: dict[str, float] = {}
-                agent_stds: dict[str, float] = {}
-                for fa in all_forecast_actions:
-                    fa_forecast = state.value + fa.delta
-                    agent_means[fa.actor] = fa_forecast
-                    agent_stds[fa.actor] = self.config.base_noise_std
-                    agent_errors[fa.actor] = target - fa_forecast
-                self.bayesian_agg.update(
-                    agent_errors,
-                    means=agent_means,
-                    stds=agent_stds,
-                    bankruptcy_threshold=self.config.bankruptcy_threshold,
-                )
-                for wolf in wolfpack_adversaries:
-                    for fa in all_forecast_actions:
-                        wolf.record_residual(fa.actor, agent_errors[fa.actor])
-
-            if self.config.enable_refactor and self.refactor is not None:
-                refactor_bias += self.refactor.revise(error, use_llm=self.config.enable_llm_refactor, round_idx=idx)
-
-            rolling_errors.append(abs(error))
+            rolling_errors.append(abs(update.error))
             if self.config.convergence_threshold > 0 and len(rolling_errors) >= 20:
                 window = rolling_errors[-20:]
                 rolling_mae = sum(window) / len(window)
@@ -437,42 +641,40 @@ class ForecastGame:
                     convergence_reason = "divergence_threshold_exceeded"
                     record_alert("mae_exceeds_threshold")
 
-            for a in all_forecast_actions:
-                cumulative_rewards[a.actor] = cumulative_rewards.get(a.actor, 0.0) + reward
-            for _, variant_name in forecast_variants:
-                variant_rewards.setdefault(variant_name, []).append(reward)
-            if adversary_variant_name:
-                variant_rewards.setdefault(adversary_variant_name, []).append(-reward)
-            if defender_variant_name:
-                variant_rewards.setdefault(defender_variant_name, []).append(reward)
+            for forecast_action in actions.all_forecast_actions:
+                cumulative_rewards[forecast_action.actor] = cumulative_rewards.get(forecast_action.actor, 0.0) + update.reward
+            for _, variant_name in actions.forecast_variants:
+                variant_rewards.setdefault(variant_name, []).append(update.reward)
+            if actions.adversary_variant_name:
+                variant_rewards.setdefault(actions.adversary_variant_name, []).append(-update.reward)
+            if actions.defender_variant_name:
+                variant_rewards.setdefault(actions.defender_variant_name, []).append(update.reward)
 
-            band = abs(disturbance_val) + self.config.base_noise_std + 0.05
-            ci = ConfidenceInterval(lower=forecast - band, upper=forecast + band)
+            band = abs(outcome.disturbance) + self.config.base_noise_std + 0.05
+            ci = ConfidenceInterval(lower=outcome.forecast - band, upper=outcome.forecast + band)
             messages = (
-                AgentMessage("forecaster", "adversary", f"proposal={f_action.delta:.4f}"),
-                AgentMessage("adversary", "defender", f"attack={a_action.delta:.4f}"),
-                AgentMessage("defender", "refactor", f"defense={d_action.delta:.4f}"),
+                AgentMessage("forecaster", "adversary", f"proposal={actions.forecast_action.delta:.4f}"),
+                AgentMessage("adversary", "defender", f"attack={actions.adversary_action.delta:.4f}"),
+                AgentMessage("defender", "refactor", f"defense={actions.defender_action.delta:.4f}"),
             )
 
-            reward_breakdown = frozen_mapping({"forecaster": reward, "adversary": -reward, "defender": reward})
-
             step = StepResult(
-                next_state=next_state,
-                actions=(f_action, a_action, d_action),
+                next_state=outcome.next_state,
+                actions=(actions.forecast_action, actions.adversary_action, actions.defender_action),
                 reward_breakdown=reward_breakdown,
-                forecast=forecast,
-                target=target,
+                forecast=outcome.forecast,
+                target=outcome.target,
                 confidence=ci,
                 messages=messages,
             )
             traj = TrajectoryEntry(
                 round_idx=idx,
                 state=state,
-                actions=(f_action, a_action, d_action),
+                actions=(actions.forecast_action, actions.adversary_action, actions.defender_action),
                 messages=messages,
                 reward_breakdown=reward_breakdown,
-                forecast=forecast,
-                target=target,
+                forecast=outcome.forecast,
+                target=outcome.target,
             )
             elapsed = time.perf_counter() - start
             if elapsed > self.config.max_round_timeout_s:
@@ -488,13 +690,15 @@ class ForecastGame:
             if ROUND_LATENCY is not None:
                 ROUND_LATENCY.observe(elapsed)
             try:
-                self.logger.info("round_complete", round_idx=idx, reward=reward, disturbance=disturbance_val)
+                self.logger.info("round_complete", round_idx=idx, reward=update.reward, disturbance=outcome.disturbance)
             except TypeError:
-                self.logger.info(f"round_complete round_idx={idx} reward={reward:.6f} disturbance={disturbance_val:.6f}")
+                self.logger.info(
+                    f"round_complete round_idx={idx} reward={update.reward:.6f} disturbance={outcome.disturbance:.6f}"
+                )
 
-            cost_this_round = abs(a_action.delta) * self.config.attack_cost
-            dist_magnitude = abs(disturbance_val)
-            error_delta_val = abs(abs(error) - prev_abs_error) if idx > 0 else abs(error)
+            cost_this_round = abs(actions.adversary_action.delta) * self.config.attack_cost
+            dist_magnitude = abs(outcome.disturbance)
+            error_delta_val = abs(abs(update.error) - previous_abs_error) if idx > 0 else abs(update.error)
             cost_benefit = {
                 "round": idx,
                 "attack_cost": cost_this_round,
@@ -503,33 +707,41 @@ class ForecastGame:
                 "cost_benefit_ratio": error_delta_val / max(1e-9, cost_this_round) if cost_this_round > 0 else 0.0,
             }
 
-            bma_snapshot = list(self.bayesian_agg.weights) if len(all_forecast_actions) > 1 and self.bayesian_agg.weights else None
+            bma_snapshot = (
+                list(self.bayesian_agg.weights)
+                if len(actions.all_forecast_actions) > 1 and self.bayesian_agg.weights
+                else None
+            )
             trajectory_logs.append(
                 {
                     "round_idx": idx,
                     "state": _state_to_dict(state),
-                    "actions": [asdict(a) for a in (f_action, a_action, d_action)],
-                    "forecast": forecast,
-                    "target": target,
-                    "reward": reward,
-                    "disturbance": disturbance_val,
+                    "actions": [
+                        asdict(action)
+                        for action in (actions.forecast_action, actions.adversary_action, actions.defender_action)
+                    ],
+                    "forecast": outcome.forecast,
+                    "target": outcome.target,
+                    "reward": update.reward,
+                    "disturbance": outcome.disturbance,
                     "messages": [asdict(m) for m in messages],
                     "elapsed_s": elapsed,
                     "bma_weights": bma_snapshot,
                     "confidence": {"lower": ci.lower, "upper": ci.upper},
                     "cost_benefit": cost_benefit,
                     "coalitions": [list(group) for group in coalition_payload],
-                    "quarantined": quarantined,
-                    "sabotage_penalty": sabotage_penalty,
+                    "quarantined": actions.quarantined,
+                    "sabotage_penalty": outcome.sabotage_penalty,
                     "posterior": list(self._belief_state.posterior),
                 }
             )
             steps.append(step)
             trajectories.append(traj)
-            forecasts.append(forecast)
-            targets.append(target)
+            forecasts.append(outcome.forecast)
+            targets.append(outcome.target)
             confidence.append(ci)
-            state = next_state
+            state = outcome.next_state
+            refactor_bias = update.refactor_bias
 
             if convergence_reason != "completed":
                 break

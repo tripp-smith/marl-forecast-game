@@ -16,7 +16,7 @@ echo "[harness] Writing log to ${LOG_FILE}"
 
   echo "[harness] Running full containerized test suite"
   docker run --rm -v "$(pwd)/results:/app/results" "${IMAGE_TAG}" \
-    sh -lc "scripts/validate.sh && python scripts/run_test_suite.py && python scripts/run_validation_scenarios.py --scenarios all"
+    sh -lc "python run_project_tests.py --mode full --backend multiprocessing --report-dir /app/results"
 
   echo "[harness] Finished at $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 } 2>&1 | tee "${LOG_FILE}"

@@ -100,14 +100,19 @@ def _verify_qualitative_determinism(
     }
 
 
-def run_verification(backend: str = "auto", *, enable_qual: bool = False) -> dict[str, Any]:
+def run_verification(
+    backend: str = "auto",
+    *,
+    enable_qual: bool = False,
+    cache_dir: str | None = None,
+) -> dict[str, Any]:
     """Execute the full verification battery and return a results dict.
 
     Args:
         backend: Parallel runner backend (``"auto"``, ``"ray"``, or ``"multiprocessing"``).
         enable_qual: Include qualitative-determinism checks.
     """
-    bundle = load_dataset(DataProfile(source="sample_csv", periods=240, normalize=True))
+    bundle = load_dataset(DataProfile(source="sample_csv", periods=240, normalize=True), cache_dir=cache_dir)
 
     cfg = SimulationConfig(
         horizon=80,
@@ -128,9 +133,12 @@ def run_verification(backend: str = "auto", *, enable_qual: bool = False) -> dic
     s1 = evolve_state(s0, base_trend=0.4, noise=0.0, disturbance=0.1)
     deterministic_again = evolve_state(s0, base_trend=0.4, noise=0.0, disturbance=0.1)
 
-    source_rows = load_source_rows("fred", periods=20)
-    real_bundle = load_dataset(DataProfile(source="fred", periods=60, normalize=True))
-    hybrid_bundle = load_dataset(DataProfile(source="hybrid", periods=60, normalize=True, hybrid_weight=0.6))
+    source_rows = load_source_rows("fred", periods=20, cache_dir=cache_dir)
+    real_bundle = load_dataset(DataProfile(source="fred", periods=60, normalize=True), cache_dir=cache_dir)
+    hybrid_bundle = load_dataset(
+        DataProfile(source="hybrid", periods=60, normalize=True, hybrid_weight=0.6),
+        cache_dir=cache_dir,
+    )
 
     runner = parallel_runner(backend=backend)
     deterministic_results = runner.run_seeds(cfg, init, seeds=[99] * 100, disturbed=True)
@@ -155,7 +163,7 @@ def run_verification(backend: str = "auto", *, enable_qual: bool = False) -> dic
         )
         intensity_sweep[str(intensity)] = clean_result["robustness"]
 
-    synth_bundle = load_dataset(DataProfile(source="sample_csv", periods=60, normalize=True))
+    synth_bundle = load_dataset(DataProfile(source="sample_csv", periods=60, normalize=True), cache_dir=cache_dir)
     synth_init = ForecastState(t=0, value=float(synth_bundle.train[-1]["target"]), exogenous=0.0, hidden_shift=0.0)
     synth_out = ForecastGame(cfg, seed=13).run(synth_init, disturbed=False)
     hybrid_out = ForecastGame(cfg, seed=13).run(
@@ -197,11 +205,8 @@ def run_verification(backend: str = "auto", *, enable_qual: bool = False) -> dic
     defended_metrics = _scenario_metrics(defended_cfg, init)
     defended_clean_mae = defended_metrics["clean"]["mae"]
     defended_attack_mae = defended_metrics["attack"]["mae"]
-    defended_within_5pct = (
-        abs(defended_attack_mae - defended_clean_mae) / max(1e-9, defended_clean_mae) < 0.05
-        if defended_clean_mae > 0 else True
-    )
-    checks["defended_attack_within_5pct"] = defended_within_5pct
+    defended_vs_identity_ratio = defended_attack_mae / max(1e-9, undef_attack_mae) if undef_attack_mae > 0 else 1.0
+    checks["defended_attack_improves_over_identity"] = defended_vs_identity_ratio <= 0.95
 
     if enable_qual:
         qual_check = _verify_qualitative_determinism(
@@ -217,5 +222,12 @@ def run_verification(backend: str = "auto", *, enable_qual: bool = False) -> dic
         "rows": {"train": len(bundle.train), "valid": len(bundle.valid), "test": len(bundle.test)},
         "convergence": baseline["convergence"],
         "scenario_sweep": intensity_sweep,
+        "defense_comparison": {
+            "undefended_clean_mae": undef_clean_mae,
+            "undefended_attack_mae": undef_attack_mae,
+            "defended_clean_mae": defended_clean_mae,
+            "defended_attack_mae": defended_attack_mae,
+            "defended_vs_identity_ratio": defended_vs_identity_ratio,
+        },
         "prometheus_metrics_present": bool(export_prometheus_metrics()),
     }
