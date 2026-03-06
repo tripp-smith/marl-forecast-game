@@ -6,6 +6,7 @@ import math
 import pickle
 from collections import deque
 from dataclasses import dataclass, field
+from enum import Enum
 from pathlib import Path
 from random import Random
 from typing import Any, Protocol
@@ -24,6 +25,14 @@ from .types import AgentAction, ForecastState, SimulationConfig
 # ---------------------------------------------------------------------------
 # U.1  Discrete action space
 # ---------------------------------------------------------------------------
+
+
+class RLAlgorithm(str, Enum):
+    """Supported deep RL optimization backends."""
+
+    DQN = "dqn"
+    PPO = "ppo"
+
 
 @dataclass(frozen=True)
 class DiscreteActionSpace:
@@ -135,7 +144,7 @@ class DeepRLAgent:
 
     action_space: DiscreteActionSpace = field(default_factory=DiscreteActionSpace)
     state_dim: int = 5
-    algorithm: str = "dqn"
+    algorithm: RLAlgorithm = RLAlgorithm.DQN
     gamma: float = 0.95
     learning_rate: float = 1e-3
     epsilon: float = 1.0
@@ -189,7 +198,7 @@ class DeepRLAgent:
         self._target_net = MLP(self.state_dim, self.action_space.n_bins).to(self._device)
         self._target_net.load_state_dict(self._policy_net.state_dict())
         self._target_net.eval()
-        if self.algorithm == "ppo":
+        if self.algorithm == RLAlgorithm.PPO:
             self._value_net = MLP(self.state_dim, self.action_space.n_bins, output_dim=1).to(self._device)
             self._optimizer = optim.Adam(
                 list(self._policy_net.parameters()) + list(self._value_net.parameters()),
@@ -238,19 +247,25 @@ class DeepRLAgent:
         batch = self._buffer.sample(self.batch_size)
         if not batch:
             return 0.0
-        if self.algorithm == "ppo":
+        if self.algorithm == RLAlgorithm.PPO:
             return self._optimize_ppo(batch)
         return self._optimize_dqn(batch)
 
+    def _build_tensors(self, batch: list[ReplayTransition]) -> tuple[Any, Any, Any, Any, Any]:
+        """Convert a replay batch into device-local tensors."""
+        torch, _, _, _ = self._torch_bundle
+        states = torch.tensor(np.stack([item.state for item in batch]), dtype=torch.float32, device=self._device)
+        actions = torch.tensor([item.action for item in batch], dtype=torch.int64, device=self._device)
+        rewards = torch.tensor([item.reward for item in batch], dtype=torch.float32, device=self._device)
+        next_states = torch.tensor(np.stack([item.next_state for item in batch]), dtype=torch.float32, device=self._device)
+        dones = torch.tensor([item.done for item in batch], dtype=torch.float32, device=self._device)
+        return states, actions, rewards, next_states, dones
+
     def _optimize_dqn(self, batch: list[ReplayTransition]) -> float:
         torch, _, F, _ = self._torch_bundle
-        states = torch.tensor(np.stack([b.state for b in batch]), dtype=torch.float32, device=self._device)
-        actions = torch.tensor([b.action for b in batch], dtype=torch.int64, device=self._device).unsqueeze(1)
-        rewards = torch.tensor([b.reward for b in batch], dtype=torch.float32, device=self._device)
-        next_states = torch.tensor(np.stack([b.next_state for b in batch]), dtype=torch.float32, device=self._device)
-        dones = torch.tensor([b.done for b in batch], dtype=torch.float32, device=self._device)
+        states, actions, rewards, next_states, dones = self._build_tensors(batch)
 
-        q_values = self._policy_net(states).gather(1, actions).squeeze(1)
+        q_values = self._policy_net(states).gather(1, actions.unsqueeze(1)).squeeze(1)
         with torch.no_grad():
             next_q = self._target_net(next_states).max(1).values
             target_q = rewards + self.gamma * next_q * (1.0 - dones)
@@ -263,9 +278,7 @@ class DeepRLAgent:
     def _optimize_ppo(self, batch: list[ReplayTransition]) -> float:
         torch, _, F, _ = self._torch_bundle
         clip_eps = 0.2
-        states = torch.tensor(np.stack([b.state for b in batch]), dtype=torch.float32, device=self._device)
-        actions = torch.tensor([b.action for b in batch], dtype=torch.int64, device=self._device)
-        rewards = torch.tensor([b.reward for b in batch], dtype=torch.float32, device=self._device)
+        states, actions, rewards, _, _ = self._build_tensors(batch)
         logits = self._policy_net(states)
         log_probs = torch.log_softmax(logits, dim=-1)
         chosen_log_probs = log_probs.gather(1, actions.unsqueeze(1)).squeeze(1)
@@ -619,7 +632,7 @@ class TsallisINFBandit:
         eta = 1.0 / math.sqrt(max(1.0, self.round_idx + 1.0))
         centered = -eta * (self.cumulative_losses - float(self.cumulative_losses.min()))
         weights = np.power(np.clip(1.0 + 0.5 * centered, 1e-9, None), 2.0)
-        return weights / max(weights.sum(), 1e-12)
+        return np.asarray(weights / max(weights.sum(), 1e-12), dtype=float)
 
     def act(self, state: ForecastState) -> int:
         self._last_probs = self._probabilities()
@@ -663,7 +676,7 @@ class MaximinUCBBandit:
         step = 1.0 / self.counts[action]
         td_error = float(reward) - self.values[action]
         self.values[action] += step * td_error
-        return td_error
+        return float(td_error)
 
 
 def build_rl_agent(
@@ -683,7 +696,7 @@ def build_rl_agent(
         return DeepRLAgent(
             action_space=space,
             state_dim=state_dim,
-            algorithm=config.rl_algorithm,
+            algorithm=RLAlgorithm(config.rl_algorithm),
             epsilon=1.0,
             epsilon_min=config.epsilon_final,
             replay_buffer_size=config.replay_buffer_size,

@@ -4,10 +4,14 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
+nx: Any = None
+
 try:
-    import networkx as nx
+    import networkx as _networkx
 except ImportError:  # pragma: no cover
-    nx = None  # type: ignore[assignment]
+    pass
+else:
+    nx = _networkx
 
 
 @dataclass
