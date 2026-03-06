@@ -1,336 +1,202 @@
 # marl-forecast-game
 
-A multi-agent adversarial forecasting framework that models prediction as a Markov game. Agents -- forecasters, adversaries, and defenders -- interact across rounds to produce resilient, probabilistic forecasts under uncertainty. The system supports hierarchical agent topologies, Bayesian Model Averaging, multi-agent reinforcement learning, and real macroeconomic data integration via the FRED API.
+[![CI](https://github.com/tripp-smith/marl-forecast-game/actions/workflows/ci.yml/badge.svg)](https://github.com/tripp-smith/marl-forecast-game/actions/workflows/ci.yml)
+[![Python](https://img.shields.io/badge/python-3.12%2B-blue.svg)](https://www.python.org/)
+[![License](https://img.shields.io/badge/license-Apache%202.0-green.svg)](https://github.com/tripp-smith/marl-forecast-game/blob/main/LICENSE)
+[![DOI](https://img.shields.io/badge/DOI-Zenodo%20pending-orange.svg)](https://zenodo.org/)
 
-## Key Capabilities
+## Abstract
 
-**Multi-Agent Game Engine**
-- Immutable simulation state via frozen dataclasses with pure-functional transitions
-- 8 agent types: forecaster, adversary, wolfpack adversary, defender, refactorer, bottom-up, top-down, ensemble aggregator
-- Flexible `AgentRegistry` supporting variable agent counts and hierarchical composition
-- Pluggable strategy runtimes (Python and LLM-backed)
+`marl-forecast-game` is a research-oriented framework for adversarial probabilistic forecasting framed as a Markov game. Forecasters, adversaries, and defenders interact through an immutable simulation state, allowing the project to study resilient prediction under distribution shift, strategic manipulation, and uncertain macroeconomic conditions. The repository combines a pure-functional game loop, probabilistic scoring, Bayesian aggregation, and tabular MARL components such as WoLF-PHC, RARL, bandit-style learning, and MNPO-oriented preference updates. The goal is not only to produce forecasts, but to make robustness claims that can be reproduced, benchmarked, and cited.
 
-**Adversarial Robustness**
-- 10 disturbance models: Gaussian, shift, evasion, volatility-scaled, regime shift, volatility burst, drift, historical, escalating, wolfpack
-- 5 defense models: dampening, clipping, bias guard, ensemble, stacked composition
-- Coordinated "Wolfpack" adversary targeting correlated forecaster clusters
-- Clean vs. attacked comparison with robustness delta/ratio metrics
+## Installation
 
-**Probabilistic Forecasting**
-- Kelly-Criterion Bayesian Model Averaging with exponential bankroll weight updates
-- Agent bankruptcy detection and dynamic pruning
-- Distributional outputs: mean, variance, quantile fan (p10/p25/p50/p75/p90)
-- Calibration metrics: PIT, CRPS, negative CRPS, interval coverage
+### Prerequisites
 
-**MARL Training**
-- Tabular Q-learning with epsilon-greedy and Boltzmann (softmax) action selection
-- WoLF-PHC (Win or Learn Fast - Policy Hill Climbing) for equilibrium-seeking
-- Robust Adversarial RL (RARL) with bounded rationality curriculum and alternating training epochs
-- Bandit backends for partial-feedback training: Tsallis-INF and Maximin-UCB
-- Temperature-scheduled adversary: decays from exploratory to exploitative across RARL epochs
-- Evolutionary strategy populations for forecasters, adversaries, and defenders
-- Correlated-equilibrium and Bayesian uncertainty hooks in the runtime game loop
-- Q-table serialization for persistence and reproducibility
+- Python 3.12 or newer
+- `pip` or Conda
+- Optional: [Ollama](https://ollama.com/) for local LLM-backed strategy/refinement workflows
+- Optional: `FRED_API_KEY` for real macroeconomic data pulls
 
-**Data Integration**
-- 12 source adapters: FRED, IMF, Polymarket, GPR, OECD CLI, BIS, BEA, Eurostat, Kalshi, PredictIt, World Bank, Kaggle
-- Multi-series FRED download (CPI, GDP, unemployment, fed funds, breakeven inflation) via `FRED_API_KEY`
-- Caching with checksum integrity, freshness checks, and force-redownload
-- Poisoning detection via z-score and modified z-score (MAD)
-- Chronological splitting with leakage prevention
-
-**Validation and Deployment**
-- 24-scenario validation framework with JSON/CSV reporting
-- 9 automated verification checks including 100-run determinism and 10k-round stress
-- 21 Hypothesis property-based tests for core invariants
-- Walk-forward backtesting and per-factor sensitivity analysis
-- Monte Carlo scenario generation with percentile trajectory fans
-- Docker containerization with healthcheck and CI/CD via GitHub Actions
-- Distributed parallel execution via multiprocessing
-
-## Architecture Overview
-
-The system is structured as a Markov game where agents interact through a shared immutable state. See [docs/architecture.md](docs/architecture.md) for full details.
-
-```mermaid
-graph LR
-    subgraph data [Data Layer]
-        Adapters["Source Adapters<br/>FRED / IMF / Polymarket / BIS / etc."]
-        Cache["Cache + Validate"]
-        Split["Chronological Split"]
-    end
-
-    subgraph game [Game Engine]
-        State["ForecastState"]
-        Registry["AgentRegistry"]
-        Loop["Game Loop"]
-        Outputs["GameOutputs"]
-    end
-
-    subgraph learn [Learning]
-        Training["MARL Training<br/>Q / WoLF / RARL + Bounded Rationality"]
-        BMA["Kelly-Criterion BMA"]
-        Refiner["LLM Refiner"]
-    end
-
-    Adapters --> Cache --> Split --> State
-    State --> Registry --> Loop --> Outputs
-    Outputs --> Training --> Registry
-    Training -->|"load policy"| Registry
-    Outputs --> BMA --> Loop
-    Outputs --> Refiner --> Registry
-```
-
-## Quick Start (Single Container)
-
-Run the entire project -- tests, training, backtesting, stress tests, and the interactive UI -- with a single Docker command:
-
-```bash
-docker build --target allinone -t marl-forecast-game:allinone .
-docker run --rm -p 8501:8501 -p 3000:3000 -p 9090:9090 -p 9091:9091 marl-forecast-game:allinone
-```
-
-| Port | Service |
-|------|---------|
-| 8501 | **Streamlit UI** -- explainability dashboard with auto-loaded results |
-| 3000 | **Grafana** -- cluster health and simulation metrics |
-| 9090 | **Prometheus** -- metrics aggregation |
-| 9091 | **App Metrics** -- `/metrics` endpoint |
-
-On startup, `supervisord` runs the full pipeline (pytest, verification, training, backtest, validation, stress test, trajectory export) and keeps the UI and monitoring services alive for review. Mount a host volume to persist results: `-v ./results:/app/results`.
-
-See [docs/deployment.md](docs/deployment.md) for detailed documentation.
-
-## Quickstart (Local)
+### Virtualenv
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt
-
-# Run tests
-pytest
-
-# Run verification (9 checks)
-python scripts/run_verification.py
-
-# Run all 24 validation scenarios
-python scripts/run_validation_scenarios.py --scenarios all
+pip install -e ".[distributed,dev]"
 ```
 
-## FRED Data Integration
+### Conda
 
-Set `FRED_API_KEY` to enable real macroeconomic data as a training source. The adapter downloads five series -- CPI (`CPIAUCSL`), GDP, unemployment rate (`UNRATE`), federal funds rate (`FEDFUNDS`), and 10-year breakeven inflation (`T10YIE`) -- and merges them into time-aligned training rows with a `macro_context` dict per record.
+```bash
+conda env create -f environment.yml
+conda activate marl-forecast-game
+```
+
+### Optional Ollama Setup
+
+```bash
+ollama serve
+ollama pull llama3.1
+```
+
+## Quickstart
+
+The quickest end-to-end path uses the public package API and sample data, with no external credentials:
+
+```python
+from marl_forecast_game import GameEngine, SimulationConfig, demo_state
+
+cfg = SimulationConfig(
+    horizon=12,
+    max_rounds=12,
+    disturbance_model="gaussian",
+    defense_model="ensemble",
+    enable_refactor=True,
+)
+game = GameEngine(cfg, seed=42)
+out = game.run(demo_state(value=125.0, exogenous=0.2), rounds=12, disturbed=True)
+
+print(out.forecasts[:3])
+print(out.convergence)
+```
+
+For a reproducible benchmark on bundled sample data:
+
+```bash
+python benchmarks/run_benchmark.py --source sample_csv --windows 6 --window-size 60 --step-size 12
+python experiments/run_reproducibility_check.py
+```
+
+For real-data backtesting with FRED:
 
 ```bash
 export FRED_API_KEY=your_key_here
-python scripts/run_training.py          # trains on real FRED data
-python scripts/run_backtest.py          # backtests on FRED history
+python scripts/run_training.py --algorithm wolf --episodes 50
+python scripts/run_backtest.py --windows 6 --window-size 60 --step-size 12
 ```
 
-Without the key, all FRED-dependent features fall back gracefully to synthetic proxies. See [docs/data-pipeline.md](docs/data-pipeline.md) for the full data architecture.
+Notebook entry point: [notebooks/quickstart_api.ipynb](notebooks/quickstart_api.ipynb)
 
-## MARL Training
+## Methodology
 
-Train learnable agents using Q-learning, WoLF-PHC, or robust adversarial RL:
+### Markov Game Loop
 
-```bash
-# WoLF-PHC (default)
-python scripts/run_training.py --algorithm wolf --episodes 200
+Each round is a three-sided interaction:
 
-# Tabular Q-learning
-python scripts/run_training.py --algorithm q --episodes 300
+1. Forecasters propose directional adjustments to the current latent state.
+2. Adversaries inject strategic perturbations or disturbance-linked attacks.
+3. Defenders counteract those perturbations before the environment transitions.
 
-# Robust Adversarial RL (alternating forecaster/adversary epochs)
-python scripts/run_training.py --algorithm rarl --episodes 100
+The environment then advances via `evolve_state(...)`, producing the next latent target and a realized forecast error.
+
+### Disturbances And Defenses
+
+- Disturbances model corruption, volatility, regime shifts, drift, wolfpack coordination, and related attacks.
+- Defenses include dampening, clipping, bias guards, ensembles, and stacked combinations.
+- Robustness is measured by comparing clean and attacked runs under shared seeds and configurations.
+
+### Learning And Aggregation
+
+- Tabular Q-learning and WoLF-PHC support adaptive agents in non-stationary games.
+- RARL-style alternating updates make the adversary an explicit learning entity rather than passive noise.
+- Bayesian/Kelly-style aggregation reallocates mass toward better calibrated experts.
+- MNPO-oriented components provide a path from value estimates to preference-informed equilibrium updates.
+
+### Data And Evaluation
+
+- Sample data is bundled for CI-safe reproducibility.
+- Real-world adapters include FRED, IMF, Polymarket, OECD CLI, BIS, BEA, Eurostat, Kalshi, PredictIt, World Bank, and Kaggle-style demand sources.
+- The benchmark harness uses rolling windows, deterministic seeds, approximate CRPS from forecast intervals, and paired Wilcoxon tests for model comparison.
+
+## Results
+
+The repository now includes a reproducible benchmark harness:
+
+- Command: `python benchmarks/run_benchmark.py`
+- JSON output: `results/benchmarks/benchmark_summary.json`
+- Markdown table: `results/benchmarks/benchmark_summary.md`
+- Reproducibility audit: `results/experiments/reproducibility_check.json`
+
+The benchmark suite compares:
+
+- `naive_last`
+- `moving_average_5`
+- `game_clean_ensemble`
+- `game_attack_identity`
+- `game_attack_ensemble`
+
+This gives a minimal academic baseline set: classical heuristics, a clean MARL game, an undefended attacked game, and a defended attacked game. See [docs/validation.md](docs/validation.md) for protocol details and significance testing guidance.
+
+Sample benchmark snapshot from `python benchmarks/run_benchmark.py --source sample_csv --windows 4 --window-size 40 --step-size 10`:
+
+| Model | MAE | RMSE | Approx. CRPS | Coverage |
+|---|---:|---:|---:|---:|
+| `naive_last` | 3.1749 | 3.8071 | 3.0386 | 0.0500 |
+| `moving_average_5` | 2.8331 | 3.4051 | 1.9934 | 0.9250 |
+| `game_clean_ensemble` | 2.9722 | 3.4965 | 2.9150 | 0.0250 |
+| `game_attack_identity` | 2.9017 | 3.4725 | 2.8055 | 0.1000 |
+| `game_attack_ensemble` | 2.9327 | 3.5027 | 2.8343 | 0.0750 |
+
+On this bundled synthetic slice, the benchmark harness is functioning but the Wilcoxon comparisons are not yet statistically significant (`p=0.6380` against `naive_last`, `p=0.5537` against `game_attack_identity`). That is intentional documentation discipline: the repo now reports what the benchmark shows rather than what we hope it will show.
+
+## Reproducibility
+
+- Public import path: `from marl_forecast_game import GameEngine`
+- Installable editable package: `pip install -e .`
+- Conda fallback: [environment.yml](environment.yml)
+- Fixed-seed reproducibility check: [experiments/run_reproducibility_check.py](experiments/run_reproducibility_check.py)
+- Benchmark harness: [benchmarks/run_benchmark.py](benchmarks/run_benchmark.py)
+- Sample data folder: [data/sample](data/sample)
+- Notebook demo: [notebooks/quickstart_api.ipynb](notebooks/quickstart_api.ipynb)
+
+## Documentation
+
+- [docs/architecture.md](docs/architecture.md): system structure
+- [docs/validation.md](docs/validation.md): benchmark protocol, scenarios, tests, significance
+- [docs/theory.md](docs/theory.md): equations and modeling assumptions
+- [docs/literature.md](docs/literature.md): related work and BibTeX
+- [docs/training.md](docs/training.md): MARL training modes
+- [docs/data-pipeline.md](docs/data-pipeline.md): ingestion and caching
+- [docs/deployment.md](docs/deployment.md): container and CI workflows
+- [docs/mnpo_integration.md](docs/mnpo_integration.md): MNPO integration notes
+
+## Citation
+
+Repository citation metadata is in [CITATION.cff](CITATION.cff). Until a Zenodo DOI is minted, use the software citation below:
+
+```bibtex
+@software{smith2026marlforecastgame,
+  author = {Smith, Tripp},
+  title = {marl-forecast-game},
+  year = {2026},
+  url = {https://github.com/tripp-smith/marl-forecast-game},
+  version = {0.1.0}
+}
 ```
 
-Q-tables are serialized to `data/models/`. See [docs/training.md](docs/training.md) for algorithm details.
+After the first archived release, add the DOI to `CITATION.cff` and replace the DOI badge.
 
-## Using Trained Agents In Live Simulations
+## Limitations And Ethics
 
-Use a saved tabular policy directly in the runtime game loop:
+This project is intended for research and decision-support experimentation, not autonomous decision making.
 
-```bash
-python scripts/run_simulation.py \
-  --agents forecaster,qlearned-adversary,defender \
-  --q-table data/models/forecaster_q.json \
-  --algorithm wolf \
-  --disturbed
-```
+- External data sources may encode sampling bias, reporting lag, survivorship effects, or market manipulation.
+- LLM-backed components can import prompt bias, summarization artifacts, and provider instability.
+- Approximate CRPS in the benchmark harness is derived from forecast intervals rather than a full predictive density export.
+- Real-data claims should not be made from a single seed, single period, or single source.
+- Computational cost rises quickly as adversaries, agents, and benchmark windows scale.
 
-Single-agent smoke test:
+## Community
 
-```bash
-python scripts/run_simulation.py --agent-type qlearned --q-table data/models/forecaster_q.json --algorithm q --disturbed
-```
+- Contribution guide: [CONTRIBUTING.md](CONTRIBUTING.md)
+- Community standards: [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
+- License: [LICENSE](LICENSE)
 
-## Walk-Forward Backtesting
+## Roadmap
 
-Run walk-forward validation with configurable sliding windows:
+Near-term academic priorities:
 
-```bash
-python scripts/run_backtest.py --windows 10 --window-size 60 --step-size 20
-```
-
-Reports are written to `results/backtest_report.json`. See [docs/bayesian-aggregation.md](docs/bayesian-aggregation.md) for backtesting methodology and probabilistic metrics.
-
-## Validation
-
-The framework includes three layers of validation:
-
-| Layer | Count | Command |
-|---|---|---|
-| Unit + integration tests | 70 | `pytest tests/test_framework.py` |
-| Hypothesis property tests | 21 | `pytest tests/test_properties.py` |
-| Validation scenarios | 24 | `python scripts/run_validation_scenarios.py --scenarios all` |
-| Verification checks | 9 | `python scripts/run_verification.py` |
-
-List available scenarios:
-
-```bash
-python scripts/run_validation_scenarios.py --list
-```
-
-See [docs/validation.md](docs/validation.md) for the full scenario catalog and verification check details.
-
-## Docker
-
-```bash
-# Fast path: build and run default validation
-docker build -t marl-forecast-game:test .
-docker run --rm marl-forecast-game:test
-
-# Full container test harness (pytest + verification + 22 scenarios)
-bash scripts/run_container_test_harness.sh
-```
-
-The image includes a healthcheck that runs core verification checks. See [docs/deployment.md](docs/deployment.md) for full container and CI documentation.
-
-## Project Structure
-
-```
-marl-forecast-game/
-├── framework/                     # Core library
-│   ├── types.py                   #   Frozen dataclasses: ForecastState, SimulationConfig, etc.
-│   ├── agents.py                  #   8 agent types + AgentRegistry + SafeAgentExecutor
-│   ├── game.py                    #   ForecastGame engine and GameOutputs
-│   ├── aggregation.py             #   BayesianAggregator with Kelly-Criterion BMA
-│   ├── training.py                #   Q-learning, WoLF-PHC, RARL, TrainingLoop
-│   ├── backtesting.py             #   WalkForwardBacktester, SensitivityAnalyzer
-│   ├── scenarios.py               #   Monte Carlo ScenarioGenerator
-│   ├── distributed.py             #   ParallelGameRunner (multiprocessing)
-│   ├── hyperopt.py                #   BayesianOptimizer for config tuning
-│   ├── metrics.py                 #   MAE, RMSE, MAPE, PIT, CRPS, neg_crps, interval coverage
-│   ├── disturbances.py            #   10 disturbance models + factory
-│   ├── defenses.py                #   5 defense models + stacked combinator + factory
-│   ├── strategy_runtime.py        #   Runtime backends: Python, Prompt, ModelBackend
-│   ├── data.py                    #   Dataset loading, splitting, poisoning detection
-│   ├── data_utils.py              #   Caching, integrity validation, FredTrainingDataBuilder
-│   ├── observability.py           #   structlog + Prometheus instrumentation
-│   ├── verify.py                  #   9-check verification suite
-│   ├── validation_scenarios.py    #   24-scenario validation framework
-│   ├── data_sources/              #   Source adapter subpackage
-│   │   ├── base.py                #     NormalizedRecord + SourceAdapter protocol
-│   │   ├── macro_fred.py          #     FRED adapter (single + multi-series)
-│   │   ├── macro_imf.py           #     IMF World Economic Outlook adapter
-│   │   ├── prediction_polymarket.py #   Polymarket prediction market adapter
-│   │   ├── geopolitical_risk.py   #     GPR index adapter (synthetic proxy)
-│   │   ├── oecd_cli.py            #     OECD CLI adapter (synthetic proxy)
-│   │   └── bis_policy_rate.py     #     BIS policy rate adapter (synthetic proxy)
-│   └── llm/                       #   LLM integration subpackage
-│       ├── base.py                #     RefactorRequest/Suggestion protocols
-│       ├── mock.py                #     MockLLMRefactorClient
-│       ├── ollama.py              #     OllamaClient, DSPyLikeRepl, OllamaRefactorClient
-│       ├── ollama_interface.py    #     Full Ollama REST API wrapper
-│       └── refiner.py             #     RecursiveStrategyRefiner
-├── scripts/                       # CLI entry points
-│   ├── run_training.py            #   MARL training (Q / WoLF / RARL)
-│   ├── run_backtest.py            #   Walk-forward backtesting
-│   ├── run_verification.py        #   9-check verification
-│   ├── run_validation_scenarios.py #  24-scenario validation
-│   ├── run_test_suite.py          #   Extended test suite with reporting
-│   ├── run_container_test_harness.sh # Docker build + full test pipeline
-│   └── validate.sh                #   Minimal entrypoint (pytest + verify)
-├── tests/                         # Test suite
-│   ├── test_framework.py          #   70 unit/integration tests
-│   └── test_properties.py         #   21 Hypothesis property-based tests
-├── data/                          # Data artifacts
-│   ├── cache/                     #   Cached API responses (FRED, IMF, Polymarket)
-│   ├── models/                    #   Serialized Q-tables
-│   └── sample_demand.csv          #   Generated synthetic dataset
-├── results/                       # Generated reports and exported artifacts
-├── docs/                          # Detailed documentation
-├── PRD.md                         # Product requirements document
-├── DRD.md                         # Data requirements document
-├── Dockerfile                     # Container build
-└── requirements.txt               # Python dependencies
-```
-
-## Configuration Reference
-
-`SimulationConfig` controls the game engine. All fields have sensible defaults:
-
-| Field | Type | Default | Description |
-|---|---|---|---|
-| `horizon` | int | 100 | Target number of rounds |
-| `max_rounds` | int | 200 | Hard cap on rounds |
-| `max_round_timeout_s` | float | 1.0 | Per-round wall-clock timeout |
-| `base_noise_std` | float | 0.15 | Gaussian noise standard deviation |
-| `disturbance_prob` | float | 0.1 | Probability of disturbance per round |
-| `disturbance_scale` | float | 1.0 | Disturbance amplitude multiplier |
-| `adversarial_intensity` | float | 1.0 | Adversary aggressiveness scale |
-| `runtime_backend` | str | `"python"` | `python` or `prompt` |
-| `disturbance_model` | str | `"gaussian"` | Disturbance model name |
-| `defense_model` | str | `"dampening"` | Defense model name |
-| `enable_refactor` | bool | True | Enable refactoring agent |
-| `enable_llm_refactor` | bool | False | Use LLM for refactoring |
-| `attack_cost` | float | 0.0 | Cost penalty for adversary |
-| `convergence_threshold` | float | 0.0 | Rolling MAE threshold for early stop |
-| `adversary_tau_init` | float | 5.0 | Initial Boltzmann temperature (RARL bounded rationality) |
-| `adversary_tau_final` | float | 0.1 | Terminal Boltzmann temperature |
-| `tau_decay_rate` | float | 0.05 | Exponential decay rate for tau schedule |
-| `bankruptcy_threshold` | float | 0.01 | Kelly bankroll floor for agent pruning |
-| `wolfpack_correlation_threshold` | float | 0.7 | Pearson rho cutoff for wolfpack coalition |
-| `dynamics` | str | `"static"` | `static` or `evolutionary` strategy populations |
-| `population_size` | int | 20 | Evolutionary strategy pool size |
-| `evolution_rate` | float | 0.05 | Replicator-dynamics update rate |
-| `equilibrium_type` | str | `"nash"` | `nash`, `correlated`, or `bayesian` coordination mode |
-| `prior_alpha` | tuple[float, ...] | `(1.0, 1.0)` | Dirichlet prior for hidden-type beliefs |
-| `feedback_mode` | str | `"full"` | `full`, `bandit_uninformed`, or `bandit_informed` |
-| `bias_check` | bool | `True` | Enable LLM bias/signaling probes |
-| `signal_rounds` | int | 3 | Number of LLM signaling probe rounds |
-| `coalitions` | str | `"static"` | `static` or `dynamic` coalition topology |
-| `sabotage_prob` | float | 0.1 | Probability of sabotage-style forecast penalty |
-
-See [docs/configuration.md](docs/configuration.md) for `DataProfile`, runtime backends, and model name registries.
-
-## Data Ethics and Compliance
-
-- The framework only reads public APIs/sources listed in `DRD.md`.
-- Source records retain provenance (`source`, `fetched_at`) for auditability.
-- Ingestion includes outlier-based poisoning screening via `detect_poisoning_rows`.
-- Chronological splitting is enforced to prevent future data leakage.
-- API clients fail closed to synthetic proxies when endpoints are unreachable or credentials are unavailable.
-
-## Further Reading
-
-| Document | Description |
-|---|---|
-| [docs/architecture.md](docs/architecture.md) | System design, Markov game formulation, pure-functional principles |
-| [docs/agents.md](docs/agents.md) | All 8 agent types, registry pattern, wolfpack adversary, ensemble aggregation |
-| [docs/data-pipeline.md](docs/data-pipeline.md) | Source adapters, FRED integration, caching, poisoning detection |
-| [docs/training.md](docs/training.md) | Q-learning, WoLF-PHC, RARL with bounded rationality curriculum |
-| [docs/bayesian-aggregation.md](docs/bayesian-aggregation.md) | Kelly-Criterion BMA, bankruptcy pruning, probabilistic forecasts, backtesting |
-| [docs/disturbances-and-defenses.md](docs/disturbances-and-defenses.md) | 10 disturbance and 5 defense models |
-| [docs/validation.md](docs/validation.md) | 24 scenarios, 9 checks, property tests |
-| [docs/llm-integration.md](docs/llm-integration.md) | Ollama, DSPyLikeRepl, recursive strategy refinement |
-| [docs/configuration.md](docs/configuration.md) | SimulationConfig, DataProfile, model registries |
-| [docs/deployment.md](docs/deployment.md) | Docker, CI/CD, container harness, distributed execution |
-| [PRD.md](PRD.md) | Product requirements document |
-| [DRD.md](DRD.md) | Data requirements document |
-
-
-## MNPO
-
-See `docs/mnpo_integration.md` for Multiplayer Nash Preference Optimization integration details.
+1. Mint a Zenodo-backed release DOI and update the citation badge.
+2. Add classical and deep-learning baselines as optional benchmark backends.
+3. Expand fairness and subgroup robustness checks for synthetic and real data slices.

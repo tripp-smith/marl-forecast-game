@@ -1,0 +1,12 @@
+{
+  "seed": 42,
+  "rounds": 12,
+  "same_seed_hashes": [
+    "f84af6bd5af95a833c250c0c28e9839c737aedea449b32231cb7303cf468466d",
+    "f84af6bd5af95a833c250c0c28e9839c737aedea449b32231cb7303cf468466d",
+    "f84af6bd5af95a833c250c0c28e9839c737aedea449b32231cb7303cf468466d"
+  ],
+  "same_seed_identical": true,
+  "different_seed_hash": "09f759158ca38a8c35ac331024760306716e0761b94f7b2ad0391a18499359aa",
+  "different_seed_changes_trace": true
+}

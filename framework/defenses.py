@@ -13,6 +13,14 @@ class DefenseModel(Protocol):
 
 
 @dataclass(frozen=True)
+class IdentityDefense:
+    """No-op defense used for ablations and undefended baselines."""
+
+    def defend(self, forecast_delta: float, adversary_delta: float) -> float:
+        return 0.0
+
+
+@dataclass(frozen=True)
 class DampeningDefense:
     """Proportional dampening of the adversary delta with forecast bias correction."""
 
@@ -99,6 +107,8 @@ def defense_from_name(name: str) -> DefenseModel:
         parts = [p.strip() for p in models.split(",") if p.strip()]
         if len(parts) >= 2:
             return StackedDefense(defense_from_name(parts[0]), defense_from_name(parts[1]))
+    if normalized in {"identity", "none", "noop", "no_op"}:
+        return IdentityDefense()
     if normalized in {"dampening", "default"}:
         return DampeningDefense()
     if normalized in {"clipping", "clip"}:

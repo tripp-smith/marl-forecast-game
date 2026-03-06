@@ -1,0 +1,31 @@
+cff-version: 1.2.0
+title: marl-forecast-game
+message: "If you use this software in academic work, please cite the repository and the archived release."
+type: software
+authors:
+  - family-names: Smith
+    given-names: Tripp
+repository-code: https://github.com/tripp-smith/marl-forecast-game
+url: https://github.com/tripp-smith/marl-forecast-game
+license: Apache-2.0
+version: 0.1.0
+date-released: 2026-03-06
+abstract: >
+  marl-forecast-game is a reproducible framework for adversarial probabilistic forecasting
+  framed as a Markov game with forecasters, adversaries, and defenders.
+keywords:
+  - forecasting
+  - multi-agent reinforcement learning
+  - probabilistic forecasting
+  - robustness
+preferred-citation:
+  type: software
+  authors:
+    - family-names: Smith
+      given-names: Tripp
+  title: marl-forecast-game
+  version: 0.1.0
+  url: https://github.com/tripp-smith/marl-forecast-game
+  year: 2026
+notes: >
+  Add the Zenodo DOI to this file after the first archived release is minted.

@@ -1,0 +1,8 @@
+name: marl-forecast-game
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - pip
+  - pip:
+      - -e .[distributed,dev]

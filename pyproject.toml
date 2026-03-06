@@ -5,8 +5,29 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "marl-forecast-game"
 version = "0.1.0"
-description = "Multi-Agent Markov Games forecasting system with tabular MARL"
-requires-python = ">=3.10"
+description = "Research-grade multi-agent adversarial forecasting with Markov games, probabilistic scoring, and reproducible experiments"
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "Apache-2.0" }
+authors = [
+    { name = "Tripp Smith" },
+]
+keywords = [
+    "forecasting",
+    "multi-agent-reinforcement-learning",
+    "markov-games",
+    "probabilistic-forecasting",
+    "robustness",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
 dependencies = [
     "hypothesis==6.136.9",
     "numpy==1.26.4",
@@ -28,13 +49,25 @@ dependencies = [
     "psutil==6.1.0",
 ]
 
+[project.urls]
+Homepage = "https://github.com/tripp-smith/marl-forecast-game"
+Documentation = "https://github.com/tripp-smith/marl-forecast-game/tree/main/docs"
+Repository = "https://github.com/tripp-smith/marl-forecast-game"
+Issues = "https://github.com/tripp-smith/marl-forecast-game/issues"
+
 [project.optional-dependencies]
 distributed = [
     "ray[default]>=2.9,<3.0",
 ]
+dev = [
+    "mypy==1.11.2",
+    "pytest==8.3.3",
+    "pytest-cov==6.0.0",
+    "pytest-mock==3.14.0",
+]
 
 [tool.setuptools.packages.find]
-include = ["framework*", "ui*"]
+include = ["framework*", "marl_forecast_game*", "ui*"]
 
 [tool.pytest.ini_options]
 # addopts = "--cov=framework --cov-report=term-missing"
